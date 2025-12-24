@@ -28,6 +28,7 @@ replay_pid*
 
 # Log file
 *.log
+**/logs
 
 # BlueJ files
 *.ctxt
@@ -71,3 +72,4 @@ gradle-app.setting
 # JDT-specific (Eclipse Java Development Tools)
 .classpath
 
+.idea
