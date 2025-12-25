@@ -35,7 +35,7 @@ dependencies {
 	runtimeOnly("com.h2database:h2")
 
 	// StringDoc
-	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
+	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.14")
 
 	compileOnly("org.projectlombok:lombok")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
