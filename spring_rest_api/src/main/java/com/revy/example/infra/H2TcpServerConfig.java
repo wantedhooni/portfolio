@@ -20,7 +20,7 @@ public class H2TcpServerConfig {
         // -tcpAllowOthers: 외부에서 접근 허용 (로컬만이면 빼도 됨)
         // -ifNotExists: 없으면 생성
         return Server.createTcpServer(
-                "-tcp", "-tcpPort", "9092",
+                "-tcp", "-tcpPort", "13306",
                 "-tcpAllowOthers",
                 "-ifNotExists"
         );
