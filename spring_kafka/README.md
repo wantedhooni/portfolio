@@ -14,5 +14,14 @@ api-docs
 
 kafka 정보
 ---
-kafka UI
-- http://localhost:8090/
+
+- kafka UI
+  - http://localhost:8090/
+- kafka port
+  - localhost:9092
+
+Spring kafka 자료
+---
+https://spring.io/projects/spring-kafka
+https://github.com/spring-projects/spring-kafka/tree/main/samples
+
