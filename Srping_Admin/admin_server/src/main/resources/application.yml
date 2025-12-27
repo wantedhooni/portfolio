@@ -1,0 +1,15 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: spring-boot-admin-server
+#  security:
+#    user:
+#      name: ${ADMIN_SERVER_USERNAME}
+#      password: ${ADMIN_SERVER_PASSWORD}
+  boot:
+    admin:
+      ui:
+        poll-timer:
+          logfile: 30000
