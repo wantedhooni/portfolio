@@ -31,6 +31,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-security")
 	// https://mvnrepository.com/artifact/de.codecentric/spring-boot-admin-starter-server
 	implementation("de.codecentric:spring-boot-admin-starter-server:3.5.5")
+	implementation("org.projectlombok:lombok:1.18.42")
 }
 
 dependencyManagement {
