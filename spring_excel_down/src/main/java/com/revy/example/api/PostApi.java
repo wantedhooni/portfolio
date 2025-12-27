@@ -68,11 +68,4 @@ public class PostApi {
         response.setHeader("Content-Disposition", "attachment; filename=post_v2.xlsx");
         excelService.writeLargeExcelV2(response.getOutputStream());
     }
-
-    @GetMapping("/excel/large-download/v3")
-    public void downloadLargeExcelV3(HttpServletResponse response) throws IOException {
-        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-        response.setHeader("Content-Disposition", "attachment; filename=post_v3.xlsx");
-        excelService.writeLargeExcelV3(response.getOutputStream());
-    }
 }
