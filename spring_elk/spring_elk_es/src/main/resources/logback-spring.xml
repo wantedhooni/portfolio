@@ -33,12 +33,13 @@
     <!-- ===================== -->
     <!-- Elasticsearch Appender -->
     <!-- ===================== -->
-    <appender name="ELASTIC" class="com.internetitem.logback.elasticsearch.ElasticsearchAppender">
-
+    <appender name="ELASTIC" class="com.agido.logback.elasticsearch.ElasticsearchAppender">
         <!-- ES endpoint -->
         <url>http://localhost:9200/_bulk/</url>
         <!-- index -->
         <index>${APP_NAME}</index>
+
+
         <includeMdc>true</includeMdc>
         <maxQueueSize>10000</maxQueueSize>
         <maxRetries>3</maxRetries>
@@ -49,6 +50,14 @@
                 <value>application/json</value>
             </header>
         </headers>
+
+        <properties>
+            <property>
+                <name>message</name>
+                <value>%replace(%msg){'[\r\n]+', ' '}</value>
+            </property>
+        </properties>
+
     </appender>
 
     <!-- TRACE > DEBUG > INFO > WARN > ERROR > OFF -->
@@ -74,5 +83,12 @@
 
 
     </springProfile>
+
+    <logger name="es-error-logger" level="INFO" additivity="false">
+    </logger>
+
+    <logger name="es-logger" level="INFO" additivity="false">
+    </logger>
+
 
 </configuration>

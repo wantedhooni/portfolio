@@ -30,9 +30,8 @@ repositories {
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-web")
 
-	 // https://mvnrepository.com/artifact/com.internetitem/logback-elasticsearch-appender
-	implementation("com.internetitem:logback-elasticsearch-appender:1.6")
-
+	// https://mvnrepository.com/artifact/com.agido/logback-elasticsearch-appender
+	implementation("com.agido:logback-elasticsearch-appender:3.0.17")
 
 	/*
 	implementation("org.springframework.boot:spring-boot-starter-data-jdbc")

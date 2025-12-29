@@ -7,6 +7,7 @@ spring_elk 연습
 기존에 했듯이 로그를 ELK로 보내기 연습
 
 
+https://docs.spring.io/spring-boot/reference/features/logging.html#features.logging.structured.ecs
 
 
 
