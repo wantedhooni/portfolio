@@ -1,0 +1,8 @@
+### Send POST request with json body
+POST http://localhost:9200/_bulk
+Content-Type: application/json
+
+{
+  "id": 999,
+  "value": "content"
+}

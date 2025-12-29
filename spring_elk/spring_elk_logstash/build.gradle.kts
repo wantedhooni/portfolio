@@ -29,16 +29,21 @@ repositories {
 
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-web")
-	implementation("org.springframework.boot:spring-boot-h2console")
+	// https://mvnrepository.com/artifact/net.logstash.logback/logstash-logback-encoder
+	implementation("net.logstash.logback:logstash-logback-encoder:9.0")
+
+	/*
 	implementation("org.springframework.boot:spring-boot-starter-data-jdbc")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 
-	// kafka
-	implementation("org.springframework.boot:spring-boot-starter-kafka")
-
 	runtimeOnly("com.h2database:h2")
-	developmentOnly("org.springframework.boot:spring-boot-devtools")
+	implementation("org.springframework.boot:spring-boot-h2console")
+	// logging 테스트 할려니 미리 뛰워 두어야 한다.
 	developmentOnly("org.springframework.boot:spring-boot-docker-compose")
+	*/
+
+	developmentOnly("org.springframework.boot:spring-boot-devtools")
+
 
 	compileOnly("org.projectlombok:lombok")
 	annotationProcessor("org.projectlombok:lombok")
@@ -56,6 +61,8 @@ dependencies {
 
 dependencyManagement {
 }
+
+tasks.register("prepareKotlinBuildScriptModel"){}
 
 hibernate {
 	enhancement {
