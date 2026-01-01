@@ -1,13 +1,12 @@
+
 jwt:
   secret: "6082ff86d0ed168624d71b757031f7c49ab8929cdb5830dd59e6da887761005cdaabb13b3369751fa0dc194f6a6c49a5ea74d3332ef2f21fd806cf57426d9e51"
   access-token-expiration: 1800_000
   refresh-token-expiration: 1209600_000
 
-application:
-  redis:
-    host: localhost
-    port: 6379
-    password: redis1234
+logging:
+  level:
+    com.revy.*: DEBUG
 
 spring:
   h2:
@@ -35,6 +34,15 @@ spring:
   sql:
     init:
       mode: always
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: "redis1234"
+      repositories:
+        enabled: false
+
 springdoc:
   api-docs:
     path: /api-docs

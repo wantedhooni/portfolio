@@ -1,7 +1,7 @@
-package com.revy.authapp.security.impl;
+package com.revy.authapp.security.provider.impl;
 
 import com.revy.authapp.domain.user.User;
-import com.revy.authapp.security.JwtTokenProvider;
+import com.revy.authapp.security.provider.JwtTokenProvider;
 import com.revy.authapp.security.config.JwtProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

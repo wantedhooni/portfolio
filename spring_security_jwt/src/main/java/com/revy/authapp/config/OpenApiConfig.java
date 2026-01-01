@@ -1,4 +1,4 @@
-package com.revy.authapp.app.infra;
+package com.revy.authapp.config;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;

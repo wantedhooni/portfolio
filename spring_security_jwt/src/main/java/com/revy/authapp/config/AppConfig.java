@@ -1,4 +1,4 @@
-package com.revy.authapp.app.infra;
+package com.revy.authapp.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

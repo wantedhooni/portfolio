@@ -1,4 +1,4 @@
-package com.revy.authapp.app.init;
+package com.revy.authapp.init.init;
 
 import com.revy.authapp.domain.user.Authority;
 import com.revy.authapp.domain.user.Role;
