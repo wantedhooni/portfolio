@@ -1,0 +1,38 @@
+#version: "3.9"
+services:
+  mariadb-primary:
+    image: mariadb:12.1.2-ubi10
+    container_name: mariadb-primary
+    restart: always
+    environment:
+      MARIADB_ROOT_PASSWORD: rootpass
+    volumes:
+      - primary-data:/var/lib/mysql
+      - ./primary/my.cnf:/etc/mysql/conf.d/my.cnf
+    ports:
+      - "23306:3306"
+    networks:
+      - mariadb-net
+
+  mariadb-secondary:
+    image: mariadb:12.1.2-ubi10
+    container_name: mariadb-secondary
+    restart: always
+    environment:
+      MARIADB_ROOT_PASSWORD: rootpass
+    volumes:
+      - secondary-data:/var/lib/mysql
+      - ./secondary/my.cnf:/etc/mysql/conf.d/my.cnf
+    ports:
+      - "33306:3306"
+    depends_on:
+      - mariadb-primary
+    networks:
+      - mariadb-net
+
+volumes:
+  primary-data:
+  secondary-data:
+
+networks:
+  mariadb-net:
