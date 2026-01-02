@@ -1,17 +1,20 @@
 # spring_security_jwt
 Spring boot JWT 연습
 
-
-note
+잡담
 ---
 아 Req/Res <-> command / result
 강결함도 싫고, 
 리플랙션 기반 mapper 사용하기도 싫다.
 좋은 방법이 없을까?
 레이어별 형변환 지옥인데
-
 이름 머하지?
 
+todo
+---
+- [ ] accessToken DB 테이블로도 관리해볼까?
+
+기록
 ```
 jwt:
   # MAC 기준  
@@ -36,6 +39,9 @@ Redis 정보
 
 api-docs
 ---
-- http://localhost:8080/api-docs
 - http://localhost:8080/swagger-ui.html
+- http://localhost:8080/v3/api-docs
+![img.png](img/img.png)
+
+
 
