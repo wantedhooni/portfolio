@@ -2,20 +2,26 @@ package com.revy.authapp.web.controller.api.user;
 
 import com.revy.authapp.security.UserPrincipal;
 import com.revy.authapp.web.controller.payload.DefaultPayload;
+import com.revy.authapp.web.controller.payload.UserProfilePayload;
 import com.revy.authapp.web.service.AuthService;
+import com.revy.authapp.web.service.UserService;
+import com.revy.authapp.web.service.dto.UserInfoResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/user")
 @RequiredArgsConstructor
@@ -23,7 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserApi {
 
     private final AuthService authService;
-
+    private final UserService userService;
     /**
      * 로그아웃을 처리한다.
      *
@@ -51,15 +57,16 @@ public class UserApi {
         return ResponseEntity.ok(new DefaultPayload.Res("회원 탈퇴가 완료되었습니다."));
     }
 
-//    /**
-//     * 로그인한 사용자 요약 정보를 조회한다.
-//     *
-//     * @param principal 인증 사용자
-//     * @return 사용자 요약 정보
-//     */
-//    @GetMapping("/me")
-//    @Operation(summary = "내 정보 조회")
-//    public ResponseEntity<UserSummaryResponse> me(@AuthenticationPrincipal UserPrincipal principal) {
-//        return ResponseEntity.ok(authService.getSummary(principal.getUsername()));
-//    }
+    /**
+     * 로그인한 사용자 요약 정보를 조회한다.
+     *
+     * @param principal 인증 사용자
+     * @return 사용자 요약 정보
+     */
+    @GetMapping("/me")
+    @Operation(summary = "내 정보 조회")
+    public ResponseEntity<UserProfilePayload.Res> me(@AuthenticationPrincipal UserPrincipal principal) {
+        UserInfoResult result = userService.getUserInfo(principal.getId());
+        return ResponseEntity.ok(UserProfilePayload.Res.from(result));
+    }
 }
