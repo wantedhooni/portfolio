@@ -1,6 +1,7 @@
 package com.revy.authapp.domain.user;
 
 import com.revy.authapp.domain.common.BaseEntity;
+import io.jsonwebtoken.lang.Assert;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
@@ -61,5 +62,10 @@ public class User extends BaseEntity<Long> {
 
     public void addRole(Role role) {
         roles.add(role);
+    }
+
+    public void withdraw(){
+        Assert.isTrue(this.status == UserStatus.ACTIVE, "회원 상태는 ACTIVE 상태여야 합니다.");
+        this.status =  UserStatus.WITHDRAWN;
     }
 }

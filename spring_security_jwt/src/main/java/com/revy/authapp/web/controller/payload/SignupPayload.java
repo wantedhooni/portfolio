@@ -1,4 +1,4 @@
-package com.revy.authapp.web.api.payload;
+package com.revy.authapp.web.controller.payload;
 
 import com.revy.authapp.web.service.dto.SignupCommand;
 import jakarta.validation.constraints.Email;

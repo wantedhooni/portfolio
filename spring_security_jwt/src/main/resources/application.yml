@@ -43,6 +43,26 @@ spring:
       repositories:
         enabled: false
 
+  ## dev-tools 설정
+  devtools:
+    restart:
+      enabled: false             # 자동 재시작 활성
+      trigger-file: .reloadtrigger  # 트리거 파일 기반 변경 감지
+      additional-paths:         # 추가 감지 경로
+        - src/main/java
+        - src/main/resources
+      exclude:                  # 재시작 제외
+        - static/**
+        - public/**
+    livereload:
+      enabled: true             # LiveReload 활성
+
+  thymeleaf:
+    cache: false                # 템플릿 캐시 비활성
+
+  freemarker:
+    cache: false
+
 springdoc:
   api-docs:
     path: /api-docs
@@ -51,3 +71,6 @@ springdoc:
     display-request-duration: true
     operationsSorter: method
     tagsSorter: alpha
+
+
+

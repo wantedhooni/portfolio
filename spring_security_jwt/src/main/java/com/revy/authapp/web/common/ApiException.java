@@ -1,4 +1,4 @@
-package com.revy.authapp.web.api.common;
+package com.revy.authapp.web.common;
 
 /**
  * 에러 코드 기반 예외를 정의한다.
@@ -14,6 +14,11 @@ public class ApiException extends RuntimeException {
      */
     public ApiException(ErrorCode errorCode) {
         super(errorCode.getMessage());
+        this.errorCode = errorCode;
+    }
+
+    public ApiException(ErrorCode errorCode, String message) {
+        super(message);
         this.errorCode = errorCode;
     }
 

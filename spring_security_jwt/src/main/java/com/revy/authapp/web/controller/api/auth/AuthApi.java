@@ -1,7 +1,8 @@
-package com.revy.authapp.web.api;
+package com.revy.authapp.web.controller.api.auth;
 
-import com.revy.authapp.web.api.payload.LoginPayload;
-import com.revy.authapp.web.api.payload.SignupPayload;
+import com.revy.authapp.web.controller.payload.LoginPayload;
+import com.revy.authapp.web.controller.payload.SignupPayload;
+import com.revy.authapp.web.controller.payload.TokenReissuePayload;
 import com.revy.authapp.web.service.AuthService;
 import com.revy.authapp.web.service.dto.LoginResult;
 import io.swagger.v3.oas.annotations.Operation;
@@ -20,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-@Tag(name = "인증 API", description = "회원가입/로그인/로그아웃/토큰 재발급/회원탈퇴")
+@Tag(name = "인증 API", description = "회원가입/로그인/토큰 재발급/회원탈퇴")
 public class AuthApi {
 
     private final AuthService authService;
@@ -38,7 +39,6 @@ public class AuthApi {
         return ResponseEntity.ok(new SignupPayload.Res(userId, "회원가입이 완료되었습니다."));
     }
 
-
     /**
      * 로그인과 토큰 발급을 처리한다.
      *
@@ -52,4 +52,16 @@ public class AuthApi {
         return ResponseEntity.ok(LoginPayload.Res.from(result));
     }
 
+    /**
+     * 토큰 재발급을 처리한다.
+     *
+     * @param req 재발급 요청
+     * @return 토큰 응답
+     */
+    @PostMapping("/reissue")
+    @Operation(summary = "토큰 재발급")
+    public ResponseEntity<TokenReissuePayload.Res> reissue(@Valid @RequestBody TokenReissuePayload.Req req) {
+        LoginResult result = authService.reissue(req.refreshToken());
+        return ResponseEntity.ok(TokenReissuePayload.Res.from(result));
+    }
 }

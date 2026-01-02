@@ -1,4 +1,4 @@
-package com.revy.authapp.web.api.payload;
+package com.revy.authapp.web.controller.payload;
 
 import com.revy.authapp.web.service.dto.LoginCommand;
 import com.revy.authapp.web.service.dto.LoginResult;
@@ -25,11 +25,14 @@ public class LoginPayload {
     }
 
     public record Res(
+            String tokenType,
             String accessToken,
             String refreshToken
+
     ) {
         public static Res from(LoginResult result) {
             return new Res(
+                    result.getTokenType(),
                     result.getAccessToken(),
                     result.getRefreshToken()
             );

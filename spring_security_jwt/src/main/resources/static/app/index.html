@@ -57,17 +57,6 @@
             font-weight: 600;
             cursor: pointer;
         }
-        button.secondary {
-            background: #e0e0e0;
-            color: #333;
-        }
-        .token-box {
-            background: #f1f3ff;
-            border-radius: 8px;
-            padding: 12px;
-            font-size: 12px;
-            word-break: break-all;
-        }
         .status {
             margin-top: 8px;
             font-size: 14px;
@@ -114,53 +103,57 @@
     const { useState } = React;
 
     /**
-     * 인증 기능을 시각화하는 UI 컴포넌트.
+     * 회원가입/로그인 화면을 제공하는 UI 컴포넌트.
      */
     function App() {
-        const [accessToken, setAccessToken] = useState('');
-        const [refreshToken, setRefreshToken] = useState('');
         const [message, setMessage] = useState('');
-        const [dialog, setDialog] = useState({
+        const [modal, setModal] = useState({
             open: false,
             title: '',
             message: '',
             code: '',
+            status: '',
         });
 
         /**
          * 공통 API 요청을 수행한다.
          */
-        const request = async (url, method, body, authToken) => {
+        const request = async (url, method, body) => {
             const headers = { 'Content-Type': 'application/json' };
-            if (authToken) {
-                headers['Authorization'] = `Bearer ${authToken}`;
-            }
             const response = await fetch(url, {
                 method,
                 headers,
                 body: body ? JSON.stringify(body) : undefined,
             });
-            const data = await response.json();
+            const contentType = response.headers.get('content-type') || '';
+            let data = null;
+            if (contentType.includes('application/json')) {
+                data = await response.json();
+            } else {
+                const text = await response.text();
+                data = text ? { message: text } : null;
+            }
             return { ok: response.ok, data, status: response.status };
         };
 
         /**
-         * 다이얼로그를 노출한다.
+         * 모달을 노출한다.
          */
-        const showDialog = (title, messageText, code) => {
-            setDialog({
+        const showModal = (title, messageText, code, status) => {
+            setModal({
                 open: true,
                 title,
                 message: messageText,
                 code,
+                status,
             });
         };
 
         /**
-         * 다이얼로그를 닫는다.
+         * 모달을 닫는다.
          */
-        const closeDialog = () => {
-            setDialog({ open: false, title: '', message: '', code: '' });
+        const closeModal = () => {
+            setModal({ open: false, title: '', message: '', code: '', status: '' });
         };
 
         /**
@@ -179,9 +172,20 @@
             const result = await request('/api/auth/signup', 'POST', payload);
             if (result.ok) {
                 setMessage(result.data.message);
-                showDialog('회원가입 성공', result.data.message, 'SUCCESS');
+                localStorage.setItem('profile', JSON.stringify({
+                    email: payload.email,
+                    name: payload.name,
+                    phone: payload.phone,
+                    address: payload.address,
+                }));
+                showModal('회원가입 성공', result.data.message, 'SUCCESS', result.status);
             } else {
-                showDialog('회원가입 실패', result.data.message || '회원가입 실패', result.data.code || 'UNKNOWN');
+                showModal(
+                    '회원가입 실패',
+                    (result.data && result.data.message) || '회원가입 실패',
+                    (result.data && result.data.code) || 'UNKNOWN',
+                    result.status
+                );
             }
         };
 
@@ -197,57 +201,26 @@
             };
             const result = await request('/api/auth/login', 'POST', payload);
             if (result.ok) {
-                setAccessToken(result.data.accessToken);
-                setRefreshToken(result.data.refreshToken);
+                localStorage.setItem('accessToken', result.data.accessToken);
+                localStorage.setItem('refreshToken', result.data.refreshToken);
+                const profile = JSON.parse(localStorage.getItem('profile') || '{}');
+                localStorage.setItem('profile', JSON.stringify({
+                    ...profile,
+                    email: payload.email,
+                }));
                 setMessage('로그인 성공');
-                showDialog('로그인 성공', '로그인에 성공했습니다.', 'SUCCESS');
+                showModal('로그인 성공', '로그인에 성공했습니다.', 'SUCCESS', result.status);
+                setTimeout(() => {
+                    window.location.href = './home.html';
+                }, 400);
             } else {
                 setMessage('로그인 실패');
-                showDialog('로그인 실패', result.data.message || '로그인 실패', result.data.code || 'UNKNOWN');
-            }
-        };
-
-        /**
-         * 토큰 재발급 요청을 처리한다.
-         */
-        const handleReissue = async () => {
-            const result = await request('/api/auth/reissue', 'POST', { refreshToken });
-            if (result.ok) {
-                setAccessToken(result.data.accessToken);
-                setRefreshToken(result.data.refreshToken);
-                setMessage('토큰 재발급 성공');
-                showDialog('토큰 재발급 성공', '토큰 재발급이 완료되었습니다.', 'SUCCESS');
-            } else {
-                setMessage('토큰 재발급 실패');
-                showDialog('토큰 재발급 실패', result.data.message || '토큰 재발급 실패', result.data.code || 'UNKNOWN');
-            }
-        };
-
-        /**
-         * 로그아웃 요청을 처리한다.
-         */
-        const handleLogout = async () => {
-            const result = await request('/api/auth/logout', 'POST', null, accessToken);
-            if (result.ok) {
-                setMessage(result.data.message);
-                showDialog('로그아웃 성공', result.data.message, 'SUCCESS');
-            } else {
-                setMessage('로그아웃 실패');
-                showDialog('로그아웃 실패', result.data.message || '로그아웃 실패', result.data.code || 'UNKNOWN');
-            }
-        };
-
-        /**
-         * 회원탈퇴 요청을 처리한다.
-         */
-        const handleWithdraw = async () => {
-            const result = await request('/api/auth/withdraw', 'DELETE', null, accessToken);
-            if (result.ok) {
-                setMessage(result.data.message);
-                showDialog('회원탈퇴 성공', result.data.message, 'SUCCESS');
-            } else {
-                setMessage('회원탈퇴 실패');
-                showDialog('회원탈퇴 실패', result.data.message || '회원탈퇴 실패', result.data.code || 'UNKNOWN');
+                showModal(
+                    '로그인 실패',
+                    (result.data && result.data.message) || '로그인 실패',
+                    (result.data && result.data.code) || 'UNKNOWN',
+                    result.status
+                );
             }
         };
 
@@ -284,33 +257,18 @@
                                 <input name="loginPassword" type="password" required />
                                 <button type="submit">로그인</button>
                             </form>
-                            <div style={{ marginTop: '16px' }}>
-                                <button className="secondary" onClick={handleReissue}>토큰 재발급</button>
-                                <button className="secondary" onClick={handleLogout} style={{ marginLeft: '8px' }}>로그아웃</button>
-                                <button className="secondary" onClick={handleWithdraw} style={{ marginLeft: '8px' }}>회원탈퇴</button>
-                            </div>
+                            <div className="status">{message}</div>
                         </div>
-                    </div>
-                    <div className="card">
-                        <h2>현재 토큰</h2>
-                        <div className="token-box">
-                            <strong>AccessToken</strong>
-                            <div>{accessToken || '없음'}</div>
-                        </div>
-                        <div className="token-box" style={{ marginTop: '12px' }}>
-                            <strong>RefreshToken</strong>
-                            <div>{refreshToken || '없음'}</div>
-                        </div>
-                        <div className="status">{message}</div>
                     </div>
                 </main>
-                {dialog.open && (
-                    <div className="dialog-backdrop" onClick={closeDialog}>
+                {modal.open && (
+                    <div className="dialog-backdrop" onClick={closeModal}>
                         <div className="dialog" onClick={(event) => event.stopPropagation()}>
-                            <h3>{dialog.title}</h3>
-                            <div className="code">에러 코드: {dialog.code}</div>
-                            <p>{dialog.message}</p>
-                            <button type="button" onClick={closeDialog}>닫기</button>
+                            <h3>{modal.title}</h3>
+                            <div className="code">응답 코드: {modal.code}</div>
+                            <div className="code">HTTP 상태: {modal.status}</div>
+                            <p>{modal.message}</p>
+                            <button type="button" onClick={closeModal}>닫기</button>
                         </div>
                     </div>
                 )}

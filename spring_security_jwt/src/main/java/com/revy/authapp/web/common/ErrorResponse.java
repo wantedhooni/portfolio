@@ -1,4 +1,4 @@
-package com.revy.authapp.web.api.common;
+package com.revy.authapp.web.common;
 
 /**
  * 에러 응답 정보를 전달한다.

@@ -32,9 +32,10 @@ public class SecurityConfig {
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api-docs/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
+                        .requestMatchers("/api-docs/**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
-                        .requestMatchers("/api/auth/**", "/index.html").permitAll()
+                        .requestMatchers( "/app/index.html").permitAll()
+                        .requestMatchers("/api/auth/**").permitAll()
                         .anyRequest()
                         .authenticated())
                 .httpBasic(AbstractHttpConfigurer::disable)

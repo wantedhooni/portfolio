@@ -1,4 +1,4 @@
-package com.revy.authapp.web.api.common;
+package com.revy.authapp.web.common;
 
 /**
  * 예외 코드 목록을 정의한다.
