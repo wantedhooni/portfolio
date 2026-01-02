@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-@Tag(name = "인증 API", description = "회원가입/로그인/토큰 재발급/회원탈퇴")
+@Tag(name = "인증 API", description = "회원가입/로그인/토큰 재발급")
 public class AuthApi {
 
     private final AuthService authService;
@@ -58,8 +58,8 @@ public class AuthApi {
      * @param req 재발급 요청
      * @return 토큰 응답
      */
-    @PostMapping("/reissue")
     @Operation(summary = "토큰 재발급")
+    @PostMapping("/reissue")
     public ResponseEntity<TokenReissuePayload.Res> reissue(@Valid @RequestBody TokenReissuePayload.Req req) {
         LoginResult result = authService.reissue(req.refreshToken());
         return ResponseEntity.ok(TokenReissuePayload.Res.from(result));

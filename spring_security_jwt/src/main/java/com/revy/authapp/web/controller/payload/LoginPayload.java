@@ -2,10 +2,13 @@ package com.revy.authapp.web.controller.payload;
 
 import com.revy.authapp.web.service.dto.LoginCommand;
 import com.revy.authapp.web.service.dto.LoginResult;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
 public class LoginPayload {
+
+    @Schema
     public record Req(
             @Email
             @NotBlank

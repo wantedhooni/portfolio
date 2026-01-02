@@ -64,6 +64,7 @@ spring:
     cache: false
 
 springdoc:
+  use-fqn: true
   api-docs:
     path: /api-docs
   swagger-ui:
