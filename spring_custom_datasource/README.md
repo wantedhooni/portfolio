@@ -1,6 +1,6 @@
 # Spring DataSource 샘픔
 
-프로파일별 
+## 프로파일별 
 - H2
 - Mariadb
 - Mariadb-replica (Read / Write 라우팅)
@@ -8,12 +8,20 @@
 - - readonly이면 secondary로 쿼리
 ---
 
-프로파일 정보
---- 
-default: h2
-h2 -> h2db 사용
-mariadb -> mariadb primary 사용
-mariadb_repl -> primary / secondary 사용
+## 프로파일 정보
+ 
+- default: h2
+- h2 -> h2db 사용
+- mariadb -> mariadb primary 사용
+- mariadb_repl -> primary / secondary 사용
+
+### TODO 
+- 인프라 레이어에서 쿼리 프록시서버를 적용 해보자
+- - 개인적으로 소스 단위에서 라우팅 치는거는 좋지 않은거 같다.
+- - 유지보수 면에서 좋지 않음(순정이 최고다.)
+- [ ] MariaDB MaxScale
+- [ ] ProxySQL
+
 
 
 ## 접속 URL: http://localhost:8080/posts
