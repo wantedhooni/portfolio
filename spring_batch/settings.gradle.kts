@@ -5,3 +5,4 @@ pluginManagement {
 	}
 }
 rootProject.name = "spring_batch"
+include(":sample_batch", ":sample_quartz");

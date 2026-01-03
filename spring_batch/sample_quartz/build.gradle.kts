@@ -2,7 +2,8 @@ plugins {
 	java
 	id("org.springframework.boot") version "4.0.1"
 	id("io.spring.dependency-management") version "1.1.7"
-	 id("org.hibernate.orm") version "7.1.11.Final"
+	id("org.hibernate.orm") version "7.1.11.Final"
+	
 }
 
 group = "com.revy"
@@ -25,24 +26,25 @@ repositories {
 	maven { url = uri("https://repo.spring.io/snapshot") }
 }
 
-
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-web")
-	implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
-	implementation("org.springframework.boot:spring-boot-starter-validation")
+	implementation("org.springframework.boot:spring-boot-starter-quartz")
+
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-jdbc")
-	implementation("com.h2database:h2")
+	runtimeOnly("com.h2database:h2")
 	// https://mvnrepository.com/artifact/org.mariadb.jdbc/mariadb-java-client
-	implementation("org.mariadb.jdbc:mariadb-java-client:3.5.7")
+	runtimeOnly("org.mariadb.jdbc:mariadb-java-client:3.5.7")
 
 	compileOnly("org.projectlombok:lombok")
 	annotationProcessor("org.projectlombok:lombok")
 
-	developmentOnly("org.springframework.boot:spring-boot-devtools")
+	val querydslVersion = "5.1.0"
+	implementation("com.querydsl:querydsl-jpa:$querydslVersion:jakarta")
+	annotationProcessor("com.querydsl:querydsl-apt:$querydslVersion:jakarta")
 
-	testImplementation("org.springframework.boot:spring-boot-starter-test")
-	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+//	testImplementation("org.springframework.boot:spring-boot-starter-test")
+//	testImplementation("org.springframework.batch:spring-batch-test")
 }
 
 dependencyManagement {
