@@ -1,0 +1,5 @@
+bulk:
+  output:
+    s3-bucket: "my-export-bucket"
+    s3-prefix: "exports"
+    s3-part-size-mb: 10
