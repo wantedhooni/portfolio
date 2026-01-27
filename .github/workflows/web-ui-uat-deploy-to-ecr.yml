@@ -1,10 +1,10 @@
-name: Build & Push to ECR + Deploy to ECS (manual)
+name: Build & Push to ECR + Deploy to ECS (manual, CLI)
 
 on:
   workflow_dispatch:
     inputs:
       image_tag:
-        description: "Optional extra tag. If empty, uses pkg name+version."
+        description: "Optional tag override (e.g. hotfix-1). Empty = pkg name+version"
         required: false
         default: ""
 
@@ -57,8 +57,9 @@ jobs:
           docker push "${ECR_REGISTRY}/${ECR_REPOSITORY}:latest"
 
           echo "image_uri=$IMAGE_URI" >> "$GITHUB_OUTPUT"
+          echo "IMAGE_URI=$IMAGE_URI" >> "$GITHUB_ENV"
 
-      # PRIMARY taskDefinition ARN 조회
+      # 1) PRIMARY taskDefinition ARN 조회 (네 케이스: deployments[].taskDefinition)
       - name: Get PRIMARY task definition ARN from service
         id: get_td
         env:
@@ -66,6 +67,7 @@ jobs:
           SERVICE: ${{ secrets.ECS_SERVICE_NAME }}
         run: |
           set -euo pipefail
+
           TD_ARN=$(aws ecs describe-services \
             --cluster "$CLUSTER" \
             --services "$SERVICE" \
@@ -78,53 +80,101 @@ jobs:
             exit 1
           fi
 
-          echo "TASK_DEF=$TD_ARN" >> "$GITHUB_ENV"
-          echo "TD_ARN=$TD_ARN"
+          echo "BASE_TASK_DEF_ARN=$TD_ARN" >> "$GITHUB_ENV"
+          echo "BASE_TASK_DEF_ARN=$TD_ARN"
 
-      # Task Definition JSON 덤프 + sanitize (항상 workspace 루트에 생성)
-      - name: Download task definition JSON (sanitized)
+      # 2) 기존 task definition 내려받기 (taskDefinition만)
+      - name: Download base task definition JSON
         run: |
           set -euo pipefail
-
           aws ecs describe-task-definition \
-            --task-definition "$TASK_DEF" \
+            --task-definition "$BASE_TASK_DEF_ARN" \
             --query "taskDefinition" \
-            --output json > "$GITHUB_WORKSPACE/taskdef.raw.json"
+            --output json > "$GITHUB_WORKSPACE/taskdef.base.json"
 
-          jq 'del(
-                .taskDefinitionArn,
-                .revision,
-                .status,
-                .requiresAttributes,
-                .compatibilities,
-                .registeredAt,
-                .registeredBy
-              )' "$GITHUB_WORKSPACE/taskdef.raw.json" > "$GITHUB_WORKSPACE/taskdef.json"
+          echo "Downloaded: taskdef.base.json"
+          ls -al "$GITHUB_WORKSPACE/taskdef.base.json"
 
-          echo "Generated: $GITHUB_WORKSPACE/taskdef.json"
-          ls -al "$GITHUB_WORKSPACE/taskdef.json"
-
-      # (선택) 컨테이너 이름 검증 로그
-      - name: Debug container names (validate ECS_CONTAINER_NAME)
+      # 3) container-name 검증 (secret 값이 실제로 존재하는지)
+      - name: Validate ECS_CONTAINER_NAME exists
         run: |
           set -euo pipefail
           echo "ECS_CONTAINER_NAME=${{ secrets.ECS_CONTAINER_NAME }}"
-          echo "Available container names:"
-          jq -r '.containerDefinitions[].name' "$GITHUB_WORKSPACE/taskdef.json"
+          echo "Available containers:"
+          jq -r '.containerDefinitions[].name' "$GITHUB_WORKSPACE/taskdef.base.json"
+          jq -e --arg CN "${{ secrets.ECS_CONTAINER_NAME }}" \
+            '.containerDefinitions[].name | select(. == $CN)' \
+            "$GITHUB_WORKSPACE/taskdef.base.json" > /dev/null
 
-      # ✅ ECS_CONTAINER_NAME 사용
-      - name: Render ECS task definition (inject new image)
-        id: render_task_def
-        uses: aws-actions/amazon-ecs-render-task-definition@v1
-        with:
-          task-definition: ${{ github.workspace }}/taskdef.json
-          container-name: ${{ secrets.ECS_CONTAINER_NAME }}
-          image: ${{ steps.build_image.outputs.image_uri }}
+      # 4) 이미지 치환 + register에 불필요한 키 제거(sanitize)
+      - name: Create task definition for registration (inject image + sanitize)
+        id: make_td
+        env:
+          CONTAINER_NAME: ${{ secrets.ECS_CONTAINER_NAME }}
+          NEW_IMAGE: ${{ steps.build_image.outputs.image_uri }}
+        run: |
+          set -euo pipefail
 
-      - name: Deploy to Amazon ECS service
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-        with:
-          task-definition: ${{ steps.render_task_def.outputs.task-definition }}
-          service: ${{ secrets.ECS_SERVICE_NAME }}
-          cluster: ${{ secrets.ECS_CLUSTER_NAME }}
-          wait-for-service-stability: true
+          # 4-1) 이미지 치환
+          jq --arg CN "$CONTAINER_NAME" --arg IMG "$NEW_IMAGE" '
+            .containerDefinitions = (
+              .containerDefinitions
+              | map(if .name == $CN then (.image = $IMG) else . end)
+            )
+          ' "$GITHUB_WORKSPACE/taskdef.base.json" > "$GITHUB_WORKSPACE/taskdef.injected.json"
+
+          # 4-2) register-task-definition에서 거부되는/불필요한 읽기전용 필드 제거
+          # (안전하게 key를 광범위하게 제거 + enableFaultInjection도 전역 제거)
+          jq '
+            del(
+              .taskDefinitionArn,
+              .revision,
+              .status,
+              .requiresAttributes,
+              .compatibilities,
+              .registeredAt,
+              .registeredBy
+            )
+            | del(.. | .enableFaultInjection?)
+          ' "$GITHUB_WORKSPACE/taskdef.injected.json" > "$GITHUB_WORKSPACE/taskdef.register.json"
+
+          echo "Prepared: taskdef.register.json"
+          ls -al "$GITHUB_WORKSPACE/taskdef.register.json"
+
+      # 5) 새 task definition revision 등록
+      - name: Register new task definition (CLI)
+        id: register_td
+        run: |
+          set -euo pipefail
+          NEW_TD_ARN=$(aws ecs register-task-definition \
+            --cli-input-json "file://$GITHUB_WORKSPACE/taskdef.register.json" \
+            --query "taskDefinition.taskDefinitionArn" \
+            --output text)
+
+          echo "NEW_TASK_DEF_ARN=$NEW_TD_ARN" >> "$GITHUB_ENV"
+          echo "NEW_TASK_DEF_ARN=$NEW_TD_ARN"
+          echo "new_task_def_arn=$NEW_TD_ARN" >> "$GITHUB_OUTPUT"
+
+      # 6) 서비스 업데이트 (새 revision으로)
+      - name: Update ECS service to new task definition (CLI)
+        env:
+          CLUSTER: ${{ secrets.ECS_CLUSTER_NAME }}
+          SERVICE: ${{ secrets.ECS_SERVICE_NAME }}
+        run: |
+          set -euo pipefail
+          aws ecs update-service \
+            --cluster "$CLUSTER" \
+            --service "$SERVICE" \
+            --task-definition "$NEW_TASK_DEF_ARN" \
+            --force-new-deployment
+
+      # 7) 안정화 대기
+      - name: Wait for service stability
+        env:
+          CLUSTER: ${{ secrets.ECS_CLUSTER_NAME }}
+          SERVICE: ${{ secrets.ECS_SERVICE_NAME }}
+        run: |
+          set -euo pipefail
+          aws ecs wait services-stable \
+            --cluster "$CLUSTER" \
+            --services "$SERVICE"
