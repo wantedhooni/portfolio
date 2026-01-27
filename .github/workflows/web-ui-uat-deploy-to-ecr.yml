@@ -44,6 +44,7 @@ jobs:
           SHA_TAG: ${{ github.sha }}
           EXTRA_TAG: ${{ inputs.image_tag }}
         run: |
+          git branch --show-current
           pwd
           cd web-ui
           pwd
@@ -59,6 +60,7 @@ jobs:
           echo "safe_name=$SAFE_NAME"
           echo "safe_version=$SAFE_VERSION"
           echo "$IMAGE_TAG"
+          echo "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
           
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
