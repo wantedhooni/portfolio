@@ -82,6 +82,15 @@ jobs:
           echo "task_def_arn=$TD_ARN" >> "$GITHUB_OUTPUT"
           echo "TASK_DEF=$TD_ARN" >> "$GITHUB_ENV"
       
+      - name: Debug container names in taskdef.json
+        run: |
+          set -euo pipefail
+          echo "=== containerDefinitions[].name from taskdef.json ==="
+          jq -r '.containerDefinitions[].name' taskdef.json
+
+          echo "=== full containerDefinitions (name, image) ==="
+          jq -r '.containerDefinitions[] | "\(.name) -> \(.image)"' taskdef.json
+
       # 2) 해당 Task Definition을 내려받아 register 가능한 형태로 정리(sanitize)
       - name: Download task definition JSON (sanitized)
         run: |
