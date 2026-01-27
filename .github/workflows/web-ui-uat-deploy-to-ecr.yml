@@ -54,12 +54,11 @@ jobs:
           # Docker tag 안전하게 정규화: 소문자, @ 제거, / -> -, 공백 제거
           SAFE_NAME=$(echo "$NAME" | tr '[:upper:]' '[:lower:]' | sed 's/@//g' | sed 's/\//-/g' | tr -d ' ')
           SAFE_VERSION=$(echo "$VERSION" | tr -d ' ')
+          IMAGE_TAG=${SAFE_NAME}-${SAFE_VERSION}
           
           echo "safe_name=$SAFE_NAME"
           echo "safe_version=$SAFE_VERSION"
-          echo "IMAGE_TAG=${SAFE_NAME}-${SAFE_VERSION}"
-          echo "${IMAGE_TAG}"
-          
+          echo "$IMAGE_TAG"
           
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
