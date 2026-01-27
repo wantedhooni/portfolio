@@ -1,0 +1,47 @@
+services:
+  mariadb:
+    image: mariadb:11.4
+    container_name: mariadb_trading
+    environment:
+      MARIADB_ROOT_PASSWORD: rootpass
+    ports:
+      - "43306:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+      - ./docker/mariadb/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "mariadb-admin ping -prootpass --silent"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 10s
+
+  redis:
+    image: redis:7.2
+    container_name: redis
+    command:
+      [
+        "redis-server",
+        "--requirepass", "redis1234",
+        "--appendonly", "yes"
+      ]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: redis-commander
+    environment:
+      - REDIS_HOSTS=local:redis:6379:0:redis1234
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis
+
+
+
+volumes:
+  mariadb_data:
+  redis-data:
