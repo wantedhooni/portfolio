@@ -73,6 +73,20 @@ jobs:
             --output text)
           echo "task_def_arn=$TD_ARN" >> "$GITHUB_OUTPUT"
           echo "Current TD: $TD_ARN"
+      - name: Debug AWS identity & region
+        run: |
+          aws --version
+          echo "AWS_REGION=$AWS_REGION"
+          echo "AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION"
+          aws configure list
+          aws sts get-caller-identity
+
+      - name: Debug ECS task definition existence
+        env:
+          TASK_DEF: your-task-def-family-or-arn
+        run: |
+          echo "TASK_DEF=$TASK_DEF"
+          aws ecs describe-task-definition --task-definition "$TASK_DEF" --region "${AWS_REGION:-$AWS_DEFAULT_REGION}"
 
       # 2) Task Definition JSON 덤프 후, 등록 불가 필드 제거해서 파일 생성
       - name: Download task definition JSON (sanitized)
@@ -100,21 +114,6 @@ jobs:
 
           echo "Generated taskdef.json"
           ls -al taskdef.json
-
-      - name: Debug AWS identity & region
-        run: |
-          aws --version
-          echo "AWS_REGION=$AWS_REGION"
-          echo "AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION"
-          aws configure list
-          aws sts get-caller-identity
-
-      - name: Debug ECS task definition existence
-        env:
-          TASK_DEF: your-task-def-family-or-arn
-        run: |
-          echo "TASK_DEF=$TASK_DEF"
-          aws ecs describe-task-definition --task-definition "$TASK_DEF" --region "${AWS_REGION:-$AWS_DEFAULT_REGION}"
 
       # 3) 컨테이너 이미지 치환 (Action 사용)
       - name: Render ECS task definition (inject new image)
