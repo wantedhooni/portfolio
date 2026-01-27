@@ -57,7 +57,8 @@ jobs:
           docker push "${ECR_REGISTRY}/${ECR_REPOSITORY}:latest"
 
           echo "image_uri=$IMAGE_URI" >> "$GITHUB_OUTPUT"
-      # 1) 서비스에서 PRIMARY deployment의 taskDefinition ARN 가져오기
+
+      # PRIMARY taskDefinition ARN 조회
       - name: Get PRIMARY task definition ARN from service
         id: get_td
         env:
@@ -65,42 +66,31 @@ jobs:
           SERVICE: ${{ secrets.ECS_SERVICE_NAME }}
         run: |
           set -euo pipefail
-      
           TD_ARN=$(aws ecs describe-services \
             --cluster "$CLUSTER" \
             --services "$SERVICE" \
             --query "services[0].deployments[?status=='PRIMARY'] | [0].taskDefinition" \
             --output text)
-      
+
           if [ -z "$TD_ARN" ] || [ "$TD_ARN" = "None" ]; then
             echo "ERROR: PRIMARY taskDefinition not found."
             aws ecs describe-services --cluster "$CLUSTER" --services "$SERVICE" --query "{services:services,failures:failures}" --output json
             exit 1
           fi
-      
-          echo "TD_ARN=$TD_ARN"
-          echo "task_def_arn=$TD_ARN" >> "$GITHUB_OUTPUT"
+
           echo "TASK_DEF=$TD_ARN" >> "$GITHUB_ENV"
-      
-      - name: Debug container names in taskdef.json
-        run: |
-          set -euo pipefail
-          echo "=== containerDefinitions[].name from taskdef.json ==="
-          jq -r '.containerDefinitions[].name' taskdef.json
+          echo "TD_ARN=$TD_ARN"
 
-          echo "=== full containerDefinitions (name, image) ==="
-          jq -r '.containerDefinitions[] | "\(.name) -> \(.image)"' taskdef.json
-
-      # 2) 해당 Task Definition을 내려받아 register 가능한 형태로 정리(sanitize)
+      # Task Definition JSON 덤프 + sanitize (항상 workspace 루트에 생성)
       - name: Download task definition JSON (sanitized)
         run: |
           set -euo pipefail
-      
+
           aws ecs describe-task-definition \
             --task-definition "$TASK_DEF" \
             --query "taskDefinition" \
-            --output json > taskdef.raw.json
-      
+            --output json > "$GITHUB_WORKSPACE/taskdef.raw.json"
+
           jq 'del(
                 .taskDefinitionArn,
                 .revision,
@@ -109,22 +99,28 @@ jobs:
                 .compatibilities,
                 .registeredAt,
                 .registeredBy
-              )' taskdef.raw.json > taskdef.json
-      
-          echo "Generated taskdef.json"
-          ls -al taskdef.json
-      
+              )' "$GITHUB_WORKSPACE/taskdef.raw.json" > "$GITHUB_WORKSPACE/taskdef.json"
 
-      # 3) 컨테이너 이미지 치환 (Action 사용)
+          echo "Generated: $GITHUB_WORKSPACE/taskdef.json"
+          ls -al "$GITHUB_WORKSPACE/taskdef.json"
+
+      # (선택) 컨테이너 이름 검증 로그
+      - name: Debug container names (validate ECS_CONTAINER_NAME)
+        run: |
+          set -euo pipefail
+          echo "ECS_CONTAINER_NAME=${{ secrets.ECS_CONTAINER_NAME }}"
+          echo "Available container names:"
+          jq -r '.containerDefinitions[].name' "$GITHUB_WORKSPACE/taskdef.json"
+
+      # ✅ ECS_CONTAINER_NAME 사용
       - name: Render ECS task definition (inject new image)
         id: render_task_def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
-          task-definition: taskdef.json
+          task-definition: ${{ github.workspace }}/taskdef.json
           container-name: ${{ secrets.ECS_CONTAINER_NAME }}
           image: ${{ steps.build_image.outputs.image_uri }}
 
-      # 4) 서비스 배포
       - name: Deploy to Amazon ECS service
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
