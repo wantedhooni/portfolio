@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       ref:
-        description: "배포할 브랜치/태그 (기본: deploy)"
+        description: "WEB UI 배포할 브랜치/태그 (기본: deploy)"
         required: false
         default: "deploy"
       image_tag:
@@ -44,10 +44,27 @@ jobs:
           SHA_TAG: ${{ github.sha }}
           EXTRA_TAG: ${{ inputs.image_tag }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$SHA_TAG .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$SHA_TAG
+          pwd
+          cd web-ui
+          pwd
+          ls -al
+          NAME=$(node -p "require('./package.json').name")
+          VERSION=$(node -p "require('./package.json').version")
 
-          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$SHA_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          # Docker tag 안전하게 정규화: 소문자, @ 제거, / -> -, 공백 제거
+          SAFE_NAME=$(echo "$NAME" | tr '[:upper:]' '[:lower:]' | sed 's/@//g' | sed 's/\//-/g' | tr -d ' ')
+          SAFE_VERSION=$(echo "$VERSION" | tr -d ' ')
+          
+          echo "safe_name=$SAFE_NAME"
+          echo "safe_version=$SAFE_VERSION"
+          echo "IMAGE_TAG=${SAFE_NAME}-${SAFE_VERSION}"
+          echo "${IMAGE_TAG}"
+          
+          
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
           if [ -n "$EXTRA_TAG" ]; then
