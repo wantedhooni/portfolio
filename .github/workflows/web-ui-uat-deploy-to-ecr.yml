@@ -57,51 +57,41 @@ jobs:
           docker push "${ECR_REGISTRY}/${ECR_REPOSITORY}:latest"
 
           echo "image_uri=$IMAGE_URI" >> "$GITHUB_OUTPUT"
-
-      # 1) 현재 서비스가 쓰는 Task Definition ARN 조회
-      - name: Get current task definition ARN from service
+      # 1) 서비스에서 PRIMARY deployment의 taskDefinition ARN 가져오기
+      - name: Get PRIMARY task definition ARN from service
         id: get_td
         env:
           CLUSTER: ${{ secrets.ECS_CLUSTER_NAME }}
           SERVICE: ${{ secrets.ECS_SERVICE_NAME }}
         run: |
           set -euo pipefail
+      
           TD_ARN=$(aws ecs describe-services \
             --cluster "$CLUSTER" \
             --services "$SERVICE" \
-            --query "services[0].taskDefinition" \
+            --query "services[0].deployments[?status=='PRIMARY'] | [0].taskDefinition" \
             --output text)
+      
+          if [ -z "$TD_ARN" ] || [ "$TD_ARN" = "None" ]; then
+            echo "ERROR: PRIMARY taskDefinition not found."
+            aws ecs describe-services --cluster "$CLUSTER" --services "$SERVICE" --query "{services:services,failures:failures}" --output json
+            exit 1
+          fi
+      
+          echo "TD_ARN=$TD_ARN"
           echo "task_def_arn=$TD_ARN" >> "$GITHUB_OUTPUT"
-          echo "Current TD: $TD_ARN"
-      - name: Debug AWS identity & region
-        run: |
-          aws --version
-          echo "AWS_REGION=$AWS_REGION"
-          echo "AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION"
-          aws configure list
-          aws sts get-caller-identity
-
-      - name: Debug ECS task definition existence
-        env:
-          TASK_DEF: your-task-def-family-or-arn
-        run: |
-          echo "TASK_DEF=$TASK_DEF"
-          aws ecs describe-task-definition --task-definition "$TASK_DEF" --region "${AWS_REGION:-$AWS_DEFAULT_REGION}"
-
-      # 2) Task Definition JSON 덤프 후, 등록 불가 필드 제거해서 파일 생성
+          echo "TASK_DEF=$TD_ARN" >> "$GITHUB_ENV"
+      
+      # 2) 해당 Task Definition을 내려받아 register 가능한 형태로 정리(sanitize)
       - name: Download task definition JSON (sanitized)
-        id: dl_td
-        env:
-          TD_ARN: ${{ steps.get_td.outputs.task_def_arn }}
         run: |
           set -euo pipefail
-
+      
           aws ecs describe-task-definition \
-            --task-definition "$TD_ARN" \
+            --task-definition "$TASK_DEF" \
             --query "taskDefinition" \
             --output json > taskdef.raw.json
-
-          # register-task-definition에 넣으면 안 되는 필드 제거
+      
           jq 'del(
                 .taskDefinitionArn,
                 .revision,
@@ -111,9 +101,10 @@ jobs:
                 .registeredAt,
                 .registeredBy
               )' taskdef.raw.json > taskdef.json
-
+      
           echo "Generated taskdef.json"
           ls -al taskdef.json
+      
 
       # 3) 컨테이너 이미지 치환 (Action 사용)
       - name: Render ECS task definition (inject new image)
