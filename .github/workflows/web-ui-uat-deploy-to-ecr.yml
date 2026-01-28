@@ -50,8 +50,11 @@ jobs:
 
           IMAGE_TAG="${SAFE_NAME}-${SAFE_VERSION}"
           if [ -n "${EXTRA_TAG}" ]; then IMAGE_TAG="${EXTRA_TAG}"; fi
+          echo "Using image tag: $IMAGE_TAG"
 
           IMAGE_URI="${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
+          echo "IMAGE_URI: $IMAGE_URI"
+          
           docker build -t "$IMAGE_URI" .
           docker push "$IMAGE_URI"
 
