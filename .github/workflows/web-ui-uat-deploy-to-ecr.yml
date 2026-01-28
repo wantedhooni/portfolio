@@ -1,12 +1,7 @@
 name: Build & Push to ECR + Deploy to ECS (manual, CLI)
 
 on:
-  workflow_dispatch:
-    inputs:
-      image_tag:
-        description: "Optional tag override (e.g. hotfix-1). Empty = pkg name+version"
-        required: false
-        default: ""
+  workflow_dispatch: {}
 
 permissions:
   contents: read
@@ -38,7 +33,7 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
-          EXTRA_TAG: ${{ inputs.image_tag }}
+          EXTRA_TAG: ${{ github.sha }}
         run: |
           set -euo pipefail
           cd web-ui
@@ -49,7 +44,7 @@ jobs:
           SAFE_VERSION=$(echo "$VERSION" | tr -d ' ')
 
           IMAGE_TAG="${SAFE_NAME}-${SAFE_VERSION}"
-          if [ -n "${EXTRA_TAG}" ]; then IMAGE_TAG="${EXTRA_TAG}"; fi
+          if [ -n "${EXTRA_TAG}" ]; then IMAGE_TAG="${IMAGE_TAG}-${EXTRA_TAG}"; fi
           echo "Using image tag: $IMAGE_TAG"
 
           IMAGE_URI="${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
