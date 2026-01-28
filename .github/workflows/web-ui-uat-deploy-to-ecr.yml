@@ -86,15 +86,31 @@ jobs:
       # 2) 기존 task definition 내려받기 (taskDefinition만)
       - name: Download base task definition JSON
         run: |
-          pwd
-          ls -al
-          echo "----"
-          echo "env.task-definition-path: ${{ env.task-definition-path }}"
           set -euo pipefail
+          echo "[PWD]"
+          echo "env.task-definition-path: ${{ env.task-definition-path }}"
+          echo "BASE_TASK_DEF_ARN: $BASE_TASK_DEF_ARN"
+      
+          # 1. describe-task-definition
           aws ecs describe-task-definition \
-            --task-definition "$BASE_TASK_DEF_ARN" \
-            --query "taskDefinition" \
-            --output json > "${{ env.task-definition-path }}"
+          --task-definition "$BASE_TASK_DEF_ARN" \
+          --query "taskDefinition" \
+          --output json \
+          | jq '
+          del(
+            .taskDefinitionArn,
+            .revision,
+            .status,
+            .requiresAttributes,
+            .compatibilities,
+            .registeredAt,
+            .registeredBy,
+            .enableFaultInjection
+          )
+          ' > "${{ env.task-definition-path }}"
+      
+          echo "---- [SANITIZED TASKDEF]"
+          cat "${{ env.task-definition-path }}"
           echo "----"
           ls -al "${{ env.task-definition-path }}"
 
