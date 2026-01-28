@@ -1,4 +1,5 @@
 import React from 'react'
+import pkg from '../package.json'
 import { Routes, Route, Link, useNavigate } from 'react-router-dom'
 import Home from './pages/Home'
 import Login from './pages/Login'
@@ -14,6 +15,7 @@ export default function App() {
   const auth = useAuth()
   const navigate = useNavigate()
   const displayName = auth?.user?.name || auth?.user?.email || '사용자'
+  const appVersion = pkg?.version || 'dev'
 
   function handleLogout() {
     auth.logout()
@@ -23,7 +25,10 @@ export default function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>Trading Charts</h1>
+        <div className="app-title">
+          <h1>Trading Charts</h1>
+          <span className="app-version">v{appVersion}</span>
+        </div>
         <nav className="nav-right">
           <Link to="/">Home</Link>
           <Link to="/market">Market</Link>
