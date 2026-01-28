@@ -12,7 +12,7 @@ permissions:
   contents: read
 
 env:
-  task-definition-path: $GITHUB_WORKSPACE/taskdef.base.json
+  task-definition-path: ./taskdef.base.json
 
 jobs:
   build-push-deploy:
