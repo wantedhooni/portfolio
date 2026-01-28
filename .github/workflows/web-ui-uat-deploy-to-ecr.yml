@@ -108,10 +108,6 @@ jobs:
             .enableFaultInjection
           )
           ' > "${{ env.task-definition-path }}"
-      
-          echo "---- [SANITIZED TASKDEF]"
-          cat "${{ env.task-definition-path }}"
-          echo "----"
           ls -al "${{ env.task-definition-path }}"
 
       - name: Fill in the new image ID in the Amazon ECS task definition
