@@ -100,7 +100,6 @@ jobs:
           echo "----"
           echo "Downloaded: ${{ env.task-definition-path }}"
           ls -al "${{ env.task-definition-path }}"
-          cat taskdef.base.json
 
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def
