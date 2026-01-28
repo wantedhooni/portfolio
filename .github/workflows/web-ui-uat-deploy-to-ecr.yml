@@ -31,12 +31,13 @@ jobs:
       - name: Build, tag, and push image
         id: build_image
         env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
           ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
           EXTRA_TAG: ${{ github.sha }}
         run: |
-          set -euo pipefail
           cd web-ui
+          set -euo pipefail
+          
 
           NAME=$(node -p "require('./package.json').name")
           VERSION=$(node -p "require('./package.json').version")
