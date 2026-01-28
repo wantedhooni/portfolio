@@ -90,15 +90,15 @@ jobs:
       - name: Download base task definition JSON
         run: |
           pwd
-          ll -al
+          ls -al
           echo "----"
+          echo "env.task-definition-path: ${{ env.task-definition-path }}"
           set -euo pipefail
           aws ecs describe-task-definition \
             --task-definition "$BASE_TASK_DEF_ARN" \
             --query "taskDefinition" \
             --output json > "${{ env.task-definition-path }}"
           echo "----"
-          echo "Downloaded: ${{ env.task-definition-path }}"
           ls -al "${{ env.task-definition-path }}"
 
       - name: Fill in the new image ID in the Amazon ECS task definition
