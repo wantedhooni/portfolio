@@ -89,12 +89,15 @@ jobs:
       # 2) 기존 task definition 내려받기 (taskDefinition만)
       - name: Download base task definition JSON
         run: |
+          pwd
+          ll -al
+          echo "----"
           set -euo pipefail
           aws ecs describe-task-definition \
             --task-definition "$BASE_TASK_DEF_ARN" \
             --query "taskDefinition" \
             --output json > "$GITHUB_WORKSPACE/taskdef.base.json"
-
+          echo "----"
           echo "Downloaded: taskdef.base.json"
           ls -al "$GITHUB_WORKSPACE/taskdef.base.json"
           cat taskdef.base.json
