@@ -1,7 +1,7 @@
 name: [UAT](WEB-UI) Build & Push to ECR + Deploy to ECS (manual, CLI)
 
 on:
-  workflow_dispatch:
+  workflow_dispatch: {}
 #on:
 #  push:
 #    branches: [ "uat" ]
