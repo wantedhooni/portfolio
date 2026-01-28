@@ -1,4 +1,4 @@
-name: [UAT](WEB-UI) Build & Push to ECR + Deploy to ECS (manual, CLI)
+name: "[UAT](WEB-UI) Build & Push to ECR + Deploy to ECS (manual, CLI)"
 
 on:
   workflow_dispatch: {}
