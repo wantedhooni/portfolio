@@ -52,15 +52,13 @@ jobs:
           if [ -n "${EXTRA_TAG}" ]; then IMAGE_TAG="${EXTRA_TAG}"; fi
 
           IMAGE_URI="${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
-
           docker build -t "$IMAGE_URI" .
           docker push "$IMAGE_URI"
 
           docker tag "$IMAGE_URI" "${ECR_REGISTRY}/${ECR_REPOSITORY}:latest"
           docker push "${ECR_REGISTRY}/${ECR_REPOSITORY}:latest"
-
-          echo "image_uri=$IMAGE_URI" >> "$GITHUB_OUTPUT"
-          echo "IMAGE_URI=$IMAGE_URI" >> "$GITHUB_ENV"
+          
+          echo "image=$IMAGE_URI" >> $GITHUB_OUTPUT
 
       # 1) PRIMARY taskDefinition ARN 조회 (네 케이스: deployments[].taskDefinition)
       - name: Get PRIMARY task definition ARN from service
@@ -107,7 +105,7 @@ jobs:
         with:
           task-definition: ${{ env.task-definition-path }}
           container-name: ${{ secrets.ECS_CONTAINER_NAME }}
-          image: $IMAGE_URI
+          image: ${{ steps.build_image.outputs.image }}
 
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@df9643053eda01f169e64a0e60233aacca83799a
