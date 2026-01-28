@@ -11,6 +11,9 @@ on:
 permissions:
   contents: read
 
+env:
+  task-definition-path: $GITHUB_WORKSPACE/taskdef.base.json
+
 jobs:
   build-push-deploy:
     runs-on: ubuntu-latest
@@ -96,3 +99,18 @@ jobs:
           ls -al "$GITHUB_WORKSPACE/taskdef.base.json"
           cat taskdef.base.json
 
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@c804dfbdd57f713b6c079302a4c01db7017a36fc
+        with:
+          task-definition: ${{ env.task-definition-path }}
+          container-name: ${{ secrets.ECS_CONTAINER_NAME }}
+          image: ${{ steps.build-image.outputs.image }}
+
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@df9643053eda01f169e64a0e60233aacca83799a
+        with:
+          task-definition: ${{ env.task-definition-path }}
+          service: ${{ secrets.ECS_SERVICE_NAME  }}
+          cluster: ${{ secrets.ECS_CLUSTER_NAME }}
+          wait-for-service-stability: true
