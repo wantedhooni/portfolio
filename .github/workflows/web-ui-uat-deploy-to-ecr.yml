@@ -96,10 +96,10 @@ jobs:
           aws ecs describe-task-definition \
             --task-definition "$BASE_TASK_DEF_ARN" \
             --query "taskDefinition" \
-            --output json > "$GITHUB_WORKSPACE/taskdef.base.json"
+            --output json > "${{ env.task-definition-path }}"
           echo "----"
-          echo "Downloaded: taskdef.base.json"
-          ls -al "$GITHUB_WORKSPACE/taskdef.base.json"
+          echo "Downloaded: ${{ env.task-definition-path }}"
+          ls -al "${{ env.task-definition-path }}"
           cat taskdef.base.json
 
       - name: Fill in the new image ID in the Amazon ECS task definition
