@@ -7,14 +7,22 @@ RUN npm ci
 
 COPY . .
 
-ARG BUILD_MODE=uat
+RUN ls -al
 
+ARG BUILD_MODE=uat
 RUN npm run build -- --mode ${BUILD_MODE}
+RUN echo "=== dist ===" \
+ && ls -al /app/dist \
+ && echo "=== assets ===" \
+ && ls -al /app/dist/assets | head -20
 
 FROM nginx:1.25-alpine
+RUN ls -al
 
-COPY --from=builder /app/dist /usr/share/nginx/html
+COPY --from=builder /app/dist/ /usr/share/nginx/html/
 COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+RUN ls -al /usr/share/nginx/html/
 
 EXPOSE 80
 
