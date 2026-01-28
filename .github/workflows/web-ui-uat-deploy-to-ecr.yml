@@ -1,12 +1,8 @@
 name: Build & Push to ECR + Deploy to ECS (manual, CLI)
 
 on:
-  workflow_dispatch:
-    inputs:
-      image_tag:
-        description: "Optional tag override (e.g. hotfix-1). Empty = pkg name+version"
-        required: false
-        default: ""
+  workflow_dispatch: {}
+    
 
 permissions:
   contents: read
