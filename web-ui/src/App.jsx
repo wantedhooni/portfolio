@@ -15,7 +15,10 @@ export default function App() {
   const auth = useAuth()
   const navigate = useNavigate()
   const displayName = auth?.user?.name || auth?.user?.email || '사용자'
+  const appEnv = import.meta.env.VITE_TARGET || 'unknown'
   const appVersion = pkg?.version || 'dev'
+  
+  
 
   function handleLogout() {
     auth.logout()
@@ -27,7 +30,7 @@ export default function App() {
       <header className="app-header">
         <div className="app-title">
           <h1>Trading Charts</h1>
-          <span className="app-version">v{appVersion}</span>
+          <span className="app-version">{appEnv}(v{appVersion})</span>
         </div>
         <nav className="nav-right">
           <Link to="/">Home</Link>
