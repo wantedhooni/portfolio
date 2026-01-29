@@ -346,6 +346,233 @@ button { padding: 8px 12px; border-radius: 6px; border: none; background: var(--
 	}
 }
 
+.intro-page {
+	max-width: 1200px;
+	margin: 28px auto 60px;
+	padding: 0 24px;
+	display: flex;
+	flex-direction: column;
+	gap: 24px;
+}
+
+.intro-hero {
+	display: grid;
+	grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+	gap: 22px;
+	align-items: stretch;
+}
+
+.intro-hero__content {
+	background: var(--card);
+	border-radius: 18px;
+	border: 1px solid rgba(148, 163, 184, 0.25);
+	padding: 24px;
+	box-shadow: 0 18px 40px rgba(2, 6, 23, 0.12);
+}
+
+.intro-eyebrow {
+	display: inline-flex;
+	padding: 6px 12px;
+	border-radius: 999px;
+	background: rgba(59, 130, 246, 0.14);
+	color: #2563eb;
+	font-weight: 600;
+	letter-spacing: 0.08em;
+	font-size: 12px;
+	text-transform: uppercase;
+}
+
+.intro-hero__content h2 {
+	margin: 16px 0 10px;
+	font-size: 32px;
+}
+
+.intro-lead {
+	color: var(--muted);
+	line-height: 1.7;
+	margin: 0 0 18px;
+}
+
+.intro-hero__cta {
+	display: flex;
+	gap: 12px;
+	flex-wrap: wrap;
+	margin-bottom: 18px;
+}
+
+.intro-hero__meta {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	gap: 12px;
+}
+
+.intro-stat {
+	background: rgba(15, 23, 42, 0.04);
+	border-radius: 12px;
+	padding: 12px 14px;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.intro-stat__label {
+	color: var(--muted);
+	font-size: 12px;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+.intro-hero__panel {
+	display: grid;
+	gap: 12px;
+	align-content: stretch;
+}
+
+.intro-panel-card {
+	background: linear-gradient(140deg, rgba(15, 23, 42, 0.08), rgba(59, 130, 246, 0.08)), var(--card);
+	border-radius: 16px;
+	border: 1px solid rgba(148, 163, 184, 0.24);
+	padding: 18px;
+}
+
+.intro-panel-title {
+	font-weight: 700;
+	display: block;
+	margin-bottom: 8px;
+}
+
+.intro-panel-card p {
+	margin: 0;
+	color: var(--muted);
+	line-height: 1.6;
+}
+
+.intro-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+	gap: 16px;
+}
+
+.intro-card {
+	background: var(--card);
+	border-radius: 16px;
+	border: 1px solid rgba(148, 163, 184, 0.2);
+	padding: 18px;
+	box-shadow: 0 10px 24px rgba(2, 6, 23, 0.08);
+}
+
+.intro-card h3 {
+	margin-top: 0;
+	margin-bottom: 8px;
+}
+
+.intro-card h4 {
+	margin: 0 0 6px;
+}
+
+.intro-card p {
+	color: var(--muted);
+	line-height: 1.6;
+	margin: 0 0 10px;
+}
+
+.intro-card ul {
+	margin: 0;
+	padding-left: 18px;
+	color: var(--muted);
+	line-height: 1.6;
+}
+
+.intro-card--compact {
+	box-shadow: none;
+	padding: 16px;
+}
+
+.intro-architecture {
+	background: var(--card);
+	border-radius: 18px;
+	border: 1px solid rgba(148, 163, 184, 0.2);
+	padding: 20px 22px;
+	display: flex;
+	justify-content: space-between;
+	gap: 18px;
+	align-items: center;
+}
+
+.intro-muted {
+	color: var(--muted);
+	margin: 6px 0 0;
+}
+
+.intro-steps {
+	display: grid;
+	gap: 10px;
+}
+
+.intro-step {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 8px 12px;
+	border-radius: 999px;
+	background: rgba(15, 23, 42, 0.06);
+}
+
+.intro-step__index {
+	font-weight: 700;
+	color: #2563eb;
+}
+
+.intro-step__label {
+	font-weight: 600;
+}
+
+.intro-security {
+	display: grid;
+	grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.3fr);
+	gap: 16px;
+	align-items: start;
+}
+
+.intro-security__grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	gap: 12px;
+}
+
+.intro-footer-card {
+	background: linear-gradient(120deg, rgba(59, 130, 246, 0.12), rgba(16, 185, 129, 0.12)), var(--card);
+	border-radius: 18px;
+	border: 1px solid rgba(148, 163, 184, 0.2);
+	padding: 20px 22px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 14px;
+	flex-wrap: wrap;
+}
+
+.intro-footer__actions {
+	display: flex;
+	gap: 10px;
+	flex-wrap: wrap;
+}
+
+@media (max-width: 900px) {
+	.intro-hero {
+		grid-template-columns: 1fr;
+	}
+
+	.intro-architecture {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	.intro-security {
+		grid-template-columns: 1fr;
+	}
+}
+
 .account-page {
 	max-width: 1200px;
 	margin: 28px auto 60px;

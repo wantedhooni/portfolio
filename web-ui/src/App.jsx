@@ -34,7 +34,7 @@ export default function App() {
         </div>
         <nav className="nav-right">
           <Link to="/">Home</Link>
-          <Link to="/market">Market</Link>
+          
           {!auth?.user ? (
             <>
               <Link to="/login">Login</Link>
@@ -42,7 +42,7 @@ export default function App() {
             </>
           ) : (
             <>
-              <Link to="/account">Account</Link>
+              <Link to="/account">Account</Link>  
               <Link to="/trade">Trade</Link>
               <span className="greeting">{displayName} 님, 안녕하세요 </span>
               <button onClick={handleLogout} className="logout">Logout</button>
