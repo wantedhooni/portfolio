@@ -8,8 +8,6 @@ RUN npm ci
 COPY . .
 
 RUN ls -al
-
-ARG BUILD_MODE=uat
 RUN npm run build -- --mode ${BUILD_MODE}
 RUN echo "=== dist ===" \
  && ls -al /app/dist \
