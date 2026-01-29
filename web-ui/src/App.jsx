@@ -4,7 +4,7 @@ import { Routes, Route, Link, useNavigate } from 'react-router-dom'
 import Home from './pages/Home'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
-import Market from './pages/Market'
+import Chart from './pages/Chart'
 import Account from './pages/Account'
 import Trade from './pages/Trade'
 import Orders from './pages/Orders'
@@ -42,6 +42,7 @@ export default function App() {
             </>
           ) : (
             <>
+              <Link to="/chart">Chart</Link>  
               <Link to="/account">Account</Link>  
               <Link to="/trade">Trade</Link>
               <span className="greeting">{displayName} 님, 안녕하세요 </span>
@@ -58,7 +59,7 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
-          <Route path="/market" element={<Market />} />
+          <Route path="/chart" element={<Chart />} />
           <Route path="/account" element={<Account />} />
           <Route path="/trade" element={<Trade />} />
           <Route path="/orders" element={<Orders />} />
