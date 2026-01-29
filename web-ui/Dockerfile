@@ -1,4 +1,5 @@
 FROM node:20-alpine AS builder
+ARG BUILD_MODE=local
 
 WORKDIR /app
 
@@ -8,6 +9,7 @@ RUN npm ci
 COPY . .
 
 RUN ls -al
+RUN echo "${BUILD_MODE}"
 RUN npm run build -- --mode ${BUILD_MODE}
 RUN echo "=== dist ===" \
  && ls -al /app/dist \
