@@ -40,6 +40,7 @@ jobs:
           ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
           ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
           EXTRA_TAG: ${{ github.sha }}
+          BUILD_MODE: uat
         run: |
           cd web-ui
           set -euo pipefail
@@ -57,7 +58,7 @@ jobs:
           IMAGE_URI="${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
           echo "IMAGE_URI: $IMAGE_URI"
           
-          docker build -t "$IMAGE_URI" .
+          docker build --build-arg BUILD_MODE=${BUILD_MODE} -t "$IMAGE_URI" .
           docker push "$IMAGE_URI"
 
           docker tag "$IMAGE_URI" "${ECR_REGISTRY}/${ECR_REPOSITORY}:latest"
