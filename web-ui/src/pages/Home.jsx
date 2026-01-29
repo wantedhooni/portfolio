@@ -7,19 +7,27 @@ export default function Home() {
       <div className="intro-card">
           <h3>소개 </h3>
           <p className="intro-muted">Revy 포트폴리오용 계좌 / 주식 거래 사이트</p>
+          <p className="intro-muted">
+            github:{' '}
+            <a href="https://github.com/wantedhooni/securities_monolithic" target="_blank" rel="noreferrer">
+              https://github.com/wantedhooni/securities_monolithic
+            </a>
+          </p>
           <p className="intro-muted">계속 개발중</p>
-          <p className="intro-muted">AWS 요금이 겁나서 멀 못해놓겠다.</p>
+          <p className="intro-muted">AWS 요금이 겁나서 멀 못해놓겠다.</p>          
       </div>
       <div className="intro-grid">
         <div className="intro-card">
-          <h3>사용법 / 로그인 방법 </h3>
+          <h3>사용법 / 로그인 방법(데모계정 정보) </h3>
           <p className="intro-muted">
-            user1~10@example.com -> Password!
+            email: user1~10@example.com<br/>
+            password: Password!
           </p>
-          <p className="intro-muted">
-            example:
-            user1@example.com -> Password!
-          </p>
+          <div className="intro-muted">
+            login example:
+            <br />
+            user1@example.com : Password!
+          </div>
         </div>
         <div className="intro-card">
           <h3>account</h3>
