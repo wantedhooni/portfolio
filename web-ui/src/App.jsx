@@ -1,6 +1,6 @@
 import React from 'react'
 import pkg from '../package.json'
-import { Routes, Route, Link, useNavigate } from 'react-router-dom'
+import { Routes, Route, Link, useNavigate, Navigate } from 'react-router-dom'
 import Home from './pages/Home'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
@@ -22,7 +22,12 @@ export default function App() {
 
   function handleLogout() {
     auth.logout()
-    navigate('/login')
+    navigate('/')
+  }
+
+  const ProtectedRoute = ({ children }) => {
+    if (!auth?.user) return <Navigate to="/" replace />
+    return children
   }
 
   return (
@@ -59,10 +64,10 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
-          <Route path="/chart" element={<Chart />} />
-          <Route path="/account" element={<Account />} />
-          <Route path="/trade" element={<Trade />} />
-          <Route path="/orders" element={<Orders />} />
+          <Route path="/chart" element={<ProtectedRoute><Chart /></ProtectedRoute>} />
+          <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
+          <Route path="/trade" element={<ProtectedRoute><Trade /></ProtectedRoute>} />
+          <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
         </Routes>
       </main>
     </div>

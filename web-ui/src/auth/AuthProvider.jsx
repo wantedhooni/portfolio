@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { login as apiLogin, signup as apiSignup } from '../api/api'
+import { getCookie, setCookie, deleteCookie } from '../utils/cookies'
 
 const AuthContext = createContext(null)
 
@@ -7,8 +8,8 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
 
   useEffect(() => {
-    const token = localStorage.getItem('access_token')
-    const cachedProfile = localStorage.getItem('user_profile')
+    const token = getCookie('access_token')
+    const cachedProfile = getCookie('user_profile')
     if (cachedProfile) {
       try {
         setUser(JSON.parse(cachedProfile))
@@ -20,6 +21,12 @@ export function AuthProvider({ children }) {
     if (token) setUser({ authenticated: true })
   }, [])
 
+  useEffect(() => {
+    const handleLogout = () => logout()
+    window.addEventListener('auth:logout', handleLogout)
+    return () => window.removeEventListener('auth:logout', handleLogout)
+  }, [])
+
   async function login(payload) {
     const res = await apiLogin(payload)
     const profile = {
@@ -29,7 +36,7 @@ export function AuthProvider({ children }) {
     }
     setUser(profile)
     try {
-      localStorage.setItem('user_profile', JSON.stringify(profile))
+      setCookie('user_profile', JSON.stringify(profile))
     } catch (e) {
       // ignore storage issues
     }
@@ -42,9 +49,9 @@ export function AuthProvider({ children }) {
   }
 
   function logout() {
-    localStorage.removeItem('access_token')
-    localStorage.removeItem('refresh_token')
-    localStorage.removeItem('user_profile')
+    deleteCookie('access_token')
+    deleteCookie('refresh_token')
+    deleteCookie('user_profile')
     setUser(null)
   }
 

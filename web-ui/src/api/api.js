@@ -1,13 +1,22 @@
 import axios from 'axios'
+import { getCookie, setCookie, deleteCookie } from '../utils/cookies'
 
 // Use Vite env var (VITE_API_BASE) in the browser, fallback to localhost
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8080'
 
 const api = axios.create({ baseURL: API_BASE })
 
+const triggerLogout = () => {
+  deleteCookie('access_token')
+  deleteCookie('refresh_token')
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event('auth:logout'))
+  }
+}
+
 // simple token handling
 api.interceptors.request.use(config => {
-  const token = localStorage.getItem('access_token')
+  const token = getCookie('access_token')
   if (token) config.headers.Authorization = `Bearer ${token}`
   return config
 })
@@ -18,18 +27,20 @@ api.interceptors.response.use(
     const original = err.config
     if (err.response && err.response.status === 401 && !original._retry) {
       original._retry = true
-      const refresh = localStorage.getItem('refresh_token')
-      if (!refresh) return Promise.reject(err)
+      const refresh = getCookie('refresh_token')
+      if (!refresh) {
+        triggerLogout()
+        return Promise.reject(err)
+      }
       try {
         const resp = await axios.post(`${API_BASE}/api/auth/reissue`, { refreshToken: refresh })
         const { accessToken, refreshToken } = resp.data || {}
-        if (accessToken) localStorage.setItem('access_token', accessToken)
-        if (refreshToken) localStorage.setItem('refresh_token', refreshToken)
+        if (accessToken) setCookie('access_token', accessToken)
+        if (refreshToken) setCookie('refresh_token', refreshToken)
         original.headers.Authorization = `Bearer ${accessToken}`
         return api(original)
       } catch (e) {
-        localStorage.removeItem('access_token')
-        localStorage.removeItem('refresh_token')
+        triggerLogout()
         return Promise.reject(e)
       }
     }
@@ -45,8 +56,8 @@ export async function signup(payload) {
 export async function login(payload) {
   const res = await api.post('/api/auth/login', payload)
   // assume response contains accessToken/refreshToken
-  if (res.data?.accessToken) localStorage.setItem('access_token', res.data.accessToken)
-  if (res.data?.refreshToken) localStorage.setItem('refresh_token', res.data.refreshToken)
+  if (res.data?.accessToken) setCookie('access_token', res.data.accessToken)
+  if (res.data?.refreshToken) setCookie('refresh_token', res.data.refreshToken)
   return res.data
 }
 
