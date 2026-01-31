@@ -1,5 +1,6 @@
 package com.revy.api_server.application.infra.security;
 
+import com.revy.api_server.application.infra.filter.JwtAuthenticationFilter;
 import com.revy.api_server.application.infra.security.rules.SecurityRules;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;

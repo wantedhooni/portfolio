@@ -47,7 +47,9 @@
 - - [ ] Trade 조회 Service / RestAPI
 
 - 환율 / 환전 개발해보자
-- - [ ] 환율 구간 Entity / Repository / Service
+- - [x] 환율 구간 Entity / Repository / Service
+- - [ ] 환율 조회 API 조사
+- - 
 
 # local 실행
 ---

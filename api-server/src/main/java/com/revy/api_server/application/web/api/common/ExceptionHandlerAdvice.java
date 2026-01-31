@@ -22,21 +22,21 @@ public class ExceptionHandlerAdvice {
     @ExceptionHandler(AuthException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ApiResponse<Void> handleAuth(AuthException e) {
-        log.warn("AuthException:", e);
+        log.trace("AuthException:", e);
         return ApiResponse.fail(e.getCode(), e.getMessage());
     }
 
     @ExceptionHandler({AuthenticationException.class})
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ApiResponse<Void> handleAuthenticationException(AuthenticationException e) {
-        log.warn("AuthenticationException:", e);
+        log.trace("AuthenticationException:", e);
         return ApiResponse.fail(String.valueOf(HttpStatus.UNAUTHORIZED.value()), e.getMessage());
     }
 
     @ExceptionHandler({AccessDeniedException.class})
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ApiResponse<Void> handleAccessDeniedException(AccessDeniedException e) {
-        log.warn("AccessDeniedException:", e);
+        log.trace("AccessDeniedException:", e);
         return ApiResponse.fail(String.valueOf(HttpStatus.UNAUTHORIZED.value()), e.getMessage());
     }
 

@@ -1,5 +1,6 @@
-package com.revy.api_server.application.infra.security;
+package com.revy.api_server.application.infra.filter;
 
+import com.revy.api_server.application.infra.security.UserPrincipal;
 import com.revy.api_server.domain.user.User;
 import com.revy.api_server.domain.user.UserStatus;
 import com.revy.api_server.domain.user.repo.UserRepository;
@@ -92,7 +93,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
      * @return 토큰 문자열
      */
     private String resolveToken(HttpServletRequest request) {
-        log.debug("header: {}", request.getHeaderNames());
         String bearerToken = request.getHeader("Authorization");
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
             return bearerToken.substring(7);
