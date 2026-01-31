@@ -41,16 +41,14 @@ public class RequestTraceFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) throws ServletException, IOException {
 
         UUID traceID = UuidUtils.getTimeOrderedEpochUuidV7();
-        MDC.put(MDC_KEY_TRACE_ID, traceID.toString());
-
         String requestUri = request.getRequestURI();
         String clientIp = ClientIpResolver.resolveIpv4(request);
+        MDC.put(MDC_KEY_TRACE_ID, traceID.toString());
+        MDC.put(MDC_REQUEST_URL, requestUri);
+        MDC.put(MDC_CLIENT_IP, clientIp);
 
         log.debug("requestUri: {}", requestUri);
         log.debug("clientIp: {}", clientIp);
-
-        MDC.put(MDC_REQUEST_URL, requestUri);
-        MDC.put(MDC_CLIENT_IP, clientIp);
 
         try {
             filterChain.doFilter(request, response);
