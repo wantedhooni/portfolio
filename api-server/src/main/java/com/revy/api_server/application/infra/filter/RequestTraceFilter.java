@@ -47,9 +47,6 @@ public class RequestTraceFilter extends OncePerRequestFilter {
         MDC.put(MDC_REQUEST_URL, requestUri);
         MDC.put(MDC_CLIENT_IP, clientIp);
 
-        log.debug("requestUri: {}", requestUri);
-        log.debug("clientIp: {}", clientIp);
-
         try {
             filterChain.doFilter(request, response);
         } finally {
