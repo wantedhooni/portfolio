@@ -1,4 +1,4 @@
-rootProject.name = "securities_account"
+rootProject.name = "securities_monolithic"
 
 include(
     ":common",

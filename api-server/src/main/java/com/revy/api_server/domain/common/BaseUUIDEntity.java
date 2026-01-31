@@ -1,6 +1,7 @@
 package com.revy.api_server.domain.common;
 
 import com.github.f4b6a3.uuid.UuidCreator;
+import com.revy.common.utils.UuidUtils;
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
@@ -29,10 +30,12 @@ public abstract class BaseUUIDEntity extends BaseTimeField {
 
     @PrePersist
     void prePersist() {
-        if (id == null) {
-            id = UuidCreator.getTimeOrderedEpoch();
-        }
+        onPrePersist();
     }
 
-
+    protected void onPrePersist() {
+        if (id == null) {
+            id = UuidUtils.getTimeOrderedEpochUuidV7();
+        }
+    }
 }

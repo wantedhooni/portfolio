@@ -21,7 +21,7 @@ import java.util.stream.IntStream;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class DataInitializer implements CommandLineRunner {
+public class UserDataInitializer implements CommandLineRunner {
     private final UserRepository userRepository;
     private final UserDetailRepository userDetailRepository;
     private final AuthorityRepository authorityRepository;
