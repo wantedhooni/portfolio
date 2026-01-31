@@ -2,7 +2,7 @@ package com.revy.api_server.application.web.api.exchange.usecase.impl;
 
 import com.revy.api_server.application.web.api.exchange.payload.ExchangeRatePayload;
 import com.revy.api_server.application.web.api.exchange.usecase.ExchangeUseCase;
-import com.revy.api_server.domain.exchange.ExchangeRate;
+import com.revy.api_server.domain.exchange.ExRate;
 import com.revy.api_server.domain.exchange.service.ExchangeReteService;
 import com.revy.common.enums.Currency;
 import lombok.RequiredArgsConstructor;
@@ -22,10 +22,10 @@ public class ExchangeUseCaseImpl implements ExchangeUseCase {
      */
     @Override
     public ExchangeRatePayload.Res getServiceRate() {
-        List<ExchangeRate> result = exchangeReteService.getCurrentExchangeRate();
+        List<ExRate> result = exchangeReteService.getCurrentExchangeRate();
 
         Map<Currency, List<ExchangeRatePayload.DestData>> dataMap = result.stream().collect(
-                Collectors.groupingBy(ExchangeRate::getSource, Collectors.mapping(
+                Collectors.groupingBy(ExRate::getSource, Collectors.mapping(
                         rate -> new ExchangeRatePayload.DestData(rate.getId(), rate.getDest(), rate.getRateTime(), rate.getRate()),
                         Collectors.toList() // mapping의 두 번째 인자로 들어가야 합니다
                 )));

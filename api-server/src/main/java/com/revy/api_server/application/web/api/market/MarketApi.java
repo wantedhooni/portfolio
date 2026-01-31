@@ -36,27 +36,27 @@ public class MarketApi {
     }
 
     @GetMapping("/quote")
-    Map<String, BulkQuoteItem> getQuotesBulk(@RequestParam("symbols") @NotBlank String symbolsCsv) {
+    public Map<String, BulkQuoteItem> getQuotesBulk(@RequestParam("symbols") @NotBlank String symbolsCsv) {
         return quoteUsecase.getQuotesBulk(symbolsCsv);
     }
 
     @GetMapping("/historical/{symbol}")
-    HistoricalResponse getHistorical(@PathVariable String symbol, LocalDate start, LocalDate end, String interval) {
+    public HistoricalResponse getHistorical(@PathVariable String symbol, LocalDate start, LocalDate end, String interval) {
         return quoteUsecase.getHistorical(symbol, start, end, interval);
     }
 
     @GetMapping("/info/{symbol}")
-    InfoResponse getInfo(@PathVariable String symbol) {
+    public InfoResponse getInfo(@PathVariable String symbol) {
         return quoteUsecase.getInfo(symbol);
     }
 
     @GetMapping("/snapshot/{symbol}")
-    SnapshotResponse getSnapshot(@PathVariable String symbol) {
+    public SnapshotResponse getSnapshot(@PathVariable String symbol) {
         return quoteUsecase.getSnapshot(symbol);
     }
 
     @GetMapping("/earnings/{symbol}")
-    EarningsResponse getEarnings(@PathVariable String symbol, String frequency) {
+    public EarningsResponse getEarnings(@PathVariable String symbol, String frequency) {
         return quoteUsecase.getEarnings(symbol, frequency);
     }
 

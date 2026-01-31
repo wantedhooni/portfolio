@@ -1,7 +1,7 @@
 package com.revy.api_server.domain.exchange.service;
 
-import com.revy.api_server.domain.exchange.ExchangeRate;
-import com.revy.api_server.domain.exchange.ExchangeRateConfig;
+import com.revy.api_server.domain.exchange.ExRate;
+import com.revy.api_server.domain.exchange.ExchangeConfig;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -14,14 +14,14 @@ public interface ExchangeReteService {
     long getExchangeRateConfigCount();
 
     @Transactional
-    List<ExchangeRate> saveExchangeRate(List<ExchangeRate> exchangeRates);
+    List<ExRate> saveExchangeRate(List<ExRate> exRates);
 
     @Transactional
-    ExchangeRateConfig save(ExchangeRateConfig config);
+    ExchangeConfig save(ExchangeConfig config);
 
     @Transactional(readOnly = true)
-    List<ExchangeRateConfig> findAllConfig();
+    List<ExchangeConfig> findAllConfig();
 
     @Transactional(readOnly = true)
-    List<ExchangeRate> getCurrentExchangeRate();
+    List<ExRate> getCurrentExchangeRate();
 }

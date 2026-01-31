@@ -1,10 +1,7 @@
 package com.revy.api_server.application.init;
 
-import com.revy.api_server.domain.exchange.ExchangeRate;
-import com.revy.api_server.domain.exchange.ExchangeRateConfig;
-import com.revy.api_server.domain.exchange.repo.ExchangeRateConfigRepository;
-import com.revy.api_server.domain.exchange.repo.ExchangeRateHistoryRepository;
-import com.revy.api_server.domain.exchange.repo.ExchangeRateRepository;
+import com.revy.api_server.domain.exchange.ExRate;
+import com.revy.api_server.domain.exchange.ExchangeConfig;
 import com.revy.api_server.domain.exchange.service.ExchangeReteService;
 import com.revy.common.enums.Currency;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +35,7 @@ public class ExchangeDataInitializer implements CommandLineRunner {
             for (Currency source : sourceList) {
                 for (Currency dest : destList) {
                     if (source != dest) {
-                        ExchangeRateConfig config = ExchangeRateConfig.createNewConfig(source, dest);
+                        ExchangeConfig config = ExchangeConfig.createNewConfig(source, dest);
                         config.enable();
                         exchangeReteService.save(config);
                     }
@@ -48,12 +45,12 @@ public class ExchangeDataInitializer implements CommandLineRunner {
 
         if (exchangeReteService.getExchangeRateCount() == 0) {
             LocalDateTime now = LocalDateTime.now();
-            List<ExchangeRate> rateList = exchangeReteService.findAllConfig()
-                                                                      .stream()
-                                                                      .filter(ExchangeRateConfig::isEnabled)
-                                                                      .map(
+            List<ExRate> rateList = exchangeReteService.findAllConfig()
+                                                       .stream()
+                                                       .filter(ExchangeConfig::isEnabled)
+                                                       .map(
                     config -> {
-                        return ExchangeRate.createNewExchangeRate(
+                        return ExRate.createNewExchangeRate(
                                 config.getSource(), config.getDest(), now,
                                 dummyRateApi.getRate(config.getSource(), config.getDest())
                         );

@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @Getter
 @MappedSuperclass
 @ToString
-public class BaseExchangeRate extends BaseUUIDEntity {
+public class BaseExRate extends BaseUUIDEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name="source", nullable = false)

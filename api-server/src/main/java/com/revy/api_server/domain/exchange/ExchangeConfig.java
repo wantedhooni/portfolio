@@ -19,18 +19,18 @@ import lombok.ToString;
  * 환율 구간 설정
  */
 @Entity
-@Table(name = "exchange_rate_config",
+@Table(name = "exchange_config",
         uniqueConstraints = {
-                @UniqueConstraint(name = "UK_EXCHANGE_RATE_CONFIG_SOURCE_DEST", columnNames = {"source", "dest"})
+                @UniqueConstraint(name = "UK_EXCHANGE_CONFIG_SOURCE_DEST", columnNames = {"source", "dest"})
         },
         indexes = {
-                @Index(name = "IDX_EXCHANGE_RATE_CONFIG_SOURCE_DEST", columnList = "source, dest")
+                @Index(name = "IDX_EXCHANGE_CONFIG_SOURCE_DEST", columnList = "source, dest")
         }
 )
 @Getter
 @ToString(callSuper = true)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class ExchangeRateConfig extends BaseUUIDEntity {
+public class ExchangeConfig extends BaseUUIDEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "source", nullable = false)
     private Currency source;
@@ -50,8 +50,8 @@ public class ExchangeRateConfig extends BaseUUIDEntity {
         this.enabled = true;
     }
 
-    public static ExchangeRateConfig createNewConfig(Currency source, Currency dest) {
-        ExchangeRateConfig config = new ExchangeRateConfig();
+    public static ExchangeConfig createNewConfig(Currency source, Currency dest) {
+        ExchangeConfig config = new ExchangeConfig();
         config.id = UuidUtils.getTimeOrderedEpochUuidV7();
         config.source = source;
         config.dest = dest;

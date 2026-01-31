@@ -2,11 +2,11 @@ package com.revy.api_server.domain.exchange.service.impl;
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.revy.api_server.domain.exchange.ExchangeRate;
-import com.revy.api_server.domain.exchange.ExchangeRateConfig;
-import com.revy.api_server.domain.exchange.ExchangeRateHistory;
-import com.revy.api_server.domain.exchange.QExchangeRate;
-import com.revy.api_server.domain.exchange.QExchangeRateConfig;
+import com.revy.api_server.domain.exchange.ExRate;
+import com.revy.api_server.domain.exchange.ExRateHistory;
+import com.revy.api_server.domain.exchange.ExchangeConfig;
+import com.revy.api_server.domain.exchange.QExRate;
+import com.revy.api_server.domain.exchange.QExchangeConfig;
 import com.revy.api_server.domain.exchange.repo.ExchangeRateConfigRepository;
 import com.revy.api_server.domain.exchange.repo.ExchangeRateHistoryRepository;
 import com.revy.api_server.domain.exchange.repo.ExchangeRateRepository;
@@ -40,39 +40,39 @@ class ExchangeReteServiceImpl implements ExchangeReteService {
 
     @Transactional
     @Override
-    public List<ExchangeRate> saveExchangeRate(List<ExchangeRate> exchangeRates) {
-        exchangeRates = exchangeRateRepository.saveAll(exchangeRates);
+    public List<ExRate> saveExchangeRate(List<ExRate> exRates) {
+        exRates = exchangeRateRepository.saveAll(exRates);
         exchangeRateHistoryRepository.saveAll(
-                exchangeRates.stream().map(ExchangeRateHistory::createExchangeRateHistory).toList());
-        return exchangeRates;
+                exRates.stream().map(ExRateHistory::createExchangeRateHistory).toList());
+        return exRates;
     }
 
     @Transactional
     @Override
-    public ExchangeRateConfig save(ExchangeRateConfig config) {
+    public ExchangeConfig save(ExchangeConfig config) {
         return exchangeRateConfigRepository.save(config);
     }
 
     @Transactional(readOnly = true)
     @Override
-    public List<ExchangeRateConfig> findAllConfig() {
+    public List<ExchangeConfig> findAllConfig() {
         return exchangeRateConfigRepository.findAll();
     }
 
     @Transactional(readOnly = true)
     @Override
-    public List<ExchangeRate> getCurrentExchangeRate() {
-        QExchangeRate exchangeRate = QExchangeRate.exchangeRate;
-        QExchangeRateConfig exchangeRateConfig = QExchangeRateConfig.exchangeRateConfig;
+    public List<ExRate> getCurrentExchangeRate() {
+        QExRate exRate = QExRate.exRate;
+        QExchangeConfig exchangeConfig = QExchangeConfig.exchangeConfig;
 
         BooleanBuilder where = new BooleanBuilder();
-        where.and(exchangeRateConfig.enabled.eq(true));
-        return jpaQueryFactory.selectFrom(exchangeRate)
-                              .join(exchangeRateConfig)
-                              .on(exchangeRate.source.eq(exchangeRateConfig.source)
-                                                           .and(exchangeRate.dest.eq(exchangeRateConfig.dest)))
+        where.and(exchangeConfig.enabled.eq(true));
+        return jpaQueryFactory.selectFrom(exRate)
+                              .join(exchangeConfig)
+                              .on(exRate.source.eq(exchangeConfig.source)
+                                                           .and(exRate.dest.eq(exchangeConfig.dest)))
                               .where(where)
-                              .orderBy(exchangeRate.source.asc(), exchangeRate.dest.asc())
+                              .orderBy(exRate.source.asc(), exRate.dest.asc())
                               .fetch();
 
     }
