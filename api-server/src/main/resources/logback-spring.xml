@@ -8,7 +8,7 @@
             <level>DEBUG</level>
         </filter>
         <encoder>
-            <pattern>[%d{yyyy-MM-dd HH:mm:ss.SSS}] [%-5level] [%thread] [%X{traceId}][%X{clientIp}][%X{requestUrl}] %logger %msg%n</pattern>
+            <pattern>[%d{yyyy-MM-dd HH:mm:ss.SSS}] [%-5level] [%thread] [userId:%X{userId}] [%X{traceId}][%X{clientIp}][%X{requestUrl}] %logger %msg%n</pattern>
         </encoder>
     </appender>
 
@@ -23,7 +23,7 @@
             <maxHistory>30</maxHistory>
         </rollingPolicy>
         <encoder>
-            <pattern>[%d{yyyy-MM-dd HH:mm:ss.SSS}] [%-5level] [%thread] [%X{traceId}][%X{clientIp}][%X{requestUrl}] %logger %msg%n</pattern>
+            <pattern>[%d{yyyy-MM-dd HH:mm:ss.SSS}] [%-5level] [%thread] [userId:%X{userId}] [%X{traceId}][%X{clientIp}][%X{requestUrl}] %logger %msg%n</pattern>
         </encoder>
     </appender>
 

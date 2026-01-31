@@ -32,6 +32,7 @@ import java.util.Optional;
 @Slf4j
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+    private static final String MDC_USER_ID = "userId";
 
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
@@ -67,7 +68,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 return;
                 // 유효하지 않은 사용자인 경우 필터 체인을 계속 진행하지 않고 종료
             }
-            MDC.put("UserId", String.valueOf(userId));
+            MDC.put(MDC_USER_ID, String.valueOf(userId));
             UserPrincipal principal = UserPrincipal.from(user.get());
 
             if(user.get().getStatus() != UserStatus.ACTIVE) {
