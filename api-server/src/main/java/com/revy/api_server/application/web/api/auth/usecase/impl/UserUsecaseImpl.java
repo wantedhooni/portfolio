@@ -1,7 +1,7 @@
 package com.revy.api_server.application.web.api.auth.usecase.impl;
 
-import com.revy.api_server.domain.user.User;
-import com.revy.api_server.domain.user.repo.UserRepository;
+import com.revy.securities.domain.user.User;
+import com.revy.securities.domain.user.repo.UserRepository;
 import com.revy.api_server.application.web.api.auth.usecase.UserUsecase;
 import com.revy.api_server.application.web.api.auth.usecase.dto.UserInfoResult;
 import com.revy.api_server.application.web.api.auth.usecase.dto.impl.UserInfoResultImpl;

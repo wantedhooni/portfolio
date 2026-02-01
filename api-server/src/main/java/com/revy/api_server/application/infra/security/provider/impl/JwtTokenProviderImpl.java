@@ -1,6 +1,6 @@
 package com.revy.api_server.application.infra.security.provider.impl;
 
-import com.revy.api_server.domain.user.User;
+import com.revy.securities.domain.user.User;
 import com.revy.api_server.application.infra.security.prop.JwtProp;
 import com.revy.api_server.application.infra.security.provider.JwtTokenProvider;
 import io.jsonwebtoken.Claims;

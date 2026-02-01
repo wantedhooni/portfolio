@@ -1,11 +1,16 @@
 package com.revy.api_server.domain.user;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.revy.api_server.domain.user.QUser;
-import com.revy.api_server.domain.user.repo.AuthorityRepository;
-import com.revy.api_server.domain.user.repo.RoleRepository;
-import com.revy.api_server.domain.user.repo.UserDetailRepository;
-import com.revy.api_server.domain.user.repo.UserRepository;
+import com.revy.securities.domain.user.Authority;
+import com.revy.securities.domain.user.QUser;
+import com.revy.securities.domain.user.Role;
+import com.revy.securities.domain.user.User;
+import com.revy.securities.domain.user.UserDetail;
+import com.revy.securities.domain.user.UserStatus;
+import com.revy.securities.domain.user.repo.AuthorityRepository;
+import com.revy.securities.domain.user.repo.RoleRepository;
+import com.revy.securities.domain.user.repo.UserDetailRepository;
+import com.revy.securities.domain.user.repo.UserRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import org.junit.jupiter.api.DisplayName;
@@ -76,11 +81,11 @@ class UserRepositorySliceTest {
         User savedUser = userRepository.save(user);
 
         UserDetail detail = UserDetail.builder()
-                .user(savedUser)
-                .name("name")
-                .phone("010")
-                .address("addr")
-                .build();
+                                      .user(savedUser)
+                                      .name("name")
+                                      .phone("010")
+                                      .address("addr")
+                                      .build();
         savedUser.setDetail(detail);
         userDetailRepository.save(detail);
 
@@ -108,7 +113,7 @@ class UserRepositorySliceTest {
     }
 
     @Configuration
-    @EnableJpaRepositories(basePackages = "com.revy.api_server.domain.user.repo")
+    @EnableJpaRepositories(basePackages = "com.revy.securities.domain.user.repo")
     @EnableTransactionManagement
     static class TestConfig {
         @Bean

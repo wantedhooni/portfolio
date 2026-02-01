@@ -1,6 +1,6 @@
 package com.revy.api_server.application.web.api.account.payload;
 
-import com.revy.api_server.domain.account.enums.AccountType;
+import com.revy.securities.domain.account.enums.AccountType;
 import com.revy.common.enums.Currency;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotEmpty;

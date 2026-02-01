@@ -3,16 +3,16 @@ package com.revy.api_server.application.web.api.account.usecase.impl;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.revy.api_server.domain.account.Account;
-import com.revy.api_server.domain.account.AccountStatementLine;
-import com.revy.api_server.domain.account.QAccount;
-import com.revy.api_server.domain.account.enums.AccountStatus;
-import com.revy.api_server.domain.account.enums.AccountType;
-import com.revy.api_server.domain.account.enums.DirectionType;
-import com.revy.api_server.domain.account.enums.StatementType;
-import com.revy.api_server.domain.account.repo.AccountRepo;
-import com.revy.api_server.domain.account.repo.AccountStatementLineRepo;
-import com.revy.api_server.domain.account.service.AccountService;
+import com.revy.securities.domain.account.Account;
+import com.revy.securities.domain.account.AccountStatementLine;
+import com.revy.securities.domain.account.QAccount;
+import com.revy.securities.domain.account.enums.AccountStatus;
+import com.revy.securities.domain.account.enums.AccountType;
+import com.revy.securities.domain.account.enums.DirectionType;
+import com.revy.securities.domain.account.enums.StatementType;
+import com.revy.securities.domain.account.repo.AccountRepo;
+import com.revy.securities.domain.account.repo.AccountStatementLineRepo;
+import com.revy.securities.domain.account.service.AccountService;
 import com.revy.api_server.application.web.api.account.payload.CreateAccountPayload;
 import com.revy.api_server.application.web.api.account.payload.MyAccountsPayload;
 import com.revy.api_server.application.web.api.account.payload.TransferPayload;
@@ -21,6 +21,8 @@ import com.revy.api_server.application.exception.AccountException;
 import com.revy.api_server.application.support.AccountSupport;
 import com.revy.common.enums.Currency;
 import com.revy.common.utils.BigDecimalUtil;
+import com.revy.securities.domain.processor.account.AccountProcessor;
+import com.revy.securities.domain.processor.account.dto.AccountResultDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -36,10 +38,10 @@ import java.util.List;
 public class AccountUseCaseImpl implements AccountUseCase {
     private final AccountRepo accountRepo;
     private final AccountStatementLineRepo accountStatementLineRepo;
-    private final AccountService accountService;
     private final JPAQueryFactory jpaQueryFactory;
     private final AccountSupport accountSupport;
 
+    private final AccountProcessor AccountProcessor;
     private final String BBB = "999"; // 서비스/기관 코드(임시)
     private final String PPP = "001"; // 상품/테넌트/채널
 
@@ -49,10 +51,8 @@ public class AccountUseCaseImpl implements AccountUseCase {
         Assert.notNull(userId, "userId is null");
         Assert.notNull(accountType, "accountType is null");
         Assert.notNull(currency, "currency is null");
-        Account newAccount = Account.createNewAccount(userId, accountService.createSecuritiesAccountNumber(PPP),
-                                                      accountType, currency);
-        newAccount = accountRepo.save(newAccount);
-        return mapper.convertCreateAccountRes(newAccount);
+        AccountResultDto.AccountInfo result = AccountProcessor.create(userId, accountType, currency);
+        return mapper.convertCreateAccountRes(result);
     }
 
     @Override
@@ -65,15 +65,11 @@ public class AccountUseCaseImpl implements AccountUseCase {
             req = new MyAccountsPayload.Req(null, null, null);
         }
 
-        JPAQuery<MyAccountsPayload.Res> query = jpaQueryFactory
-                .select(Projections.constructor(MyAccountsPayload.Res.class,
-                                                QAccount.account.type,
-                                                QAccount.account.accountNo,
-                                                QAccount.account.currency,
-                                                QAccount.account.status,
-                                                QAccount.account.cashBalance,
-                                                QAccount.account.availableCash
-                )).from(QAccount.account);
+        JPAQuery<MyAccountsPayload.Res> query = jpaQueryFactory.select(
+                Projections.constructor(MyAccountsPayload.Res.class, QAccount.account.type, QAccount.account.accountNo,
+                                        QAccount.account.currency, QAccount.account.status,
+                                        QAccount.account.cashBalance, QAccount.account.availableCash)).from(
+                QAccount.account);
         query.where(QAccount.account.ownerId.eq(userId));
 
         // 조건부 동적쿼리
@@ -106,15 +102,9 @@ public class AccountUseCaseImpl implements AccountUseCase {
 
         Account account = accountSupport.findOneByOwnerIdAndAccountNo(userId, accountNo);
         BigDecimal newBalance = account.getCashBalance().add(amount);
-        AccountStatementLine stmt = AccountStatementLine.create(
-                account,
-                DirectionType.CREDIT,
-                StatementType.DEPOSIT,
-                amount,
-                newBalance,
-                "DEP-" + System.currentTimeMillis(),
-                "Deposit of " + amount + " to account " + accountNo
-        );
+        AccountStatementLine stmt = AccountStatementLine.create(account, DirectionType.CREDIT, StatementType.DEPOSIT,
+                                                                amount, newBalance, "DEP-" + System.currentTimeMillis(),
+                                                                "Deposit of " + amount + " to account " + accountNo);
         accountRepo.addAllBalance(accountNo, amount);
         accountStatementLineRepo.save(stmt);
         //TODO:Revy 현실 / 현업에서는 commit after뒤에 노티가 있겠지?
@@ -132,23 +122,17 @@ public class AccountUseCaseImpl implements AccountUseCase {
         /*
         출금 타입에 따라서 체크 안해야 할수도 있다. 미수금 발생 등등
          */
-        Assert.isTrue(BigDecimalUtil.isGreaterThanOrEqualTo(account.getCashBalance()
-                                                                   .subtract(amount), BigDecimal.ZERO),
+        Assert.isTrue(BigDecimalUtil.isGreaterThanOrEqualTo(account.getCashBalance().subtract(amount), BigDecimal.ZERO),
                       "Insufficient funds for withdrawal");
 
         // 2. 출금  처리
         BigDecimal newBalance = account.getCashBalance().subtract(amount);
 
         BigDecimal negateAmount = amount.negate(); // 요청 금에 - 부호 추가
-        AccountStatementLine stmt = AccountStatementLine.create(
-                account,
-                DirectionType.DEBIT,
-                StatementType.WITHDRAW,
-                negateAmount,
-                newBalance,
-                "WDR-" + System.currentTimeMillis(),
-                "Withdrawal of " + amount + " from account " + accountNo
-        );
+        AccountStatementLine stmt = AccountStatementLine.create(account, DirectionType.DEBIT, StatementType.WITHDRAW,
+                                                                negateAmount, newBalance,
+                                                                "WDR-" + System.currentTimeMillis(),
+                                                                "Withdrawal of " + amount + " from account " + accountNo);
 
         accountRepo.addAllBalance(accountNo, negateAmount);
         accountStatementLineRepo.save(stmt);
@@ -172,9 +156,8 @@ public class AccountUseCaseImpl implements AccountUseCase {
         if (fromAccount.getStatus() != AccountStatus.ACTIVE) {
             throw new AccountException(AccountException.AccountErrorCode.ACCOUNT_NOT_ACTIVE);
         }
-        Assert.isTrue(BigDecimalUtil.isGreaterThanOrEqualTo(fromAccount.getCashBalance()
-                                                                       .subtract(req.amount()), BigDecimal.ZERO),
-                      "Insufficient funds for withdrawal");
+        Assert.isTrue(BigDecimalUtil.isGreaterThanOrEqualTo(fromAccount.getCashBalance().subtract(req.amount()),
+                                                            BigDecimal.ZERO), "Insufficient funds for withdrawal");
 
 
         // 3. 수취 계좌 검증
@@ -195,15 +178,10 @@ public class AccountUseCaseImpl implements AccountUseCase {
         // 4. FROM Account 출금  처리
         BigDecimal fromAccountNewBalance = fromAccount.getCashBalance().subtract(req.amount());
         BigDecimal negateAmount = req.amount().negate(); // 요청 금에 - 부호 추가
-        AccountStatementLine fromStmt = AccountStatementLine.create(
-                fromAccount,
-                DirectionType.DEBIT,
-                StatementType.TRANSFER_OUT,
-                negateAmount,
-                fromAccountNewBalance,
-                req.referenceId(),
-                req.fromDescription()
-        );
+        AccountStatementLine fromStmt = AccountStatementLine.create(fromAccount, DirectionType.DEBIT,
+                                                                    StatementType.TRANSFER_OUT, negateAmount,
+                                                                    fromAccountNewBalance, req.referenceId(),
+                                                                    req.fromDescription());
         accountRepo.addAllBalance(req.fromAccountNo(), negateAmount);
         /*
 
@@ -213,32 +191,24 @@ public class AccountUseCaseImpl implements AccountUseCase {
 
         // 5. To Account 입금
         BigDecimal toAccountNewBalance = toAccount.getCashBalance().add(req.amount());
-        AccountStatementLine toStmt = AccountStatementLine.create(
-                toAccount,
-                DirectionType.CREDIT,
-                StatementType.TRANSFER_IN,
-                req.amount(),
-                toAccountNewBalance,
-                null,
-                req.toDescription()
-        );
+        AccountStatementLine toStmt = AccountStatementLine.create(toAccount, DirectionType.CREDIT,
+                                                                  StatementType.TRANSFER_IN, req.amount(),
+                                                                  toAccountNewBalance, null, req.toDescription());
         accountRepo.addAllBalance(req.toAccountNo(), req.amount());
         accountStatementLineRepo.save(fromStmt);
         accountStatementLineRepo.save(toStmt);
 
-        return new TransferPayload.Res(
-                req.fromAccountNo(),
-                req.toAccountNo(),
-                req.amount(),
-                fromAccountNewBalance,
-                req.referenceId());
+        return new TransferPayload.Res(req.fromAccountNo(), req.toAccountNo(), req.amount(), fromAccountNewBalance,
+                                       req.referenceId());
     }
 
     static class mapper {
-        public static CreateAccountPayload.Res convertCreateAccountRes(Account newAccount) {
-            return new CreateAccountPayload.Res(newAccount.getType(), newAccount.getAccountNo(),
-                                                newAccount.getCurrency(), newAccount.getCashBalance(),
-                                                newAccount.getAvailableCash());
+        public static CreateAccountPayload.Res convertCreateAccountRes(AccountResultDto.AccountInfo newAccount) {
+            return new CreateAccountPayload.Res(newAccount.type(),
+                                                newAccount.accountNo(),
+                                                newAccount.currency(),
+                                                newAccount.cashBalance(),
+                                                newAccount.availableCash());
         }
     }
 }

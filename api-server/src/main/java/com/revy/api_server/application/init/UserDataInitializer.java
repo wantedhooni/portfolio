@@ -1,14 +1,15 @@
 package com.revy.api_server.application.init;
 
-import com.revy.api_server.domain.user.Authority;
-import com.revy.api_server.domain.user.Role;
-import com.revy.api_server.domain.user.User;
-import com.revy.api_server.domain.user.UserDetail;
-import com.revy.api_server.domain.user.UserStatus;
-import com.revy.api_server.domain.user.repo.AuthorityRepository;
-import com.revy.api_server.domain.user.repo.RoleRepository;
-import com.revy.api_server.domain.user.repo.UserDetailRepository;
-import com.revy.api_server.domain.user.repo.UserRepository;
+
+import com.revy.securities.domain.user.Authority;
+import com.revy.securities.domain.user.Role;
+import com.revy.securities.domain.user.User;
+import com.revy.securities.domain.user.UserDetail;
+import com.revy.securities.domain.user.UserStatus;
+import com.revy.securities.domain.user.repo.AuthorityRepository;
+import com.revy.securities.domain.user.repo.RoleRepository;
+import com.revy.securities.domain.user.repo.UserDetailRepository;
+import com.revy.securities.domain.user.repo.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;

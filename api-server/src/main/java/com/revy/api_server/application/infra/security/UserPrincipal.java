@@ -1,8 +1,8 @@
 package com.revy.api_server.application.infra.security;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.revy.api_server.domain.user.Role;
-import com.revy.api_server.domain.user.User;
+import com.revy.securities.domain.user.Role;
+import com.revy.securities.domain.user.User;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
