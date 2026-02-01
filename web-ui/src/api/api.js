@@ -93,6 +93,11 @@ export async function getSnapshot(symbol) {
   return res.data
 }
 
+export async function getExchangeRates() {
+  const res = await api.get('/api/exchange')
+  return res.data
+}
+
 export async function getMyAccounts(filters = {}) {
   const params = new URLSearchParams()
   if (filters.currencies?.length) {

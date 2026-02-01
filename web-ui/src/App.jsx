@@ -6,6 +6,7 @@ import Login from './pages/Login'
 import Signup from './pages/Signup'
 import Chart from './pages/Chart'
 import Account from './pages/Account'
+import Exchange from './pages/Exchange'
 import Trade from './pages/Trade'
 import Orders from './pages/Orders'
 import { useAuth } from './auth/AuthProvider'
@@ -49,6 +50,7 @@ export default function App() {
             <>
               <Link to="/chart">Chart</Link>  
               <Link to="/account">Account</Link>  
+              <Link to="/exchange">exchange</Link>  
               <Link to="/trade">Trade</Link>
               <span className="greeting">{displayName} 님, 안녕하세요 </span>
               <button onClick={handleLogout} className="logout">Logout</button>
@@ -66,6 +68,7 @@ export default function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/chart" element={<ProtectedRoute><Chart /></ProtectedRoute>} />
           <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
+          <Route path="/exchange" element={<ProtectedRoute><Exchange /></ProtectedRoute>} />
           <Route path="/trade" element={<ProtectedRoute><Trade /></ProtectedRoute>} />
           <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
         </Routes>
