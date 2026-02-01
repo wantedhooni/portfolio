@@ -2,8 +2,8 @@ package com.revy.api_server.application.web.api.exchange.usecase.impl;
 
 import com.revy.api_server.application.web.api.exchange.payload.ExchangeRatePayload;
 import com.revy.api_server.application.web.api.exchange.usecase.ExchangeUseCase;
-import com.revy.api_server.domain.exchange.ExRate;
-import com.revy.api_server.domain.exchange.service.ExchangeReteService;
+import com.revy.securities.domain.exchange.ExRate;
+import com.revy.securities.domain.exchange.service.ExchangeReteService;
 import com.revy.common.enums.Currency;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

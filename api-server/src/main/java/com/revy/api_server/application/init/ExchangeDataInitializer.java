@@ -1,8 +1,8 @@
 package com.revy.api_server.application.init;
 
-import com.revy.api_server.domain.exchange.ExRate;
-import com.revy.api_server.domain.exchange.ExchangeConfig;
-import com.revy.api_server.domain.exchange.service.ExchangeReteService;
+import com.revy.securities.domain.exchange.ExRate;
+import com.revy.securities.domain.exchange.ExchangeConfig;
+import com.revy.securities.domain.exchange.service.ExchangeReteService;
 import com.revy.common.enums.Currency;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -1,7 +1,7 @@
 package com.revy.api_server.application.support.impl;
 
-import com.revy.api_server.domain.account.Account;
-import com.revy.api_server.domain.account.repo.AccountRepo;
+import com.revy.securities.domain.account.Account;
+import com.revy.securities.domain.account.repo.AccountRepo;
 import com.revy.api_server.application.exception.AccountException;
 import com.revy.api_server.application.support.AccountSupport;
 import io.jsonwebtoken.lang.Assert;

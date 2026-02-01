@@ -2,10 +2,10 @@ package com.revy.api_server.web.api.account;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.revy.api_server.application.web.api.account.AccountApi;
-import com.revy.api_server.domain.account.enums.AccountStatus;
-import com.revy.api_server.domain.account.enums.AccountType;
-import com.revy.api_server.domain.user.Role;
-import com.revy.api_server.domain.user.User;
+import com.revy.securities.domain.account.enums.AccountStatus;
+import com.revy.securities.domain.account.enums.AccountType;
+import com.revy.securities.domain.user.Role;
+import com.revy.securities.domain.user.User;
 import com.revy.api_server.application.web.api.account.payload.CreateAccountPayload;
 import com.revy.api_server.application.web.api.account.payload.DepositAccountPayload;
 import com.revy.api_server.application.web.api.account.payload.MyAccountsPayload;

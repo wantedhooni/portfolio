@@ -1,9 +1,9 @@
 package com.revy.api_server.web.api.market;
 
 import com.revy.api_server.application.web.api.market.MarketApi;
-import com.revy.api_server.client.YFinance.dto.BulkQuoteItem;
-import com.revy.api_server.client.YFinance.dto.QuoteResponse;
 import com.revy.api_server.application.web.api.market.usecase.QuoteUsecase;
+import com.revy.yfinance.dto.BulkQuoteItem;
+import com.revy.yfinance.dto.QuoteResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

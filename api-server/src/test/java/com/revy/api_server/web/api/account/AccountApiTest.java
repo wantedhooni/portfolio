@@ -1,9 +1,10 @@
 package com.revy.api_server.web.api.account;
 
 import com.revy.api_server.application.web.api.account.AccountApi;
-import com.revy.api_server.domain.account.enums.AccountType;
-import com.revy.api_server.domain.user.Role;
-import com.revy.api_server.domain.user.User;
+import com.revy.securities.domain.account.enums.AccountStatus;
+import com.revy.securities.domain.account.enums.AccountType;
+import com.revy.securities.domain.user.Role;
+import com.revy.securities.domain.user.User;
 import com.revy.api_server.application.web.api.account.payload.CreateAccountPayload;
 import com.revy.api_server.application.web.api.account.payload.DepositAccountPayload;
 import com.revy.api_server.application.web.api.account.payload.MyAccountsPayload;
@@ -65,10 +66,10 @@ class AccountApiTest {
     void getMyAccounts_returnsList() throws Exception {
         List<MyAccountsPayload.Res> res = List.of(
                 new MyAccountsPayload.Res(
-                        com.revy.api_server.domain.account.enums.AccountType.CASH,
+                        AccountType.CASH,
                         "acc",
                         Currency.USD,
-                        com.revy.api_server.domain.account.enums.AccountStatus.ACTIVE,
+                        AccountStatus.ACTIVE,
                         BigDecimal.ZERO,
                         BigDecimal.ZERO)
         );

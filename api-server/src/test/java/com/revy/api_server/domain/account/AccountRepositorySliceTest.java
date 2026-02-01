@@ -1,9 +1,10 @@
 package com.revy.api_server.domain.account;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.revy.api_server.domain.account.enums.AccountType;
-import com.revy.api_server.domain.account.repo.AccountRepo;
-import com.revy.api_server.domain.account.QAccount;
+import com.revy.securities.domain.account.Account;
+import com.revy.securities.domain.account.enums.AccountType;
+import com.revy.securities.domain.account.repo.AccountRepo;
+import com.revy.securities.domain.account.QAccount;
 import com.revy.common.enums.Currency;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -67,7 +68,7 @@ class AccountRepositorySliceTest {
     }
 
     @Configuration
-    @EnableJpaRepositories(basePackages = "com.revy.api_server.domain.account.repo")
+    @EnableJpaRepositories(basePackages = "com.revy.securities.domain.account.repo")
     @EnableTransactionManagement
     static class TestConfig {
         @Bean

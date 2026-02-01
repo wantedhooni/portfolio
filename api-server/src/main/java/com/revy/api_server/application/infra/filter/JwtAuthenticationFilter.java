@@ -1,9 +1,9 @@
 package com.revy.api_server.application.infra.filter;
 
 import com.revy.api_server.application.infra.security.UserPrincipal;
-import com.revy.api_server.domain.user.User;
-import com.revy.api_server.domain.user.UserStatus;
-import com.revy.api_server.domain.user.repo.UserRepository;
+import com.revy.securities.domain.user.User;
+import com.revy.securities.domain.user.UserStatus;
+import com.revy.securities.domain.user.repo.UserRepository;
 import com.revy.api_server.application.exception.AuthException;
 import com.revy.api_server.application.infra.security.provider.JwtTokenProvider;
 import com.revy.api_server.application.infra.security.token.TokenStore;

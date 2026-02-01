@@ -1,9 +1,9 @@
 package com.revy.api_server.application.web.api.trade.payload;
 
-import com.revy.api_server.domain.trade.enums.OrderStatus;
-import com.revy.api_server.domain.trade.enums.OrderType;
-import com.revy.api_server.domain.trade.enums.Side;
-import com.revy.api_server.domain.trade.enums.TimeInForce;
+import com.revy.securities.domain.trade.enums.OrderStatus;
+import com.revy.securities.domain.trade.enums.OrderType;
+import com.revy.securities.domain.trade.enums.Side;
+import com.revy.securities.domain.trade.enums.TimeInForce;
 import com.revy.common.enums.Currency;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.DecimalMin;

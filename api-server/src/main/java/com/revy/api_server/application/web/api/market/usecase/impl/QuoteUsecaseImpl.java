@@ -1,13 +1,13 @@
 package com.revy.api_server.application.web.api.market.usecase.impl;
 
-import com.revy.api_server.client.YFinance.YFinanceProxyClient;
-import com.revy.api_server.client.YFinance.dto.BulkQuoteItem;
-import com.revy.api_server.client.YFinance.dto.EarningsResponse;
-import com.revy.api_server.client.YFinance.dto.HistoricalResponse;
-import com.revy.api_server.client.YFinance.dto.InfoResponse;
-import com.revy.api_server.client.YFinance.dto.QuoteResponse;
-import com.revy.api_server.client.YFinance.dto.SnapshotResponse;
 import com.revy.api_server.application.web.api.market.usecase.QuoteUsecase;
+import com.revy.yfinance.YFinanceProxyClient;
+import com.revy.yfinance.dto.BulkQuoteItem;
+import com.revy.yfinance.dto.EarningsResponse;
+import com.revy.yfinance.dto.HistoricalResponse;
+import com.revy.yfinance.dto.InfoResponse;
+import com.revy.yfinance.dto.QuoteResponse;
+import com.revy.yfinance.dto.SnapshotResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

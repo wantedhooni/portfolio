@@ -1,6 +1,6 @@
 package com.revy.api_server.application.web.api.account.usecase;
 
-import com.revy.api_server.domain.account.enums.AccountType;
+import com.revy.securities.domain.account.enums.AccountType;
 import com.revy.api_server.application.web.api.account.payload.CreateAccountPayload;
 import com.revy.api_server.application.web.api.account.payload.MyAccountsPayload;
 import com.revy.api_server.application.web.api.account.payload.TransferPayload;

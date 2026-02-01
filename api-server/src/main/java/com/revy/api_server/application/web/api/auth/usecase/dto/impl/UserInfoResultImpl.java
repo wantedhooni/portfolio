@@ -1,6 +1,6 @@
 package com.revy.api_server.application.web.api.auth.usecase.dto.impl;
 
-import com.revy.api_server.domain.user.UserStatus;
+import com.revy.securities.domain.user.UserStatus;
 import com.revy.api_server.application.web.api.auth.usecase.dto.UserInfoResult;
 import lombok.Builder;
 import lombok.Getter;

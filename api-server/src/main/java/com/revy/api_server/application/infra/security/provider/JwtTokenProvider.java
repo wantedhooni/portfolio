@@ -1,6 +1,6 @@
 package com.revy.api_server.application.infra.security.provider;
 
-import com.revy.api_server.domain.user.User;
+import com.revy.securities.domain.user.User;
 
 import java.time.temporal.Temporal;
 

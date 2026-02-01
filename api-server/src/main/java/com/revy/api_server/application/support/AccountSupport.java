@@ -1,6 +1,6 @@
 package com.revy.api_server.application.support;
 
-import com.revy.api_server.domain.account.Account;
+import com.revy.securities.domain.account.Account;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;

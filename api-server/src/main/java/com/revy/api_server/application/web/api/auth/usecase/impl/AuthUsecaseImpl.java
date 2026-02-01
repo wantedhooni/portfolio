@@ -1,13 +1,13 @@
 package com.revy.api_server.application.web.api.auth.usecase.impl;
 
-import com.revy.api_server.domain.user.Role;
-import com.revy.api_server.domain.user.User;
-import com.revy.api_server.domain.user.UserDetail;
-import com.revy.api_server.domain.user.UserStatus;
-import com.revy.api_server.domain.user.repo.RoleRepository;
-import com.revy.api_server.domain.user.repo.UserDetailRepository;
-import com.revy.api_server.domain.user.repo.UserQueryRepository;
-import com.revy.api_server.domain.user.repo.UserRepository;
+import com.revy.securities.domain.user.Role;
+import com.revy.securities.domain.user.User;
+import com.revy.securities.domain.user.UserDetail;
+import com.revy.securities.domain.user.UserStatus;
+import com.revy.securities.domain.user.repo.RoleRepository;
+import com.revy.securities.domain.user.repo.UserDetailRepository;
+import com.revy.securities.domain.user.repo.UserQueryRepository;
+import com.revy.securities.domain.user.repo.UserRepository;
 import com.revy.api_server.application.infra.security.provider.JwtTokenProvider;
 import com.revy.api_server.application.infra.security.token.TokenStore;
 import com.revy.api_server.application.web.api.auth.usecase.AuthUsecase;

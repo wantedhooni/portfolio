@@ -5,7 +5,6 @@ plugins {
     id("java")
     id("java-library")
 }
-
 allprojects {
     group = "com.revy"
     version = "0.1.0"
@@ -22,11 +21,23 @@ allprojects {
     }
 
 }
+// Centralized version and dependency-management for subprojects
+extra["querydslVersion"] = "5.1.0"
+extra["jakartaPersistenceVersion"] = "3.1.0"
+extra["jjwtVersion"] = "0.12.7"
 
 subprojects {
+    // Apply dependency management plugin to all subprojects
+    apply(plugin = "io.spring.dependency-management")
+
+    dependencyManagement {
+        imports {
+            mavenBom("org.springframework.boot:spring-boot-dependencies:4.0.1")
+        }
+    }
+
     // 반드시 java 플러그인 또는 application/plugin이 적용된 이후에 설정되도록
     plugins.withType<JavaPlugin> {
-
 
         dependencies {
 
@@ -35,6 +46,9 @@ subprojects {
             annotationProcessor("org.projectlombok:lombok:1.18.42")
             testCompileOnly("org.projectlombok:lombok:1.18.42")
             testAnnotationProcessor("org.projectlombok:lombok:1.18.42")
+
+            //
+            implementation("org.springframework:spring-context")
         }
 
         // 테스트 공통 설정
@@ -42,6 +56,5 @@ subprojects {
             useJUnitPlatform()
         }
     }
-
 
 }
