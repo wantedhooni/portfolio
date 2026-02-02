@@ -2,7 +2,7 @@
 <configuration>
     <property name="LOG_PATH" value="./logs"/>
     <!-- 1) 플래그: 미정의면 false -->
-    <property name="LOGSTASH_ENABLE" value="${LOGSTASH.ENABLE:-false}"/>
+    <property name="LOGSTASH_ENABLE" value="${logstash.enabled:-false}"/>
     <define name="hostname" class="ch.qos.logback.core.property.CanonicalHostNamePropertyDefiner"/>
 
     <!-- Appenders -->

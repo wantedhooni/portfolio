@@ -17,6 +17,6 @@ public class Initializer implements CommandLineRunner {
      */
     @Override
     public void run(String... args) throws Exception {
-        log.info("LOGSTASH.ENABLE: {}" , System.getProperty("LOGSTASH.ENABLE"));
+        log.info("logstash.enabled: {}" , System.getProperty("logstash.enabled"));
     }
 }
