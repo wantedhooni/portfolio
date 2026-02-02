@@ -1,6 +1,7 @@
 package com.revy.securities.domain.trade.repo.query.impl;
 
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.revy.securities.domain.trade.Order;
 import com.revy.securities.domain.trade.QOrder;
@@ -33,9 +34,10 @@ public class OrderQueryRepoImpl implements OrderQueryRepo {
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        var countQuery = jpaQueryFactory
-                .selectFrom(order)
+        JPAQuery<Long> countQuery = jpaQueryFactory
+                .select(order.count())
+                .from(order)
                 .where(order.ownerId.eq(ownerId));
-        return PageableExecutionUtils.getPage(orders, pageable, countQuery::fetchCount);
+        return PageableExecutionUtils.getPage(orders, pageable, countQuery::fetchOne);
     }
 }
