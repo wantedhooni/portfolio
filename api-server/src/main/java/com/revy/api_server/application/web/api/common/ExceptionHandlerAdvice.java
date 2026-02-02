@@ -16,7 +16,7 @@ import org.springframework.security.access.AccessDeniedException;
 
 // TODO:Revy -> 나중에 Exception 정리해서 합치자.
 @Slf4j
-@RestControllerAdvice
+@RestControllerAdvice(basePackages = {"com.revy"})
 public class ExceptionHandlerAdvice {
 
     @ExceptionHandler(AuthException.class)
@@ -44,13 +44,13 @@ public class ExceptionHandlerAdvice {
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ApiResponse<Void> handleUnknown(Exception e) {
-        log.error("unknown exception:", e);
+        log.error("unknown exception: " + e.getMessage(), e);
         return ApiResponse.fail("INTERNAL_ERROR", e.getMessage());
     }
 
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<ApiResponse<Void>> handleApiException(ApiException e) {
-        log.error("api exception:", e);
+        log.error("api exception: " + e.getMessage(), e);
         HttpStatus status = resolveStatus(e);
         return ResponseEntity.status(status).body(ApiResponse.fail(e.getCode(), e.getMessage()));
     }
