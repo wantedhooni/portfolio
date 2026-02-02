@@ -50,10 +50,7 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
-tasks.named<BootJar>("bootJar") {
-    enabled = false
-}
-
-tasks.named<Jar>("jar") {
+tasks.withType<BootJar> {
     enabled = true
+    mainClass.set("com.revy.api_server.ApiServerApplication")
 }

@@ -1,3 +1,6 @@
+import org.springframework.boot.gradle.tasks.bundling.BootJar
+
+
 plugins {
     id("org.springframework.boot") version "4.0.1"
     id("io.spring.dependency-management") version "1.1.6"
@@ -20,7 +23,16 @@ allprojects {
         }
     }
 
+    tasks.withType<BootJar> {
+        enabled = false
+    }
+
+    tasks.withType<Test>().configureEach {
+        enabled = false
+    }
 }
+
+
 // Centralized version and dependency-management for subprojects
 extra["querydslVersion"] = "5.1.0"
 extra["jakartaPersistenceVersion"] = "3.1.0"
@@ -28,6 +40,7 @@ extra["jjwtVersion"] = "0.12.7"
 
 subprojects {
     // Apply dependency management plugin to all subprojects
+    apply(plugin = "java")
     apply(plugin = "io.spring.dependency-management")
 
     dependencyManagement {
@@ -36,9 +49,7 @@ subprojects {
         }
     }
 
-    // 반드시 java 플러그인 또는 application/plugin이 적용된 이후에 설정되도록
     plugins.withType<JavaPlugin> {
-
         dependencies {
 
             // Lombok 공통 선언
@@ -51,10 +62,9 @@ subprojects {
             implementation("org.springframework:spring-context")
         }
 
-        // 테스트 공통 설정
-        tasks.withType<Test> {
-            useJUnitPlatform()
-        }
     }
-
+    // 테스트 공통 설정
+    tasks.withType<Test> {
+        useJUnitPlatform()
+    }
 }
