@@ -57,10 +57,8 @@
 ## API SERVER 실행
 ---
 ```
-# yfinanace-server Proxy 서버 실행
-docker compose -f ./docker/yfinance-server/docker-compose.yml up -d
-# mariadb / redis 실행
-docker compose -f ./docker-compose.yml up -d
+# infra docker 실행
+./run_infra.sh
 ./gradlew api-server:bootRun
 ```
 ### API-SERVER
@@ -107,8 +105,10 @@ cd web-ui && npm install && npm run dev
 ```
 # yfinanace-server Proxy 서버 실행(주가 조회 프록시 서버)
 docker compose -f ./docker/yfinance-server/docker-compose.yml up -d
+# ELK STACK(Logging)
+docker compose -f ./docker/elk/docker-compose.yml up -d
 # mariadb / redis 실행 
-docker compose -f ./docker-compose.yml up -d 
+docker compose -f ./docker-compose.yml up -d
 ```
 
 
