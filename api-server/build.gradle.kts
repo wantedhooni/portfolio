@@ -36,6 +36,9 @@ dependencies {
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:${jjwtVersion}")
 
 
+    // log
+    // Source: https://mvnrepository.com/artifact/org.codehaus.janino/janino
+    implementation("org.codehaus.janino:janino:3.1.12")
     // Source: https://mvnrepository.com/artifact/net.logstash.logback/logstash-logback-encoder
     implementation("net.logstash.logback:logstash-logback-encoder:9.0")
 

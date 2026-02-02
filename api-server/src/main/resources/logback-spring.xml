@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
     <property name="LOG_PATH" value="./logs"/>
+    <!-- 1) 플래그: 미정의면 false -->
+    <property name="LOGSTASH_ENABLE" value="${LOGSTASH.ENABLE:-false}"/>
+    <define name="hostname" class="ch.qos.logback.core.property.CanonicalHostNamePropertyDefiner"/>
 
     <!-- Appenders -->
     <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
@@ -27,10 +30,41 @@
         </encoder>
     </appender>
 
+    <!-- LOGSTASH_HOST가 정의된 경우에만 LOGSTASH appender 생성/부착 -->
+    <if condition='property("LOGSTASH_ENABLE").equalsIgnoreCase("true")'>
+            <then>
+                <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+                    <destination>${LOGSTASH_HOST:-127.0.0.1}:${LOGSTASH_PORT:-4560}</destination>
+
+                    <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                        <!-- MDC 전부 포함은 기본 동작이지만, 명시 가능 -->
+                        <includeMdc>true</includeMdc>
+                        <customFields>
+                            {"service":"uat-trade-api","env":"local", "host":{"hostname":"${hostname}"}}
+                        </customFields>
+                    </encoder>
+
+                    <ringBufferSize>8192</ringBufferSize>
+                    <appendTimeout>0</appendTimeout>
+                </appender>
+            </then>
+    </if>
+
     <!-- TRACE > DEBUG > INFO > WARN > ERROR > OFF -->
     <!-- Root Logger -->
-    <root level="INFO">
-        <appender-ref ref="console"/>
-        <appender-ref ref="INFO_LOG"/>
-    </root>
+    <if condition='property("LOGSTASH_ENABLE").equalsIgnoreCase("true")'>
+        <then>
+            <root level="INFO">
+                <appender-ref ref="console"/>
+                <appender-ref ref="LOGSTASH"/>
+            </root>
+        </then>
+        <else>
+            <root level="INFO">
+                <appender-ref ref="console"/>
+                <appender-ref ref="INFO_LOG"/>
+            </root>
+        </else>
+    </if>
+
 </configuration>
