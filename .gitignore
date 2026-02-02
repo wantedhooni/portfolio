@@ -105,5 +105,8 @@ dist
 
 logs
 logs/**
+
 bin
+bin/**
 **/bin
+**/bin/**
