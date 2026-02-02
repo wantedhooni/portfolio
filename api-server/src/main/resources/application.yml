@@ -58,6 +58,10 @@ spring:
         enabled: false
     restart:
       enabled: false
+  web:
+    error:
+      whitelabel:
+        enabled: false
 
 springdoc:
   show-actuator: true
