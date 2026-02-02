@@ -9,7 +9,6 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 
-@Repository
 public interface AccountRepo extends JpaRepository<Account, Long>, AccountQueryRepo {
     @Modifying
     @Query(

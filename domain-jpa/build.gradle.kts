@@ -2,6 +2,11 @@ plugins {
     id("java-library")
 }
 
+
+tasks.withType<JavaCompile>().configureEach {
+    options.compilerArgs.add("-parameters")
+}
+
 // Use version variables defined in root build.gradle.kts
 val querydslVersion: String by rootProject.extra
 val jakartaPersistenceVersion: String by rootProject.extra
