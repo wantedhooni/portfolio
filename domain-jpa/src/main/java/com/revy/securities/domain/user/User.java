@@ -21,6 +21,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.springframework.util.Assert;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -41,6 +42,9 @@ public class User extends BaseEntity<Long> {
     @ToString.Exclude
     @Column(nullable = false)
     private String password;
+
+    @Column(name="last_login_at")
+    private LocalDateTime lastLoginAt;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -64,5 +68,9 @@ public class User extends BaseEntity<Long> {
     public void withdraw(){
         Assert.isTrue(this.status == UserStatus.ACTIVE, "회원 상태는 ACTIVE 상태여야 합니다.");
         this.status =  UserStatus.WITHDRAWN;
+    }
+
+    public void login(){
+        this.lastLoginAt = LocalDateTime.now();
     }
 }

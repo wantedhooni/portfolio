@@ -69,6 +69,7 @@ public class AuthUsecaseImpl implements AuthUsecase {
         String accessToken = jwtTokenProvider.createAccessToken(user);
         String refreshToken = jwtTokenProvider.createRefreshToken(user);
         tokenStore.saveRefreshToken(user.getId(), refreshToken, Duration.between(Instant.now(), jwtTokenProvider.getExpiration(refreshToken)));
+        user.login();
         return LoginResultImpl.builder().tokenType(TOKEN_TYPE).accessToken(accessToken).refreshToken(refreshToken)
                               .build();
     }
@@ -88,6 +89,7 @@ public class AuthUsecaseImpl implements AuthUsecase {
         User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
         String newAccessToken = jwtTokenProvider.createAccessToken(user), newRefreshToken = jwtTokenProvider.createRefreshToken(user);
         tokenStore.saveRefreshToken(userId, newRefreshToken, Duration.between(java.time.Instant.now(), jwtTokenProvider.getExpiration(newRefreshToken)));
+        user.login();
         return LoginResultImpl.builder().tokenType(TOKEN_TYPE).accessToken(newAccessToken).refreshToken(newRefreshToken)
                               .build();
     }
