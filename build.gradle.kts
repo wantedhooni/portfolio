@@ -22,6 +22,9 @@ allprojects {
             }
         }
     }
+    tasks.withType<JavaCompile>().configureEach {
+        options.compilerArgs.add("-parameters")
+    }
 
     tasks.withType<BootJar> {
         enabled = false
