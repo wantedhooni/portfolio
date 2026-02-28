@@ -1,11 +1,11 @@
-package com.revy.sample.querydsl.utils;
+package com.revy.sample.rsql.querydsl.utils;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.core.types.dsl.SimpleExpression;
 import com.querydsl.core.types.dsl.StringPath;
-import com.revy.sample.querydsl.utils.exception.ApiException;
-import com.revy.sample.querydsl.utils.exception.AppErrorCode;
+import com.revy.sample.rsql.querydsl.utils.exception.ApiException;
+import com.revy.sample.rsql.querydsl.utils.exception.AppErrorCode;
 
 import java.math.BigDecimal;
 import java.time.Instant;

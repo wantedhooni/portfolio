@@ -1,4 +1,4 @@
-package com.revy.sample.filter.v1;
+package com.revy.sample.jqgrid.filter.v1;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;

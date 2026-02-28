@@ -1,4 +1,8 @@
-package com.revy.sample.querydsl.utils.exception;
+package com.revy.sample.rsql.querydsl.utils.exception;
+
+import org.springframework.http.HttpStatus;
+
+import java.util.List;
 
 public class ApiException extends RuntimeException {
     private final String orgCode;
