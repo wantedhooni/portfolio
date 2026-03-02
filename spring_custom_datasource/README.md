@@ -1,35 +1,35 @@
-# Spring DataSource 샘픔
+# spring_custom_datasource
 
-## 프로파일별 
-- H2
-- Mariadb
-- Mariadb-replica (Read / Write 라우팅)
-- - readonly가 아니면 Primary로 쿼리
-- - readonly이면 secondary로 쿼리
----
+프로파일별 DataSource 구성과 읽기/쓰기 라우팅을 실험하는 샘플입니다.
 
-## 프로파일 정보
- 
-- default: h2
-- h2 -> h2db 사용
-- mariadb -> mariadb primary 사용
-- mariadb_repl -> primary / secondary 사용
+## 구현 범위
 
-### TODO 
-- 인프라 레이어에서 쿼리 프록시서버를 적용 해보자
-- - 개인적으로 소스 단위에서 라우팅 치는거는 좋지 않은거 같다.
-- - 유지보수 면에서 좋지 않음(순정이 최고다.)
-- [ ] MariaDB MaxScale
-- [ ] ProxySQL
+- Thymeleaf 기반 게시글 CRUD 화면
+- H2 단일 DB 프로파일
+- MariaDB 단일 DB 프로파일
+- MariaDB primary / secondary 라우팅 프로파일
+- read-only 트랜잭션일 때 secondary 사용
 
+## 프로파일
 
+- `h2`: H2 메모리 DB
+- `mariadb`: MariaDB primary 단일 사용
+- `mariadb_repl`: primary / secondary 라우팅
 
-## 접속 URL: http://localhost:8080/posts
-![img_2.png](img/img_2.png)
+## 접속 정보
 
+- 화면: `http://localhost:8080/posts`
+- H2 Console: `http://localhost:8080/h2-console`
+- MariaDB primary: `localhost:23306`
+- MariaDB secondary: `localhost:33306`
 
-## mariadb_repl -> primary / secondary 사용시 쿼리확인
-### Primary로 쿼리 확인
-![img.png](img/img.png)
-### secondary 쿼리 확인
-![img_1.png](img/img_1.png)![img.png](img/img.png)
+## 라우팅 방식
+
+- `RoutingDataSource`가 `TransactionSynchronizationManager.isCurrentTransactionReadOnly()`를 기준으로 분기합니다.
+- 쓰기 트랜잭션은 primary
+- 읽기 전용 트랜잭션은 secondary
+
+## 메모
+
+- 애플리케이션 레벨 라우팅 예제를 구현해둔 상태입니다.
+- 운영 환경에서는 ProxySQL, MaxScale 같은 프록시 계층 검토가 더 현실적이라는 메모도 남겨두고 있습니다.

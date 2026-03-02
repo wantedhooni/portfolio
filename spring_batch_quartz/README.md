@@ -1,45 +1,51 @@
 # Spring Batch + Quartz 클러스터 샘플
 
-## 
+Spring Batch 작업을 Quartz로 스케줄링하고, 실행 결과를 모니터링하는 샘플입니다.
+
+## 구현 범위
+
+- JDBC JobStore 기반 Quartz 설정
+- Quartz 클러스터 모드 설정
+- Spring Batch 잡/스텝 구성
+- 재시도와 백오프 정책
+- 잡/스텝 실행 이력 조회 API
+- Prometheus 메트릭 노출
+- 실패 시 다중 채널 알림 인터페이스
+- Flyway로 Batch / Quartz 메타데이터 스키마 관리
 
 ## Quartz 클러스터링 구조
-- `spring.quartz.job-store-type: jdbc` 기반으로 Quartz 메타데이터를 DB에 저장합니다.
-- `org.quartz.scheduler.instanceId: AUTO` 설정으로 각 노드가 자동으로 인스턴스를 구분합니다.
-- `org.quartz.jobStore.isClustered: true` 설정으로 클러스터 노드가 동일한 스케줄을 공유합니다.
-- `QRTZ_*` 테이블을 통해 트리거 상태, 잠금, 실행 이력을 공유합니다.
 
-## 모니터링 / Grafana 설정
-- Actuator + Prometheus 메트릭을 노출합니다.
-  - Prometheus 스크래핑 URL: `http://localhost:8080/actuator/prometheus`
-- Grafana 샘플 대시보드 JSON은 아래 경로에 포함되어 있습니다.
-  - `src/main/resources/monitoring/grafana-dashboard.json`
-- 배치/스텝 실행 카운트 및 실행 시간 메트릭을 제공합니다.
+- `spring.quartz.job-store-type: jdbc`
+- `org.quartz.scheduler.instanceId: AUTO`
+- `org.quartz.jobStore.isClustered: true`
+- Quartz 메타데이터는 `QRTZ_*` 테이블에 저장
 
-### REST API
-- 배치 잡 실행 이력
-  - `GET /api/batch/jobs/{jobName}/executions`
-- 스텝 상세 실행 정보
-  - `GET /api/batch/executions/{executionId}/steps`
-- Quartz 트리거 상태
-  - `GET /api/quartz/triggers`
+## 배치 흐름
 
-## Retry / Alert 패턴 설명
-- 배치 스텝은 `faultTolerant()` 설정으로 재시도를 수행합니다.
-- 재시도 횟수 및 백오프 전략은 `application.yml`의 `app.batch.retry` 설정을 사용합니다.
-- 잡 실패 시 `JobExecutionListener`가 실패 이벤트를 감지합니다.
-- `AlertService` 인터페이스를 통해 이메일/슬랙/웹훅 알림 예시를 제공합니다.
+- `sampleJob` 안에 `sampleStep` 1개를 구성
+- `ListItemReader`가 `alpha`, `retry`, `beta`, `gamma`를 읽음
+- `retry` 처리 시 재시도 정책과 백오프를 적용
+- `BatchJobListener`, `BatchStepListener`로 실행 결과를 기록
 
-## 스키마/마이그레이션
-- 배치 메타데이터: `src/main/resources/db/migration/V20260104005745__batch_schema.sql`
-- 쿼츠 메타데이터: `src/main/resources/db/migration/V20260104005800__quartz_schema.sql`
+## 모니터링 API
 
-## 최신 트랜드 적용 포인트
-- Spring Boot 3.x + Micrometer 기반 메트릭 수집
-- Quartz 클러스터 모드와 배치 잡 오케스트레이션 분리
-- REST 기반 모니터링 API 제공
+- `GET /api/batch/jobs/{jobName}/executions`
+- `GET /api/batch/executions/{executionId}/steps`
+- `GET /api/quartz/triggers`
 
-## note
-mac timestamp
-````
-date "+%Y%m%d%H%M%S"
-```
+## 실행 정보
+
+- 실행: `./gradlew bootRun`
+- Prometheus: `http://localhost:8080/actuator/prometheus`
+- Actuator exposure: `health`, `info`, `prometheus`, `quartz`
+- DB: `jdbc:mariadb://localhost:23306/batch_quartz`
+
+## 스키마
+
+- Batch: `src/main/resources/db/migration/V20260104005745__batch_schema.sql`
+- Quartz: `src/main/resources/db/migration/V20260104005800__quartz_schema.sql`
+
+## 메모
+
+- `AlertNotifier`가 `Slack`, `Email`, `Webhook` 구현체를 한 번에 호출하는 구조입니다.
+- README 기준보다는 코드가 더 정확하며, 현재 Quartz trigger 설정은 cron 설명보다 단순 스케줄에 가깝습니다.

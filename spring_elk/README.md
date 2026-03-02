@@ -1,44 +1,35 @@
 # spring_elk
 
-spring_elk 연습
+Spring 애플리케이션 로그를 ELK로 적재하는 방식을 비교하는 멀티 모듈 샘플입니다.
 
-노트
----
-기존에 했듯이 로그를 ELK로 보내기 연습
+## 모듈 구성
 
+- `spring_elk_es`: 애플리케이션에서 Elasticsearch로 직접 전송
+- `spring_elk_logstash`: 애플리케이션에서 Logstash TCP로 전송 후 Elasticsearch 적재
 
-https://docs.spring.io/spring-boot/reference/features/logging.html#features.logging.structured.ecs
+## 공통 인프라
 
+- Elasticsearch: `http://localhost:9200/`
+- Kibana: `http://localhost:5601/`
+- Logstash Monitoring: `http://localhost:9600/`
 
+## 구현 포인트
 
-- es: http://localhost:9200/
-- logstash: http://localhost:9600/
-- kibana: http://localhost:5601/app/home
+- `logback-spring.xml` 중심의 로그 적재 실험
+- 파일 로그와 외부 적재를 동시에 구성
+- `spring_elk_es`는 `ElasticsearchAppender` 사용
+- `spring_elk_logstash`는 `LogstashTcpSocketAppender` + `AsyncAppender` 사용
 
----
-![img.png](img/img.png)
+## 실행 메모
 
+- 각 서브모듈에서 개별 실행
+- `spring_elk_es/docker-compose.yaml` 또는 `spring_elk_logstash/docker-compose.yaml`로 로컬 인프라 기동
 
+## 현재 상태
 
-H2 DB 콘솔
----
-- http://localhost:8080/h2-console/login.jsp
+- 이 모듈은 비즈니스 API보다 로깅 파이프라인 설정이 핵심입니다.
+- H2/Swagger 설정 흔적은 남아 있지만 실제 목적은 로그 전송 검증입니다.
 
-api-docs
----
-- http://localhost:8080/api-docs
-- http://localhost:8080/swagger-ui.html
+## 참고
 
-kafka 정보
----
-
-- kafka UI
-  - http://localhost:8090/
-- kafka port
-  - localhost:9092
-
-Spring kafka 자료
----
-https://spring.io/projects/spring-kafka
-https://github.com/spring-projects/spring-kafka/tree/main/samples
-
+- Spring Boot structured logging / ECS 문서를 함께 보면 방향 잡기 좋습니다.

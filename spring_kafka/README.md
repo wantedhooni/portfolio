@@ -1,27 +1,33 @@
 # spring_kafka
 
-spring_kafka 연습
+Kafka producer/consumer 최소 예제를 확인하는 샘플입니다.
 
+## 구현 범위
 
-H2 DB 콘솔
----
-- http://localhost:8080/h2-console/login.jsp
+- Docker Compose 기반 단일 Kafka 브로커
+- Kafka UI 포함
+- REST 요청으로 메시지 발행
+- `@KafkaListener`로 메시지 소비
 
-api-docs
----
-- http://localhost:8080/api-docs
-- http://localhost:8080/swagger-ui.html
+## 주요 API
 
-kafka 정보
----
+- `POST /publish?msg=hello`
 
-- kafka UI
-  - http://localhost:8090/
-- kafka port
-  - localhost:9092
+## 동작 방식
 
-Spring kafka 자료
----
-https://spring.io/projects/spring-kafka
-https://github.com/spring-projects/spring-kafka/tree/main/samples
+- `PublishController`가 `SimpleMessage`를 생성해 `sample.topic`으로 발행합니다.
+- `KafkaConsumer`가 동일 토픽을 `sample-group`으로 구독합니다.
 
+## 실행 정보
+
+- 실행: `./gradlew bootRun`
+- Kafka UI: `http://localhost:8090/`
+- Kafka broker: `localhost:9092`
+- Swagger UI: `http://localhost:8080/swagger-ui.html`
+- API Docs: `http://localhost:8080/api-docs`
+- H2 Console: `http://localhost:8080/h2-console`
+
+## 메모
+
+- `spring.docker.compose` 설정이 있어 애플리케이션 실행 시 로컬 Kafka 구성을 함께 띄우는 용도로 맞춰져 있습니다.
+- DB 설정도 들어가 있지만 핵심 관심사는 메시지 발행/소비 흐름입니다.
