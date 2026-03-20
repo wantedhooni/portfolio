@@ -2,6 +2,10 @@ import React from 'react'
 import MiniPriceChart from '../MiniPriceChart'
 
 export default function TradeQuoteCard({ snapshot, price, currency, formatAmount, miniChartData }) {
+  const previousClose = snapshot?.quote?.previous_close
+  const change = previousClose != null && price != null ? Number(price) - Number(previousClose) : null
+  const directionClass = change !== null && change >= 0 ? 'is-up' : 'is-down'
+
   return (
     <div className="trade-card">
       <h3>현재 시세</h3>
@@ -14,6 +18,12 @@ export default function TradeQuoteCard({ snapshot, price, currency, formatAmount
           <div>
             <span>현재가</span>
             <strong>{formatAmount(price)}</strong>
+          </div>
+          <div>
+            <span>전일 대비</span>
+            <strong className={`trade-delta ${directionClass}`}>
+              {change !== null ? `${change >= 0 ? '+' : ''}${formatAmount(change)}` : '-'}
+            </strong>
           </div>
           <div>
             <span>통화</span>

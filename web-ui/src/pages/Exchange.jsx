@@ -83,6 +83,10 @@ export default function Exchange() {
   const result = amountNum !== null && rate !== null ? amountNum * rate : null
   const fee = 0
   const total = amountNum !== null ? amountNum + fee : null
+  const selectedAccounts = useMemo(
+    () => accounts.filter(account => account.currency === base || account.currency === dest),
+    [accounts, base, dest]
+  )
 
   const formatAmount = (value, digits = 2) => {
     if (value === null || value === undefined) return ''
@@ -104,6 +108,33 @@ export default function Exchange() {
     <div className="exchange-shell">
       <div className="exchange-layout">
         <div className="exchange-card">
+          <div className="exchange-hero">
+            <div>
+              <span className="intro-eyebrow">Exchange Desk</span>
+              <h2 className="exchange-hero__title">보내는 금액과 받는 금액을 같은 문맥에서 확인</h2>
+              <p className="exchange-hero__text">
+                어떤 통화에서 어떤 통화로 바꾸는지, 현재 환율이 어떤지, 내 계좌에 해당 통화가 있는지를 한 화면에서 바로 보도록 구성했습니다.
+              </p>
+            </div>
+            <div className="exchange-hero__badge">
+              <span>환전 경로</span>
+              <strong>{base} → {dest || '--'}</strong>
+            </div>
+          </div>
+
+          <div className="exchange-quick-amounts">
+            {[1000, 10000, 100000, 1000000].map(value => (
+              <button
+                key={value}
+                type="button"
+                className="ghost-button"
+                onClick={() => setAmountInput(String(value))}
+              >
+                {value.toLocaleString('en-US')}
+              </button>
+            ))}
+          </div>
+
           <div className="exchange-section">
             <div className="exchange-title">보내는 금액</div>
             <div className="exchange-input-row">
@@ -156,6 +187,14 @@ export default function Exchange() {
               <span>환율 혜택</span>
               <strong>100% 환율 우대</strong>
             </div>
+            <div className="exchange-info-row">
+              <span>예상 출금 금액</span>
+              <strong>{total !== null ? `${formatAmount(total, 2)} ${base}` : '--'}</strong>
+            </div>
+            <div className="exchange-info-row">
+              <span>예상 수취 금액</span>
+              <strong>{result !== null ? `${formatAmount(result, 2)} ${dest}` : '--'}</strong>
+            </div>
           </div>
 
           {error && <div className="account-alert is-error">{error}</div>}
@@ -171,6 +210,12 @@ export default function Exchange() {
             <h3>내 계좌</h3>
             <span className="intro-muted">{accountsLoading ? '불러오는 중...' : `${accounts.length}개`}</span>
           </div>
+          {selectedAccounts.length > 0 && (
+            <div className="exchange-side__focus">
+              <span>관련 통화 계좌</span>
+              <strong>{selectedAccounts.length}개</strong>
+            </div>
+          )}
           {accountsError && <div className="account-alert is-error">{accountsError}</div>}
           <div className="exchange-accounts">
             {!accountsLoading && !accounts.length && (

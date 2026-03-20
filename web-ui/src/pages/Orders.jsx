@@ -43,9 +43,31 @@ export default function Orders() {
 
   const orders = data?.content || []
   const totalPages = data?.totalPages ?? 0
+  const totalElements = data?.totalElements ?? orders.length
+  const activeOrders = orders.filter(order => CANCELABLE.has(order.status)).length
+  const filledOrders = orders.filter(order => order.status === 'FILLED').length
 
   return (
     <div className="orders-page">
+      <section className="orders-summary">
+        <div className="orders-summary__item">
+          <span>이번 조회 건수</span>
+          <strong>{orders.length}</strong>
+        </div>
+        <div className="orders-summary__item">
+          <span>취소 가능</span>
+          <strong>{activeOrders}</strong>
+        </div>
+        <div className="orders-summary__item">
+          <span>체결 완료</span>
+          <strong>{filledOrders}</strong>
+        </div>
+        <div className="orders-summary__item">
+          <span>전체 주문 수</span>
+          <strong>{totalElements}</strong>
+        </div>
+      </section>
+
       <section className="orders-header">
         <div>
           <h2>주문 조회</h2>
@@ -88,7 +110,7 @@ export default function Orders() {
                   <td>{order.symbol}</td>
                   <td>{order.side}</td>
                   <td>{order.type}</td>
-                  <td>{order.status}</td>
+                  <td><span className={`order-status-badge order-status-badge--${String(order.status || '').toLowerCase()}`}>{order.status}</span></td>
                   <td>{order.qty}</td>
                   <td>{order.limitPriceAmount ?? '-'}</td>
                   <td>{order.priceCurrency ?? '-'}</td>

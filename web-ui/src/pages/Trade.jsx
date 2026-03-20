@@ -8,6 +8,8 @@ import TradeOrderbookCard from '../components/trade/TradeOrderbookCard'
 import TradeOrdersPanel from '../components/trade/TradeOrdersPanel'
 import TradeQuoteCard from '../components/trade/TradeQuoteCard'
 
+const QUICK_TRADE_SYMBOLS = ['AAPL', 'MSFT', 'NVDA', 'TSLA']
+
 export default function Trade() {
   const getCookie = name => {
     const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`))
@@ -86,6 +88,7 @@ export default function Trade() {
   }, [accounts, selectedAccountNo])
 
   const selectedAvailable = truncateTo(selectedAccount?.availableCash, currencyDecimals)
+  const differenceAmount = truncateTo((selectedAvailable || 0) - (estimatedCost || 0), currencyDecimals)
 
   const estimatedCost = useMemo(() => {
     const qty = Number(quantity) || 0
@@ -293,6 +296,44 @@ export default function Trade() {
         <button className="primary-button" onClick={() => fetchSnapshot(symbol)} disabled={loading}>
           조회
         </button>
+      </section>
+
+      <section className="quick-symbols">
+        <span className="quick-symbols__label">빠른 종목 선택</span>
+        <div className="quick-symbols__chips">
+          {QUICK_TRADE_SYMBOLS.map(item => (
+            <button
+              key={item}
+              type="button"
+              className={`ghost-button ${symbol === item ? 'quick-symbols__chip--active' : ''}`}
+              onClick={() => {
+                setSymbol(item)
+                fetchSnapshot(item)
+              }}
+            >
+              {item}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="trade-summary-bar">
+        <div className="trade-summary-bar__item">
+          <span>주문 통화</span>
+          <strong>{currency || '-'}</strong>
+        </div>
+        <div className="trade-summary-bar__item">
+          <span>선택 계좌</span>
+          <strong>{selectedAccountNo || '-'}</strong>
+        </div>
+        <div className="trade-summary-bar__item">
+          <span>예상 주문 금액</span>
+          <strong>{formatAmount(estimatedCost)}</strong>
+        </div>
+        <div className="trade-summary-bar__item">
+          <span>주문 후 예상 잔액</span>
+          <strong>{selectedAccountNo ? formatAmount(differenceAmount) : '-'}</strong>
+        </div>
       </section>
 
       {error && <div className="trade-alert is-error">{JSON.stringify(error)}</div>}

@@ -3,7 +3,9 @@ import { format } from 'date-fns'
 import CandleChart from '../components/CandleChart'
 import SymbolSearch from '../components/SymbolSearch'
 import { getHistorical, getQuote, getInfo } from '../api/api'
-import { useLocation } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
+
+const QUICK_SYMBOLS = ['AAPL', 'MSFT', 'NVDA', 'TSLA', 'AMZN', 'META']
 
 export default function Chart() {
   const location = useLocation()
@@ -177,11 +179,46 @@ export default function Chart() {
 
   return (
     <div className="market-page">
+      <section className="market-summary">
+        <div className="market-summary__content">
+          <span className="intro-eyebrow">Market Workspace</span>
+          <h2>시장 확인에서 주문 진입까지 한 번에 이어지는 종목 화면</h2>
+          <p className="market-summary__text">
+            검색, 핵심 가격, 차트, 기업 정보 순서로 배치해 먼저 판단하고 다음 액션으로 이동하기 쉽게 정리했습니다.
+          </p>
+        </div>
+        <div className="market-summary__actions">
+          <Link to={`/trade?symbol=${encodeURIComponent(displaySymbol)}`} className="primary-button">
+            이 종목 주문하러 가기
+          </Link>
+          <Link to="/orders" className="ghost-button">내 주문 보기</Link>
+        </div>
+      </section>
+
       <section className="market-actions">
         <SymbolSearch value={symbol} onChange={setSymbol} onSelect={(s) => { setSymbol(s); onSearch(s) }} />
         <button className="primary-button" onClick={() => onSearch()} disabled={loading}>
           {loading ? '로딩...' : '조회'}
         </button>
+      </section>
+
+      <section className="quick-symbols">
+        <span className="quick-symbols__label">자주 보는 종목</span>
+        <div className="quick-symbols__chips">
+          {QUICK_SYMBOLS.map(item => (
+            <button
+              key={item}
+              type="button"
+              className={`ghost-button ${displaySymbol === item ? 'quick-symbols__chip--active' : ''}`}
+              onClick={() => {
+                setSymbol(item)
+                onSearch(item)
+              }}
+            >
+              {item}
+            </button>
+          ))}
+        </div>
       </section>
 
       <section className="market-hero">
@@ -193,7 +230,7 @@ export default function Chart() {
           <p className="market-hero__sub">{info?.exchange || info?.sector || 'Global Equity'}</p>
         </div>
         <div className="market-hero__actions">
-          <button className="ghost-button">Follow</button>
+          <span className="market-hero__hint">차트 좌측으로 이동하면 과거 30일치 데이터를 자동 추가합니다.</span>
         </div>
       </section>
 

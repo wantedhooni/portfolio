@@ -42,6 +42,18 @@ export default function Account() {
   })
   const [actionMessage, setActionMessage] = useState(null)
   const [actionError, setActionError] = useState(null)
+  const activeAccounts = useMemo(
+    () => accounts.filter(account => account.status === 'ACTIVE'),
+    [accounts]
+  )
+  const totalAvailable = useMemo(
+    () => accounts.reduce((sum, account) => sum + (Number(account.availableCash) || 0), 0),
+    [accounts]
+  )
+  const accountCurrencies = useMemo(
+    () => Array.from(new Set(accounts.map(account => account.currency).filter(Boolean))),
+    [accounts]
+  )
 
   const filterPayload = useMemo(() => {
     return {
@@ -175,6 +187,25 @@ export default function Account() {
         </div>
       </section>
 
+      <section className="account-summary">
+        <div className="account-summary__card">
+          <span>전체 계좌 수</span>
+          <strong>{accounts.length}</strong>
+        </div>
+        <div className="account-summary__card">
+          <span>활성 계좌</span>
+          <strong>{activeAccounts.length}</strong>
+        </div>
+        <div className="account-summary__card">
+          <span>사용 가능 금액 합계</span>
+          <strong>{totalAvailable.toLocaleString('en-US')}</strong>
+        </div>
+        <div className="account-summary__card">
+          <span>보유 통화</span>
+          <strong>{accountCurrencies.join(', ') || '-'}</strong>
+        </div>
+      </section>
+
       <section className="account-filters">
         <div className="account-filter">
           <label>통화</label>
@@ -276,12 +307,17 @@ export default function Account() {
         <form className="account-panel" onSubmit={handleDeposit}>
           <h3>입금</h3>
           <label>계좌번호</label>
-          <input
-            type="text"
+          <select
             value={depositForm.accountNo}
             onChange={e => setDepositForm(prev => ({ ...prev, accountNo: e.target.value }))}
-            placeholder="계좌번호"
-          />
+          >
+            <option value="">계좌 선택</option>
+            {activeAccounts.map(account => (
+              <option key={account.accountNo} value={account.accountNo}>
+                {account.accountNo} · {account.currency}
+              </option>
+            ))}
+          </select>
           <label>금액</label>
           <input
             type="number"
@@ -295,12 +331,17 @@ export default function Account() {
         <form className="account-panel" onSubmit={handleWithdraw}>
           <h3>출금</h3>
           <label>계좌번호</label>
-          <input
-            type="text"
+          <select
             value={withdrawForm.accountNo}
             onChange={e => setWithdrawForm(prev => ({ ...prev, accountNo: e.target.value }))}
-            placeholder="계좌번호"
-          />
+          >
+            <option value="">계좌 선택</option>
+            {activeAccounts.map(account => (
+              <option key={account.accountNo} value={account.accountNo}>
+                {account.accountNo} · {account.currency}
+              </option>
+            ))}
+          </select>
           <label>금액</label>
           <input
             type="number"
@@ -316,21 +357,31 @@ export default function Account() {
           <div className="account-row">
             <div>
               <label>출금 계좌</label>
-              <input
-                type="text"
+              <select
                 value={transferForm.fromAccountNo}
                 onChange={e => setTransferForm(prev => ({ ...prev, fromAccountNo: e.target.value }))}
-                placeholder="출금 계좌번호"
-              />
+              >
+                <option value="">출금 계좌 선택</option>
+                {activeAccounts.map(account => (
+                  <option key={account.accountNo} value={account.accountNo}>
+                    {account.accountNo} · {account.currency}
+                  </option>
+                ))}
+              </select>
             </div>
             <div>
               <label>입금 계좌</label>
-              <input
-                type="text"
+              <select
                 value={transferForm.toAccountNo}
                 onChange={e => setTransferForm(prev => ({ ...prev, toAccountNo: e.target.value }))}
-                placeholder="입금 계좌번호"
-              />
+              >
+                <option value="">입금 계좌 선택</option>
+                {activeAccounts.map(account => (
+                  <option key={account.accountNo} value={account.accountNo}>
+                    {account.accountNo} · {account.currency}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
           <div className="account-row">

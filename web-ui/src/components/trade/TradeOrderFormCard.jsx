@@ -19,6 +19,8 @@ export default function TradeOrderFormCard({
   submitting,
   canSubmit,
 }) {
+  const quickQuantities = [1, 5, 10, 20]
+
   return (
     <div className="trade-card trade-order">
       <div className="trade-order__header">
@@ -60,6 +62,18 @@ export default function TradeOrderFormCard({
             onChange={e => onChangeQuantity(e.target.value)}
             placeholder="0"
           />
+          <div className="trade-quick-actions">
+            {quickQuantities.map(value => (
+              <button
+                key={value}
+                type="button"
+                className="ghost-button"
+                onClick={() => onChangeQuantity(String(value))}
+              >
+                {value}주
+              </button>
+            ))}
+          </div>
         </div>
         {orderType === 'LIMIT' && (
           <div className="trade-field">
@@ -72,6 +86,7 @@ export default function TradeOrderFormCard({
               onChange={e => onChangeLimitPrice(e.target.value)}
               placeholder="0"
             />
+            <p className="trade-field__hint">호가 패널 가격을 누르면 지정가가 자동 반영됩니다.</p>
           </div>
         )}
         <div className="trade-summary">
