@@ -1106,6 +1106,8 @@ button {
 .exchange-info-row {
 	display: flex;
 	justify-content: space-between;
+	align-items: center;
+	gap: 12px;
 	font-weight: 600;
 }
 
@@ -1534,6 +1536,7 @@ button {
 	background: rgba(59, 130, 246, 0.12);
 	color: var(--primary);
 	font-size: 14px;
+	line-height: 1.5;
 }
 
 .trade-alert.is-error {
@@ -1657,6 +1660,7 @@ button {
 .trade-empty {
 	color: var(--muted);
 	font-size: 14px;
+	padding: 12px 0;
 }
 
 .trade-order {
@@ -1672,6 +1676,12 @@ button {
 
 .trade-order__header h3 {
 	margin: 0;
+}
+
+.trade-order__header p {
+	margin: 4px 0 0;
+	color: var(--muted);
+	font-size: 13px;
 }
 
 .trade-form {
@@ -1892,6 +1902,10 @@ button {
 .orders-table th {
 	color: var(--muted);
 	font-weight: 600;
+}
+
+.orders-table td .order-status-badge {
+	white-space: nowrap;
 }
 
 .orders-muted {

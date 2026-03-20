@@ -12,8 +12,6 @@ export default function Exchange() {
   const [base, setBase] = useState('USD')
   const [dest, setDest] = useState('')
   const [amountInput, setAmountInput] = useState('1000000')
-  const [payMethod, setPayMethod] = useState('자동출금')
-  const [receiveMethod, setReceiveMethod] = useState('은행계좌')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [accounts, setAccounts] = useState([])
@@ -83,6 +81,14 @@ export default function Exchange() {
   const result = amountNum !== null && rate !== null ? amountNum * rate : null
   const fee = 0
   const total = amountNum !== null ? amountNum + fee : null
+  const baseAccounts = useMemo(
+    () => accounts.filter(account => account.currency === base),
+    [accounts, base]
+  )
+  const destAccounts = useMemo(
+    () => accounts.filter(account => account.currency === dest),
+    [accounts, dest]
+  )
   const selectedAccounts = useMemo(
     () => accounts.filter(account => account.currency === base || account.currency === dest),
     [accounts, base, dest]
@@ -110,14 +116,14 @@ export default function Exchange() {
         <div className="exchange-card">
           <div className="exchange-hero">
             <div>
-              <span className="intro-eyebrow">Exchange Desk</span>
-              <h2 className="exchange-hero__title">보내는 금액과 받는 금액을 같은 문맥에서 확인</h2>
+              <span className="intro-eyebrow">Currency Exchange</span>
+              <h2 className="exchange-hero__title">환전 금액과 적용 환율을 바로 확인</h2>
               <p className="exchange-hero__text">
-                어떤 통화에서 어떤 통화로 바꾸는지, 현재 환율이 어떤지, 내 계좌에 해당 통화가 있는지를 한 화면에서 바로 보도록 구성했습니다.
+                송금 화면처럼 보이지 않도록 환전 기준으로 다시 정리했습니다. 기준 통화, 환전 후 금액, 보유 계좌를 한 번에 확인할 수 있습니다.
               </p>
             </div>
             <div className="exchange-hero__badge">
-              <span>환전 경로</span>
+              <span>환전 통화</span>
               <strong>{base} → {dest || '--'}</strong>
             </div>
           </div>
@@ -136,7 +142,7 @@ export default function Exchange() {
           </div>
 
           <div className="exchange-section">
-            <div className="exchange-title">보내는 금액</div>
+            <div className="exchange-title">환전할 금액</div>
             <div className="exchange-input-row">
               <select value={base} onChange={e => setBase(e.target.value)} disabled={loading || !baseOptions.length}>
                 {baseOptions.map(code => (
@@ -157,7 +163,7 @@ export default function Exchange() {
           <div className="exchange-divider" />
 
           <div className="exchange-section">
-            <div className="exchange-title">실제 받는 금액</div>
+            <div className="exchange-title">환전 후 예상 금액</div>
             <div className="exchange-input-row">
               <select value={dest} onChange={e => setDest(e.target.value)} disabled={loading || !destOptions.length}>
                 {destOptions.map(code => (
@@ -176,23 +182,27 @@ export default function Exchange() {
 
           <div className="exchange-info-card">
             <div className="exchange-info-row">
-              <span>현재 환율</span>
+              <span>기준 환율</span>
               <strong>
                 {base && dest && rate !== null
-                  ? `100 ${dest} = ${formatAmount(100 / rate, 2)} ${base}`
+                  ? `1 ${base} = ${formatAmount(rate, 4)} ${dest}`
                   : '--'}
               </strong>
             </div>
             <div className="exchange-info-row">
-              <span>환율 혜택</span>
-              <strong>100% 환율 우대</strong>
+              <span>기준 통화 계좌</span>
+              <strong>{baseAccounts.length ? `${baseAccounts.length}개 보유` : '없음'}</strong>
             </div>
             <div className="exchange-info-row">
-              <span>예상 출금 금액</span>
+              <span>환전 대상 통화 계좌</span>
+              <strong>{destAccounts.length ? `${destAccounts.length}개 보유` : '없음'}</strong>
+            </div>
+            <div className="exchange-info-row">
+              <span>예상 차감 금액</span>
               <strong>{total !== null ? `${formatAmount(total, 2)} ${base}` : '--'}</strong>
             </div>
             <div className="exchange-info-row">
-              <span>예상 수취 금액</span>
+              <span>예상 환전 금액</span>
               <strong>{result !== null ? `${formatAmount(result, 2)} ${dest}` : '--'}</strong>
             </div>
           </div>
@@ -200,19 +210,19 @@ export default function Exchange() {
           {error && <div className="account-alert is-error">{error}</div>}
 
           <button className="exchange-action" type="button" onClick={loadRates} disabled={loading}>
-            {loading ? '불러오는 중...' : '송금 시작하기'}
+            {loading ? '환율 불러오는 중...' : '환율 다시 계산'}
           </button>
-          <p className="exchange-footnote">환율은 실시간으로 제공되며 송금 시 변동될 수 있습니다.</p>
+          <p className="exchange-footnote">환율은 실시간 시세 기준이며 실제 환전 시점에 일부 변동될 수 있습니다.</p>
         </div>
 
         <aside className="exchange-side">
           <div className="exchange-side__header">
-            <h3>내 계좌</h3>
+            <h3>보유 외화 계좌</h3>
             <span className="intro-muted">{accountsLoading ? '불러오는 중...' : `${accounts.length}개`}</span>
           </div>
           {selectedAccounts.length > 0 && (
             <div className="exchange-side__focus">
-              <span>관련 통화 계좌</span>
+              <span>환전에 바로 쓸 수 있는 계좌</span>
               <strong>{selectedAccounts.length}개</strong>
             </div>
           )}

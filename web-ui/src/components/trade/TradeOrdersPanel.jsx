@@ -13,17 +13,21 @@ export default function TradeOrdersPanel({
   onCancel,
 }) {
   const cancelable = new Set(['NEW', 'PARTIALLY_FILLED'])
+  const statusLabels = {
+    NEW: '접수',
+    PARTIALLY_FILLED: '부분 체결',
+    FILLED: '체결 완료',
+    CANCELED: '취소됨',
+    REJECTED: '거절됨',
+  }
 
   return (
     <section className="orders-embed trade-card">
       <section className="orders-header">
-          <div>
-            <h2>주문 조회</h2>
-            <p>최근 주문 내역을 확인하고 취소할 수 있습니다.</p>
-          </div>
-        </section>
-      <section className="orders-header">
-        
+        <div>
+          <h2>최근 주문</h2>
+          <p>거래 화면에서 바로 최근 주문 상태를 확인하고 필요한 주문만 취소할 수 있습니다.</p>
+        </div>
         <div className="orders-actions">
           <div className="orders-size">
             <label>행</label>
@@ -50,7 +54,7 @@ export default function TradeOrdersPanel({
         </div>
       </section>
 
-      {ordersError && <div className="trade-alert is-error">{JSON.stringify(ordersError)}</div>}
+      {ordersError && <div className="trade-alert is-error">{ordersError}</div>}
       {ordersMessage && <div className="trade-alert">{ordersMessage}</div>}
 
       <section className="orders-card">
@@ -89,7 +93,11 @@ export default function TradeOrdersPanel({
                   <td>{order.symbol}</td>
                   <td>{order.side}</td>
                   <td>{order.type}</td>
-                  <td>{order.status}</td>
+                  <td>
+                    <span className={`order-status-badge order-status-badge--${String(order.status || '').toLowerCase()}`}>
+                      {statusLabels[order.status] || order.status}
+                    </span>
+                  </td>
                   <td>{order.qty}</td>
                   <td>{order.limitPriceAmount ?? '-'}</td>
                   <td>{order.priceCurrency ?? '-'}</td>

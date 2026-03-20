@@ -20,12 +20,21 @@ export default function TradeOrderFormCard({
   canSubmit,
 }) {
   const quickQuantities = [1, 5, 10, 20]
+  const hasAccounts = accounts.length > 0
 
   return (
     <div className="trade-card trade-order">
       <div className="trade-order__header">
-        <h3>구매 주문</h3>
+        <div>
+          <h3>구매 주문</h3>
+          <p>선택한 계좌의 주문 가능 금액을 확인한 뒤 바로 주문할 수 있습니다.</p>
+        </div>
       </div>
+      {!hasAccounts && (
+        <div className="trade-alert is-error">
+          주문 통화와 일치하는 계좌가 없어 주문을 진행할 수 없습니다. 계좌를 만들거나 다른 종목을 선택하세요.
+        </div>
+      )}
       <form onSubmit={onSubmit} className="trade-form">
         <div className="trade-field">
           <label>구매 계좌</label>
@@ -104,7 +113,7 @@ export default function TradeOrderFormCard({
           </div>
         </div>
         <div className="trade-actions">
-          <button type="submit" className="primary-button" disabled={!canSubmit || submitting}>
+          <button type="submit" className="primary-button" disabled={!canSubmit || submitting || !hasAccounts}>
             {submitting ? '주문 중...' : '구매'}
           </button>
         </div>

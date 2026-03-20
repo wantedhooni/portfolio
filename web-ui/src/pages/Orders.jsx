@@ -2,6 +2,26 @@ import React, { useEffect, useState } from 'react'
 import { cancelOrder, getOrders } from '../api/api'
 
 const CANCELABLE = new Set(['NEW', 'PARTIALLY_FILLED'])
+const STATUS_LABELS = {
+  NEW: '접수',
+  PARTIALLY_FILLED: '부분 체결',
+  FILLED: '체결 완료',
+  CANCELED: '취소됨',
+  REJECTED: '거절됨',
+}
+const formatApiError = error => {
+  if (!error) return '주문 내역을 불러오지 못했습니다.'
+  if (typeof error === 'string') return error
+  if (Array.isArray(error)) return error.map(formatApiError).join(', ')
+  if (typeof error === 'object') {
+    if (typeof error.message === 'string' && error.message.trim()) return error.message
+    if (typeof error.error === 'string' && error.error.trim()) return error.error
+    if (typeof error.detail === 'string' && error.detail.trim()) return error.detail
+    if (typeof error.title === 'string' && error.title.trim()) return error.title
+    if (Array.isArray(error.errors)) return error.errors.map(formatApiError).join(', ')
+  }
+  return '주문 내역을 불러오지 못했습니다.'
+}
 
 export default function Orders() {
   const [page, setPage] = useState(0)
@@ -19,7 +39,7 @@ export default function Orders() {
       const res = await getOrders(nextPage, size)
       setData(res)
     } catch (e) {
-      setError(e.response?.data || e.message)
+      setError(formatApiError(e.response?.data || e.message))
     } finally {
       setLoading(false)
     }
@@ -37,7 +57,7 @@ export default function Orders() {
       setActionMessage('주문이 취소되었습니다.')
       await fetchOrders(page)
     } catch (e) {
-      setError(e.response?.data || e.message)
+      setError(formatApiError(e.response?.data || e.message))
     }
   }
 
@@ -80,7 +100,7 @@ export default function Orders() {
         </div>
       </section>
 
-      {error && <div className="trade-alert is-error">{JSON.stringify(error)}</div>}
+      {error && <div className="trade-alert is-error">{error}</div>}
       {actionMessage && <div className="trade-alert">{actionMessage}</div>}
 
       <section className="orders-card">
@@ -110,7 +130,11 @@ export default function Orders() {
                   <td>{order.symbol}</td>
                   <td>{order.side}</td>
                   <td>{order.type}</td>
-                  <td><span className={`order-status-badge order-status-badge--${String(order.status || '').toLowerCase()}`}>{order.status}</span></td>
+                  <td>
+                    <span className={`order-status-badge order-status-badge--${String(order.status || '').toLowerCase()}`}>
+                      {STATUS_LABELS[order.status] || order.status}
+                    </span>
+                  </td>
                   <td>{order.qty}</td>
                   <td>{order.limitPriceAmount ?? '-'}</td>
                   <td>{order.priceCurrency ?? '-'}</td>

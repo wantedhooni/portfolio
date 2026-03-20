@@ -33,7 +33,7 @@ export default function TradeAccountsCard({
                       <span>{account.type}</span>
                     </div>
                     <div>
-                      <span>Available</span>
+                      <span>주문 가능 금액</span>
                       <strong>{formatAmount(account.availableCash)}</strong>
                     </div>
                   </button>

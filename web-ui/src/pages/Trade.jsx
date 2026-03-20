@@ -9,6 +9,27 @@ import TradeOrdersPanel from '../components/trade/TradeOrdersPanel'
 import TradeQuoteCard from '../components/trade/TradeQuoteCard'
 
 const QUICK_TRADE_SYMBOLS = ['AAPL', 'MSFT', 'NVDA', 'TSLA']
+const ORDER_STATUS_LABELS = {
+  NEW: '접수',
+  PARTIALLY_FILLED: '부분 체결',
+  FILLED: '체결 완료',
+  CANCELED: '취소됨',
+  REJECTED: '거절됨',
+}
+
+const formatApiError = error => {
+  if (!error) return '요청을 처리하지 못했습니다.'
+  if (typeof error === 'string') return error
+  if (Array.isArray(error)) return error.map(formatApiError).join(', ')
+  if (typeof error === 'object') {
+    if (typeof error.message === 'string' && error.message.trim()) return error.message
+    if (typeof error.error === 'string' && error.error.trim()) return error.error
+    if (typeof error.detail === 'string' && error.detail.trim()) return error.detail
+    if (typeof error.title === 'string' && error.title.trim()) return error.title
+    if (Array.isArray(error.errors)) return error.errors.map(formatApiError).join(', ')
+  }
+  return '요청을 처리하지 못했습니다.'
+}
 
 export default function Trade() {
   const getCookie = name => {
@@ -88,13 +109,16 @@ export default function Trade() {
   }, [accounts, selectedAccountNo])
 
   const selectedAvailable = truncateTo(selectedAccount?.availableCash, currencyDecimals)
-  const differenceAmount = truncateTo((selectedAvailable || 0) - (estimatedCost || 0), currencyDecimals)
 
   const estimatedCost = useMemo(() => {
     const qty = Number(quantity) || 0
     const unit = orderType === 'LIMIT' ? Number(limitPrice) || 0 : Number(price) || 0
     return truncateTo(qty * unit, currencyDecimals)
   }, [quantity, limitPrice, orderType, price, truncateTo, currencyDecimals])
+  const differenceAmount = truncateTo((selectedAvailable || 0) - (estimatedCost || 0), currencyDecimals)
+  const selectedStatusLabel = ordersStatus ? ORDER_STATUS_LABELS[ordersStatus] || ordersStatus : '전체'
+  const summaryError = error ? formatApiError(error) : null
+  const summaryOrderError = orderError ? formatApiError(orderError) : null
 
   const buildOrderbook = useCallback((nextPrice, decimals = currencyDecimals) => {
     const basePrice = Number(nextPrice) || 0
@@ -191,7 +215,7 @@ export default function Trade() {
       const res = await getOrders(0, ordersSize, ordersStatus || undefined)
       setOrdersData(res)
     } catch (e) {
-      setOrdersError(e.response?.data || e.message)
+      setOrdersError(formatApiError(e.response?.data || e.message))
     } finally {
       setOrdersLoading(false)
     }
@@ -265,7 +289,7 @@ export default function Trade() {
       await fetchOrders()
       await refreshAccounts()
     } catch (e) {
-      setOrdersError(e.response?.data || e.message)
+      setOrdersError(formatApiError(e.response?.data || e.message))
     }
   }
 
@@ -327,6 +351,10 @@ export default function Trade() {
           <strong>{selectedAccountNo || '-'}</strong>
         </div>
         <div className="trade-summary-bar__item">
+          <span>최근 주문 필터</span>
+          <strong>{selectedStatusLabel}</strong>
+        </div>
+        <div className="trade-summary-bar__item">
           <span>예상 주문 금액</span>
           <strong>{formatAmount(estimatedCost)}</strong>
         </div>
@@ -336,9 +364,9 @@ export default function Trade() {
         </div>
       </section>
 
-      {error && <div className="trade-alert is-error">{JSON.stringify(error)}</div>}
+      {summaryError && <div className="trade-alert is-error">{summaryError}</div>}
       {notice && <div className="trade-alert">{notice}</div>}
-      {orderError && <div className="trade-alert is-error">{JSON.stringify(orderError)}</div>}
+      {summaryOrderError && <div className="trade-alert is-error">{summaryOrderError}</div>}
 
       <section className="trade-grid">
         <TradeQuoteCard
