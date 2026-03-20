@@ -1,6 +1,8 @@
 # 증권사 + 은행 서버를 만들어보았다.
 ## securities_monolithic
 - 모놀리식으로 주식 조회 사이트 개발
+- Gradle 멀티모듈 백엔드 + React/Vite 프론트엔드 구조
+- `web-ui`는 토스 스타일에 가까운 밝고 정돈된 정보형 UI/UX로 개선 진행
 
 
 ### 생각중
@@ -54,6 +56,23 @@
 # local 실행
 ---
 
+## 전체 실행 스크립트
+---
+```
+chmod +x ./script/all-start.sh ./script/all-stop.sh ./script/all-restart.sh
+./script/all-start.sh
+./script/all-stop.sh
+./script/all-restart.sh
+```
+
+### 빠른 접속 정보
+---
+- UI: http://localhost:5173/
+- API: http://localhost:8080/
+- Swagger: http://localhost:8080/swagger-ui.html
+- Demo 계정: `user1@example.com`
+- Demo 비밀번호: `Password!`
+
 ## API SERVER 실행
 ---
 ```
@@ -93,6 +112,14 @@
 cd web-ui && npm install && npm run dev
 ```
 - UI 주소: http://localhost:5173/
+
+### 최근 UI/UX 개선 내용
+---
+- 상단 헤더를 앱 셸 형태로 재구성
+- 홈 화면을 데모 소개, 핵심 흐름, 테스트 계정 안내 중심으로 재배치
+- 로그인/회원가입 화면을 안내형 2단 레이아웃으로 개선
+- 모바일 화면에서 주요 영역이 한 열로 정리되도록 반응형 보완
+- 전체 카드, 버튼, 입력창을 토스 스타일에 가까운 여백과 밝은 톤으로 재정리
 
 
 # 작업 진행중 UI 
