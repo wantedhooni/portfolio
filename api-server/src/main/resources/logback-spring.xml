@@ -3,6 +3,7 @@
     <property name="LOG_PATH" value="./logs"/>
     <!-- 1) 플래그: 미정의면 false -->
     <property name="LOGSTASH_ENABLE" value="${logstash.enabled:-false}"/>
+    <property name="LOGSTASH_HOST" value="${logstash.host:-127.0.0.1:4560}"/>
     <define name="hostname" class="ch.qos.logback.core.property.CanonicalHostNamePropertyDefiner"/>
 
     <!-- Appenders -->
@@ -34,7 +35,7 @@
     <if condition='property("LOGSTASH_ENABLE").equalsIgnoreCase("true")'>
             <then>
                 <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
-                    <destination>${LOGSTASH_HOST:-127.0.0.1}:${LOGSTASH_PORT:-4560}</destination>
+                    <destination>${LOGSTASH_HOST}</destination>
 
                     <encoder class="net.logstash.logback.encoder.LogstashEncoder">
                         <!-- MDC 전부 포함은 기본 동작이지만, 명시 가능 -->
