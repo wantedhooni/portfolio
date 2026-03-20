@@ -15,7 +15,9 @@ export default function Chart() {
   const [data, setData] = useState([])
   const [quote, setQuote] = useState(null)
   const [info, setInfo] = useState(null)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [prependShift, setPrependShift] = useState(0)
   const isFetchingRef = useRef(false)
   const earliestTimeRef = useRef(null)
   const lastFetchRef = useRef(null)
@@ -57,10 +59,21 @@ export default function Chart() {
       // convert to lightweight-charts format: { time, open, high, low, close }
       const prices = resp.prices.map(p => ({ time: p.date, open: p.open, high: p.high, low: p.low, close: p.close, volume: p.volume }))
       const sortedPrices = prices.sort((a, b) => new Date(a.time) - new Date(b.time))
-      setData(prev => (mode === 'replace' ? sortedPrices : mergeSeriesData(prev, sortedPrices)))
+      let nextShift = 0
+      setData(prev => {
+        if (mode === 'replace') return sortedPrices
+        const prevTimes = new Set(prev.map(item => item.time))
+        nextShift = sortedPrices.filter(item => !prevTimes.has(item.time)).length
+        return mergeSeriesData(prev, sortedPrices)
+      })
+      if (mode === 'merge' && nextShift > 0) {
+        setPrependShift(prev => prev + nextShift)
+      }
+      return sortedPrices
     } catch (e) {
       console.error(e)
       if (mode === 'replace') setData([])
+      throw e
     } finally {
       if (trackLoading) setLoading(false)
       isFetchingRef.current = false
@@ -68,27 +81,39 @@ export default function Chart() {
   }
 
   const fetchQuote = async (targetSymbol) => {
-    try {
-      const q = await getQuote(targetSymbol || symbol)
-      setQuote(q)
-    } catch (e) {
-      setQuote(null)
-    }
+    const [quoteResult, infoResult] = await Promise.allSettled([
+      getQuote(targetSymbol || symbol),
+      getInfo(targetSymbol || symbol),
+    ])
 
-    try {
-      const inf = await getInfo(targetSymbol || symbol)
-      setInfo(inf)
-    } catch (e) {
-      setInfo(null)
+    if (quoteResult.status === 'fulfilled') setQuote(quoteResult.value)
+    else setQuote(null)
+
+    if (infoResult.status === 'fulfilled') setInfo(infoResult.value)
+    else setInfo(null)
+
+    if (quoteResult.status === 'rejected' && infoResult.status === 'rejected') {
+      throw quoteResult.reason || infoResult.reason || new Error('Failed to fetch quote data')
     }
   }
 
   const onSearch = async (targetSymbol) => {
+    const nextSymbol = targetSymbol || symbol
     const endDate = new Date()
     const startDate = new Date()
     startDate.setDate(endDate.getDate() - 30)
-    await fetchQuote(targetSymbol)
-    await fetchHistorical({ startDate, endDate, mode: 'replace', trackLoading: true, targetSymbol })
+    setLoading(true)
+    setError(null)
+    try {
+      await Promise.all([
+        fetchQuote(nextSymbol),
+        fetchHistorical({ startDate, endDate, mode: 'replace', trackLoading: false, targetSymbol: nextSymbol }),
+      ])
+    } catch (e) {
+      setError(e?.response?.data || e?.message || '시세 정보를 불러오지 못했습니다.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => {
@@ -103,24 +128,11 @@ export default function Chart() {
     }
   }, [data])
 
-  const toDate = value => {
-    if (!value) return null
-    if (typeof value === 'number') return new Date(value * 1000)
-    if (typeof value === 'string') return new Date(value)
-    if (typeof value === 'object' && value.year && value.month && value.day) {
-      return new Date(Date.UTC(value.year, value.month - 1, value.day))
-    }
-    return null
-  }
-
-  const handleVisibleRangeChange = range => {
-    if (!range || isFetchingRef.current) return
-    const fromDate = toDate(range.from)
-    const earliest = toDate(earliestTimeRef.current)
-    if (!fromDate || !earliest) return
-    const threshold = new Date(earliest)
-    threshold.setDate(threshold.getDate() + 4)
-    if (fromDate > threshold) return
+  const handleVisibleRangeChange = payload => {
+    if (!payload || isFetchingRef.current) return
+    if (payload.barsBefore === null || payload.barsBefore === undefined || payload.barsBefore > 8) return
+    const earliest = earliestTimeRef.current ? new Date(earliestTimeRef.current) : null
+    if (!earliest || Number.isNaN(earliest.getTime())) return
     const endDate = new Date(earliest)
     endDate.setDate(endDate.getDate() - 1)
     const startDate = new Date(earliest)
@@ -147,9 +159,13 @@ export default function Chart() {
     const percent = change !== null && previous ? (change / previous) * 100 : toNumber(quote?.change_percent)
     const dayLow = quote?.day_low ?? info?.day_low
     const dayHigh = quote?.day_high ?? info?.day_high
-    const hasRange = dayLow !== null && dayLow !== undefined && dayHigh !== null && dayHigh !== undefined
-    const range = hasRange ? `${formatNumber(dayLow)} - ${formatNumber(dayHigh)}` : null
-    const noteRaw = quote?.timestamp || quote?.as_of || quote?.market_time || ''
+    const fallbackLow = data.length ? Math.min(...data.map(item => Number(item.low)).filter(Number.isFinite)) : null
+    const fallbackHigh = data.length ? Math.max(...data.map(item => Number(item.high)).filter(Number.isFinite)) : null
+    const resolvedLow = dayLow ?? fallbackLow
+    const resolvedHigh = dayHigh ?? fallbackHigh
+    const hasRange = resolvedLow !== null && resolvedLow !== undefined && resolvedHigh !== null && resolvedHigh !== undefined
+    const range = hasRange ? `${formatNumber(resolvedLow)} - ${formatNumber(resolvedHigh)}` : null
+    const noteRaw = quote?.timestamp || quote?.as_of || quote?.market_time || data[data.length - 1]?.time || ''
     const note = noteRaw ? String(noteRaw) : ''
     const statsList = [
       { label: 'Previous Close', value: previous ?? quote?.previous_close },
@@ -170,7 +186,7 @@ export default function Chart() {
       summary: info?.description,
       marketNote: note,
     }
-  }, [info, quote])
+  }, [data, info, quote])
 
   const displayName = info?.short_name || info?.long_name || symbol
   const displaySymbol = info?.symbol || symbol
@@ -179,12 +195,12 @@ export default function Chart() {
 
   return (
     <div className="market-page">
-      <section className="market-summary">
+      <section className="market-summary market-summary--compact">
         <div className="market-summary__content">
-          <span className="intro-eyebrow">Market Workspace</span>
-          <h2>시장 확인에서 주문 진입까지 한 번에 이어지는 종목 화면</h2>
+          <span className="intro-eyebrow">Market</span>
+          <h2>{displayName} 시세와 차트</h2>
           <p className="market-summary__text">
-            검색, 핵심 가격, 차트, 기업 정보 순서로 배치해 먼저 판단하고 다음 액션으로 이동하기 쉽게 정리했습니다.
+            종목 검색 후 가격과 차트를 먼저 보고, 필요하면 바로 주문 화면으로 이동할 수 있습니다.
           </p>
         </div>
         <div className="market-summary__actions">
@@ -201,6 +217,8 @@ export default function Chart() {
           {loading ? '로딩...' : '조회'}
         </button>
       </section>
+
+      {error ? <div className="trade-alert is-error">{JSON.stringify(error)}</div> : null}
 
       <section className="quick-symbols">
         <span className="quick-symbols__label">자주 보는 종목</span>
@@ -230,7 +248,7 @@ export default function Chart() {
           <p className="market-hero__sub">{info?.exchange || info?.sector || 'Global Equity'}</p>
         </div>
         <div className="market-hero__actions">
-          <span className="market-hero__hint">차트 좌측으로 이동하면 과거 30일치 데이터를 자동 추가합니다.</span>
+          <span className="market-hero__hint">차트 좌측으로 이동하면 과거 데이터가 이어서 추가됩니다.</span>
         </div>
       </section>
 
@@ -266,8 +284,14 @@ export default function Chart() {
             <button className="chip-button">Settings</button>
           </div>
         </div> */}
-        <CandleChart data={data} height={460} onVisibleRangeChange={handleVisibleRangeChange} />
-        {loading && <div className="chart-loading">Loading chart...</div>}
+        <CandleChart
+          data={data}
+          height={460}
+          onVisibleRangeChange={handleVisibleRangeChange}
+          fitContentKey={displaySymbol}
+          prependShift={prependShift}
+        />
+        {loading && <div className="chart-loading">차트 데이터를 불러오는 중입니다.</div>}
       </section>
 
       <section className="market-stats-grid">

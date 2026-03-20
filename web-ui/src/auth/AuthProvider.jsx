@@ -5,21 +5,19 @@ import { getCookie, setCookie, deleteCookie } from '../utils/cookies'
 const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null)
-
-  useEffect(() => {
+  const [user, setUser] = useState(() => {
     const token = getCookie('access_token')
     const cachedProfile = getCookie('user_profile')
     if (cachedProfile) {
       try {
-        setUser(JSON.parse(cachedProfile))
-        return
+        return JSON.parse(cachedProfile)
       } catch (e) {
         // ignore parse errors
       }
     }
-    if (token) setUser({ authenticated: true })
-  }, [])
+    if (token) return { authenticated: true }
+    return null
+  })
 
   useEffect(() => {
     const handleLogout = () => logout()

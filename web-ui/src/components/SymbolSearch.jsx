@@ -18,6 +18,10 @@ export default function SymbolSearch({ value = '', onChange = () => {}, onSelect
     <div className="symbol-search">
       <input
         type="text"
+        autoComplete="off"
+        autoCorrect="off"
+        autoCapitalize="characters"
+        spellCheck={false}
         placeholder="심볼 입력 (예: AAPL)"
         value={query}
         onChange={e => { setQuery(e.target.value); setOpen(true) }}

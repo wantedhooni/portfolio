@@ -1,7 +1,9 @@
 import React, { useRef, useEffect } from 'react'
 import { createChart } from 'lightweight-charts'
+import { useTheme } from '../theme/ThemeProvider'
 
-export default function CandleChart({ data, height = 420, onVisibleRangeChange }) {
+export default function CandleChart({ data, height = 420, onVisibleRangeChange, fitContentKey, prependShift = 0 }) {
+  const { theme } = useTheme()
   const ref = useRef()
   const chartRef = useRef()
   const seriesRef = useRef()
@@ -9,6 +11,8 @@ export default function CandleChart({ data, height = 420, onVisibleRangeChange }
   const volumeRef = useRef()
   const maRef = useRef()
   const rangeChangeRef = useRef(onVisibleRangeChange)
+  const lastFitKeyRef = useRef(null)
+  const lastAppliedShiftRef = useRef(0)
 
   useEffect(() => {
     rangeChangeRef.current = onVisibleRangeChange
@@ -17,19 +21,40 @@ export default function CandleChart({ data, height = 420, onVisibleRangeChange }
   useEffect(() => {
     if (!ref.current) return
 
+    const palette = theme === 'dark'
+      ? {
+          background: '#151922',
+          text: '#d5dbe3',
+          grid: 'rgba(148,163,184,0.12)',
+          crosshair: 'rgba(203,213,225,0.35)',
+          tooltipBg: 'rgba(17, 24, 39, 0.94)',
+          tooltipText: '#f8fafc',
+        }
+      : {
+          background: '#ffffff',
+          text: '#4e5968',
+          grid: 'rgba(229,232,235,0.9)',
+          crosshair: 'rgba(107,118,132,0.28)',
+          tooltipBg: 'rgba(25, 31, 40, 0.92)',
+          tooltipText: '#ffffff',
+        }
+
     const chart = createChart(ref.current, {
       width: ref.current.clientWidth,
       height,
-      layout: { backgroundColor: '#10151c', textColor: '#cbd5e1' },
+      layout: {
+        background: { color: palette.background },
+        textColor: palette.text,
+      },
       grid: {
-        vertLines: { color: 'rgba(148,163,184,0.15)' },
-        horzLines: { color: 'rgba(148,163,184,0.15)' },
+        vertLines: { color: palette.grid },
+        horzLines: { color: palette.grid },
       },
       timeScale: { borderVisible: false },
       rightPriceScale: { borderVisible: false },
       crosshair: {
-        horzLine: { color: 'rgba(203,213,225,0.35)' },
-        vertLine: { color: 'rgba(203,213,225,0.35)' },
+        horzLine: { color: palette.crosshair },
+        vertLine: { color: palette.crosshair },
       },
     })
     chartRef.current = chart
@@ -69,7 +94,7 @@ export default function CandleChart({ data, height = 420, onVisibleRangeChange }
     // tooltip element
     const tip = document.createElement('div')
     tip.className = 'chart-tooltip'
-    tip.style.cssText = 'position:absolute;display:none;padding:6px;border-radius:6px;background:#111;color:#fff;font-size:12px;pointer-events:none;'
+    tip.style.cssText = `position:absolute;display:none;padding:10px 12px;border-radius:12px;background:${palette.tooltipBg};color:${palette.tooltipText};font-size:12px;pointer-events:none;box-shadow:0 10px 28px rgba(15,23,42,0.18);white-space:pre-line;z-index:5;`
     ref.current.appendChild(tip)
     tooltipRef.current = tip
 
@@ -94,16 +119,24 @@ export default function CandleChart({ data, height = 420, onVisibleRangeChange }
       if (!param.point) return
       tip.style.display = 'block'
       tip.innerText = `시간: ${param.time}\n시가: ${price.open}\n종가: ${price.close}`
-      tip.style.left = `${param.point.x + 10}px`
-      tip.style.top = `${param.point.y + 10}px`
+      const nextLeft = Math.min(param.point.x + 12, Math.max(0, ref.current.clientWidth - 160))
+      const nextTop = Math.max(12, param.point.y - 56)
+      tip.style.left = `${nextLeft}px`
+      tip.style.top = `${nextTop}px`
     }
 
     chart.subscribeCrosshairMove(handler)
     const timeScale = chart.timeScale()
-    const handleRangeChange = range => {
-      if (rangeChangeRef.current) rangeChangeRef.current(range)
+    const handleRangeChange = logicalRange => {
+      if (!rangeChangeRef.current || !logicalRange || !seriesRef.current) return
+      const barsInfo = seriesRef.current.barsInLogicalRange(logicalRange)
+      rangeChangeRef.current({
+        logicalRange,
+        barsBefore: barsInfo?.barsBefore ?? null,
+        barsAfter: barsInfo?.barsAfter ?? null,
+      })
     }
-    timeScale.subscribeVisibleTimeRangeChange(handleRangeChange)
+    timeScale.subscribeVisibleLogicalRangeChange(handleRangeChange)
 
     return () => {
       window.removeEventListener('resize', handleResize)
@@ -114,13 +147,16 @@ export default function CandleChart({ data, height = 420, onVisibleRangeChange }
         // ignore if unsubscribe not supported
       }
       try {
-        timeScale.unsubscribeVisibleTimeRangeChange(handleRangeChange)
+        timeScale.unsubscribeVisibleLogicalRangeChange(handleRangeChange)
       } catch (e) {
         // ignore if unsubscribe not supported
       }
+      if (tooltipRef.current && tooltipRef.current.parentNode) {
+        tooltipRef.current.parentNode.removeChild(tooltipRef.current)
+      }
       chart.remove()
     }
-  }, [])
+  }, [height, theme])
 
   useEffect(() => {
     if (!seriesRef.current) return
@@ -144,7 +180,25 @@ export default function CandleChart({ data, height = 420, onVisibleRangeChange }
       }
       maRef.current.setData(ma)
     }
-  }, [data])
+    if (chartRef.current && data?.length && fitContentKey && lastFitKeyRef.current !== fitContentKey) {
+      chartRef.current.timeScale().fitContent()
+      lastFitKeyRef.current = fitContentKey
+    }
+  }, [data, fitContentKey])
+
+  useEffect(() => {
+    if (!chartRef.current) return
+    const delta = prependShift - lastAppliedShiftRef.current
+    if (!delta) return
+    const timeScale = chartRef.current.timeScale()
+    const currentRange = timeScale.getVisibleLogicalRange()
+    if (!currentRange) return
+    timeScale.setVisibleLogicalRange({
+      from: currentRange.from + delta,
+      to: currentRange.to + delta,
+    })
+    lastAppliedShiftRef.current = prependShift
+  }, [prependShift])
 
   return <div ref={ref} className="chart-wrapper" style={{ position: 'relative' }} />
 }

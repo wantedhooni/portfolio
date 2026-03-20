@@ -1,6 +1,6 @@
 import React from 'react'
 import pkg from '../package.json'
-import { Routes, Route, Link, NavLink, useNavigate, Navigate } from 'react-router-dom'
+import { Routes, Route, Link, NavLink, useNavigate, Navigate, useLocation } from 'react-router-dom'
 import Home from './pages/Home'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
@@ -15,6 +15,7 @@ import ThemeToggle from './components/ThemeToggle'
 export default function App() {
   const auth = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
   const displayName = auth?.user?.name || auth?.user?.email || '사용자'
   const appEnv = import.meta.env.VITE_TARGET || 'unknown'
   const appVersion = pkg?.version || 'dev'
@@ -28,13 +29,19 @@ export default function App() {
       ]
     : []
 
+  React.useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+  }, [location.pathname, location.search])
+
   function handleLogout() {
     auth.logout()
     navigate('/')
   }
 
   const ProtectedRoute = ({ children }) => {
-    if (!auth?.user) return <Navigate to="/" replace />
+    if (!auth?.user) {
+      return <Navigate to="/login" replace state={{ from: `${location.pathname}${location.search}` }} />
+    }
     return children
   }
 
