@@ -2189,6 +2189,36 @@ button {
 		padding-right: 16px;
 	}
 
+	.app-header__inner {
+		gap: 12px;
+	}
+
+	.app-brand {
+		gap: 10px;
+	}
+
+	.app-brand__text strong {
+		font-size: 15px;
+	}
+
+	.app-nav {
+		flex-wrap: nowrap;
+		overflow-x: auto;
+		padding-bottom: 4px;
+		width: 100%;
+		justify-content: flex-start;
+	}
+
+	.app-nav::-webkit-scrollbar,
+	.quick-symbols__chips::-webkit-scrollbar {
+		display: none;
+	}
+
+	.app-nav__link {
+		white-space: nowrap;
+		flex: 0 0 auto;
+	}
+
 	.intro-page,
 	.auth-shell,
 	.market-page,
@@ -2197,6 +2227,66 @@ button {
 	.orders-page {
 		padding-left: 16px;
 		padding-right: 16px;
+	}
+
+	.portal-hero__main,
+	.portal-hero__side,
+	.market-overview-card,
+	.account-overview-card,
+	.chart-card,
+	.overview-card,
+	.trade-card,
+	.orders-card,
+	.exchange-card,
+	.exchange-side {
+		padding: 16px;
+	}
+
+	.portal-hero__title {
+		font-size: 26px;
+	}
+
+	.portal-grid,
+	.account-summary,
+	.trade-summary-bar,
+	.orders-summary {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.quick-symbols {
+		align-items: flex-start;
+	}
+
+	.quick-symbols__chips {
+		flex-wrap: nowrap;
+		overflow-x: auto;
+		width: 100%;
+		padding-bottom: 4px;
+	}
+
+	.market-actions,
+	.market-actions--embedded,
+	.orders-actions,
+	.account-hero__meta {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.market-overview-card__side,
+	.account-overview-card__side {
+		align-items: stretch;
+	}
+
+	.market-overview-card__side .primary-button,
+	.market-overview-card__side .ghost-button,
+	.portal-hero__actions .primary-button,
+	.portal-hero__actions .ghost-button,
+	.trade-search .primary-button,
+	.orders-actions .ghost-button,
+	.account-overview-card__side .ghost-button {
+		width: 100%;
+		justify-content: center;
+		text-align: center;
 	}
 
 	.trade-hero {
@@ -2229,5 +2319,84 @@ button {
 
 	.auth-panel {
 		padding: 22px 18px;
+	}
+}
+
+@media (max-width: 480px) {
+	.app-header {
+		padding-left: 12px;
+		padding-right: 12px;
+	}
+
+	.intro-page,
+	.auth-shell,
+	.market-page,
+	.account-page,
+	.trade-page,
+	.orders-page,
+	.exchange-shell {
+		padding-left: 12px;
+		padding-right: 12px;
+	}
+
+	.portal-grid,
+	.account-summary,
+	.trade-summary-bar,
+	.orders-summary,
+	.market-stats-grid,
+	.trade-summary,
+	.account-actions {
+		grid-template-columns: 1fr;
+	}
+
+	.portal-hero,
+	.market-overview-card,
+	.account-overview-card,
+	.exchange-layout,
+	.auth-shell,
+	.auth-shell--wide {
+		grid-template-columns: 1fr;
+	}
+
+	.market-price-main {
+		flex-wrap: wrap;
+	}
+
+	.market-price-value {
+		font-size: 22px;
+	}
+
+	.symbol-input,
+	input[type="text"],
+	input[type="email"],
+	input[type="password"],
+	input[type="number"],
+	select {
+		font-size: 16px;
+	}
+
+	.trade-book__actions,
+	.orders-size {
+		width: 100%;
+		justify-content: space-between;
+	}
+
+	.orders-pagination {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.orders-pagination .ghost-button,
+	.orders-size select,
+	.trade-actions .primary-button {
+		width: 100%;
+	}
+
+	.trade-book__header,
+	.orders-header,
+	.exchange-side__header,
+	.market-hero {
+		flex-direction: column;
+		align-items: flex-start;
 	}
 }
