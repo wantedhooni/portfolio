@@ -1,4 +1,5 @@
 import React from 'react'
+import { formatOrderStatus } from '../../utils/format'
 
 export default function TradeOrdersPanel({
   orders,
@@ -13,13 +14,6 @@ export default function TradeOrdersPanel({
   onCancel,
 }) {
   const cancelable = new Set(['NEW', 'PARTIALLY_FILLED'])
-  const statusLabels = {
-    NEW: '접수',
-    PARTIALLY_FILLED: '부분 체결',
-    FILLED: '체결 완료',
-    CANCELED: '취소됨',
-    REJECTED: '거절됨',
-  }
 
   return (
     <section className="orders-embed trade-card">
@@ -95,7 +89,7 @@ export default function TradeOrdersPanel({
                   <td>{order.type}</td>
                   <td>
                     <span className={`order-status-badge order-status-badge--${String(order.status || '').toLowerCase()}`}>
-                      {statusLabels[order.status] || order.status}
+                      {formatOrderStatus(order.status)}
                     </span>
                   </td>
                   <td>{order.qty}</td>

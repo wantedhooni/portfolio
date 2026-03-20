@@ -4,6 +4,7 @@ import CandleChart from '../components/CandleChart'
 import SymbolSearch from '../components/SymbolSearch'
 import { getHistorical, getQuote, getInfo } from '../api/api'
 import { Link, useLocation } from 'react-router-dom'
+import { formatApiError } from '../utils/format'
 
 const QUICK_SYMBOLS = ['AAPL', 'MSFT', 'NVDA', 'TSLA', 'AMZN', 'META']
 
@@ -110,7 +111,7 @@ export default function Chart() {
         fetchHistorical({ startDate, endDate, mode: 'replace', trackLoading: false, targetSymbol: nextSymbol }),
       ])
     } catch (e) {
-      setError(e?.response?.data || e?.message || '시세 정보를 불러오지 못했습니다.')
+      setError(formatApiError(e?.response?.data || e?.message, '시세 정보를 불러오지 못했습니다.'))
     } finally {
       setLoading(false)
     }
@@ -168,14 +169,14 @@ export default function Chart() {
     const noteRaw = quote?.timestamp || quote?.as_of || quote?.market_time || data[data.length - 1]?.time || ''
     const note = noteRaw ? String(noteRaw) : ''
     const statsList = [
-      { label: 'Previous Close', value: previous ?? quote?.previous_close },
-      { label: 'Day Range', value: range },
-      { label: 'Volume', value: quote?.volume ?? info?.volume },
-      { label: 'Market Cap', value: info?.market_cap },
-      { label: 'Dividend Yield', value: info?.dividend_yield },
-      { label: 'PE Ratio (TTM)', value: info?.trailing_pe },
-      { label: 'Beta (5Y)', value: info?.beta },
-      { label: 'Exchange', value: info?.exchange },
+      { label: '전일 종가', value: previous ?? quote?.previous_close },
+      { label: '당일 범위', value: range },
+      { label: '거래량', value: quote?.volume ?? info?.volume },
+      { label: '시가총액', value: info?.market_cap },
+      { label: '배당수익률', value: info?.dividend_yield },
+      { label: 'PER', value: info?.trailing_pe },
+      { label: '베타', value: info?.beta },
+      { label: '거래소', value: info?.exchange },
     ]
     return {
       latestPrice: current,
@@ -195,30 +196,29 @@ export default function Chart() {
 
   return (
     <div className="market-page">
-      <section className="market-summary market-summary--compact">
-        <div className="market-summary__content">
-          <span className="intro-eyebrow">Market</span>
+      <section className="market-overview-card">
+        <div className="market-overview-card__main">
+          <span className="intro-eyebrow">Market Center</span>
           <h2>{displayName} 시세와 차트</h2>
           <p className="market-summary__text">
-            종목 검색 후 가격과 차트를 먼저 보고, 필요하면 바로 주문 화면으로 이동할 수 있습니다.
+            검색, 현재가 확인, 차트 검토, 주문 이동까지 같은 화면에서 이어지도록 정리했습니다.
           </p>
+          <div className="market-actions market-actions--embedded">
+            <SymbolSearch value={symbol} onChange={setSymbol} onSelect={(s) => { setSymbol(s); onSearch(s) }} />
+            <button className="primary-button" onClick={() => onSearch()} disabled={loading}>
+              {loading ? '불러오는 중...' : '시세 조회'}
+            </button>
+          </div>
         </div>
-        <div className="market-summary__actions">
+        <div className="market-overview-card__side">
           <Link to={`/trade?symbol=${encodeURIComponent(displaySymbol)}`} className="primary-button">
-            이 종목 주문하러 가기
+            이 종목 주문하기
           </Link>
-          <Link to="/orders" className="ghost-button">내 주문 보기</Link>
+          <Link to="/orders" className="ghost-button">주문 상태 보기</Link>
         </div>
       </section>
 
-      <section className="market-actions">
-        <SymbolSearch value={symbol} onChange={setSymbol} onSelect={(s) => { setSymbol(s); onSearch(s) }} />
-        <button className="primary-button" onClick={() => onSearch()} disabled={loading}>
-          {loading ? '로딩...' : '조회'}
-        </button>
-      </section>
-
-      {error ? <div className="trade-alert is-error">{JSON.stringify(error)}</div> : null}
+      {error ? <div className="trade-alert is-error">{error}</div> : null}
 
       <section className="quick-symbols">
         <span className="quick-symbols__label">자주 보는 종목</span>
@@ -248,7 +248,7 @@ export default function Chart() {
           <p className="market-hero__sub">{info?.exchange || info?.sector || 'Global Equity'}</p>
         </div>
         <div className="market-hero__actions">
-          <span className="market-hero__hint">차트 좌측으로 이동하면 과거 데이터가 이어서 추가됩니다.</span>
+          <span className="market-hero__hint">차트를 왼쪽으로 이동하면 과거 데이터가 이어서 추가됩니다.</span>
         </div>
       </section>
 
@@ -262,7 +262,7 @@ export default function Chart() {
           )}
         </div>
         <div className="market-price-meta">
-          {marketNote ? `As of ${marketNote}.` : 'As of market open.'}
+          {marketNote ? `기준 시각 ${marketNote}` : '시장 기준 시각 정보를 기다리는 중입니다.'}
         </div>
       </section>
 
@@ -307,8 +307,8 @@ export default function Chart() {
 
       <section className="overview-card">
         <div className="overview-main">
-          <h3>{displayName} Overview</h3>
-          <p>{summary || 'No description available for this symbol yet.'}</p>
+          <h3>{displayName} 개요</h3>
+          <p>{summary || '아직 제공된 종목 설명이 없습니다.'}</p>
         </div>
         <div className="overview-aside">
           <div className="overview-item">
@@ -316,7 +316,7 @@ export default function Chart() {
             <span className="stat-value">{info?.ceo || '--'}</span>
           </div>
           <div className="overview-item">
-            <span className="stat-label">Website</span>
+            <span className="stat-label">웹사이트</span>
             {info?.website ? (
               <a href={info.website} target="_blank" rel="noreferrer" className="overview-link">
                 {info.website}
@@ -326,7 +326,7 @@ export default function Chart() {
             )}
           </div>
           <div className="overview-item">
-            <span className="stat-label">Day Range</span>
+            <span className="stat-label">당일 범위</span>
             <span className="stat-value">{dayRange || '--'}</span>
           </div>
         </div>

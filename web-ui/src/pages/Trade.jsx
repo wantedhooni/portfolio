@@ -7,29 +7,9 @@ import TradeOrderFormCard from '../components/trade/TradeOrderFormCard'
 import TradeOrderbookCard from '../components/trade/TradeOrderbookCard'
 import TradeOrdersPanel from '../components/trade/TradeOrdersPanel'
 import TradeQuoteCard from '../components/trade/TradeQuoteCard'
+import { formatApiError, formatOrderStatus } from '../utils/format'
 
 const QUICK_TRADE_SYMBOLS = ['AAPL', 'MSFT', 'NVDA', 'TSLA']
-const ORDER_STATUS_LABELS = {
-  NEW: '접수',
-  PARTIALLY_FILLED: '부분 체결',
-  FILLED: '체결 완료',
-  CANCELED: '취소됨',
-  REJECTED: '거절됨',
-}
-
-const formatApiError = error => {
-  if (!error) return '요청을 처리하지 못했습니다.'
-  if (typeof error === 'string') return error
-  if (Array.isArray(error)) return error.map(formatApiError).join(', ')
-  if (typeof error === 'object') {
-    if (typeof error.message === 'string' && error.message.trim()) return error.message
-    if (typeof error.error === 'string' && error.error.trim()) return error.error
-    if (typeof error.detail === 'string' && error.detail.trim()) return error.detail
-    if (typeof error.title === 'string' && error.title.trim()) return error.title
-    if (Array.isArray(error.errors)) return error.errors.map(formatApiError).join(', ')
-  }
-  return '요청을 처리하지 못했습니다.'
-}
 
 export default function Trade() {
   const getCookie = name => {
@@ -116,7 +96,7 @@ export default function Trade() {
     return truncateTo(qty * unit, currencyDecimals)
   }, [quantity, limitPrice, orderType, price, truncateTo, currencyDecimals])
   const differenceAmount = truncateTo((selectedAvailable || 0) - (estimatedCost || 0), currencyDecimals)
-  const selectedStatusLabel = ordersStatus ? ORDER_STATUS_LABELS[ordersStatus] || ordersStatus : '전체'
+  const selectedStatusLabel = ordersStatus ? formatOrderStatus(ordersStatus) : '전체'
   const summaryError = error ? formatApiError(error) : null
   const summaryOrderError = orderError ? formatApiError(orderError) : null
 

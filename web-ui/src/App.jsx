@@ -28,6 +28,9 @@ export default function App() {
         { to: '/orders', label: '주문' },
       ]
     : []
+  const currentLabel =
+    navItems.find(item => item.to === location.pathname)?.label ||
+    (location.pathname === '/' ? '홈' : location.pathname === '/login' ? '로그인' : location.pathname === '/signup' ? '회원가입' : '고객 포털')
 
   React.useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
@@ -53,8 +56,8 @@ export default function App() {
             <Link to="/" className="app-brand__link">
               <span className="app-brand__mark">SM</span>
               <span className="app-brand__text">
-                <strong>Securities Monolithic</strong>
-                <span>증권 · 계좌 · 환전</span>
+                <strong>SM 고객 포털</strong>
+                <span>투자 · 계좌 · 환전 · 주문</span>
               </span>
             </Link>
             <span className="app-version">{appEnv} · v{appVersion}</span>
@@ -78,13 +81,13 @@ export default function App() {
           <div className="app-actions">
             {auth?.user ? (
               <div className="app-user-chip">
-                <span className="app-user-chip__label">Signed in</span>
+                <span className="app-user-chip__label">이용 중</span>
                 <strong>{displayName}</strong>
               </div>
             ) : (
               <div className="app-guest-chip">
-                <span>Guest</span>
-                <strong>로그인 필요</strong>
+                <span>안내</span>
+                <strong>로그인 후 전체 기능 이용</strong>
               </div>
             )}
 
@@ -98,6 +101,26 @@ export default function App() {
             )}
 
             <ThemeToggle />
+          </div>
+        </div>
+        <div className="app-header__context">
+          <div className="app-header__context-inner">
+            <div className="app-context">
+              <span className="app-context__label">현재 화면</span>
+              <strong>{currentLabel}</strong>
+            </div>
+            {auth?.user ? (
+              <div className="app-context__links">
+                <Link to="/chart" className="app-context__link">시장 보기</Link>
+                <Link to="/account" className="app-context__link">계좌 확인</Link>
+                <Link to="/trade" className="app-context__link">주문하기</Link>
+              </div>
+            ) : (
+              <div className="app-context__links">
+                <Link to="/login" className="app-context__link">로그인</Link>
+                <Link to="/signup" className="app-context__link">계정 만들기</Link>
+              </div>
+            )}
           </div>
         </div>
       </header>

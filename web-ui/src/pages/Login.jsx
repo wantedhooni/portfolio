@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthProvider'
+import { formatApiError } from '../utils/format'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -20,7 +21,7 @@ export default function Login() {
       await auth.login({ email, password })
       navigate(nextPath, { replace: true })
     } catch (e) {
-      setError(e.response?.data || 'Login failed')
+      setError(formatApiError(e.response?.data || e.message, '로그인에 실패했습니다.'))
     } finally {
       setLoading(false)
     }
@@ -49,7 +50,7 @@ export default function Login() {
             {loading ? '로그인 중...' : '로그인'}
           </button>
 
-          {error ? <div className="auth-error">{JSON.stringify(error)}</div> : null}
+          {error ? <div className="auth-error">{error}</div> : null}
         </form>
 
         <div className="auth-footer">

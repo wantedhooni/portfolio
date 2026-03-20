@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthProvider'
+import { formatApiError } from '../utils/format'
 
 export default function Signup() {
   const [email, setEmail] = useState('')
@@ -21,7 +22,7 @@ export default function Signup() {
       await auth.signup({ email, password, name, phone, address })
       navigate('/login')
     } catch (err) {
-      setError(err.response?.data || 'Signup failed')
+      setError(formatApiError(err.response?.data || err.message, '회원가입에 실패했습니다.'))
     } finally {
       setLoading(false)
     }
@@ -65,7 +66,7 @@ export default function Signup() {
             {loading ? '가입 처리 중...' : '회원가입'}
           </button>
 
-          {error ? <div className="auth-error">{JSON.stringify(error)}</div> : null}
+          {error ? <div className="auth-error">{error}</div> : null}
         </form>
 
         <div className="auth-footer">

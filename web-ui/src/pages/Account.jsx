@@ -7,6 +7,7 @@ import {
   withdrawAccount,
 } from '../api/api'
 import { useAuth } from '../auth/AuthProvider'
+import { formatAccountStatus, formatApiError } from '../utils/format'
 
 const ACCOUNT_TYPES = ['CASH', 'MARGIN']
 const ACCOUNT_STATUSES = ['ACTIVE', 'SUSPENDED', 'CLOSED']
@@ -16,6 +17,10 @@ function parseCsv(value) {
     .split(',')
     .map(v => v.trim())
     .filter(Boolean)
+}
+
+function formatMoney(value) {
+  return Number(value || 0).toLocaleString('en-US', { maximumFractionDigits: 2 })
 }
 
 export default function Account() {
@@ -70,7 +75,7 @@ export default function Account() {
       const data = await getMyAccounts(filterPayload)
       setAccounts(Array.isArray(data) ? data : [])
     } catch (e) {
-      setError(e.response?.data || e.message)
+      setError(formatApiError(e.response?.data || e.message, '계좌 정보를 불러오지 못했습니다.'))
     } finally {
       setLoading(false)
     }
@@ -94,7 +99,7 @@ export default function Account() {
       setCreateForm(prev => ({ ...prev, currency: '' }))
       await fetchAccounts()
     } catch (e) {
-      setActionError(e.response?.data || e.message)
+      setActionError(formatApiError(e.response?.data || e.message, '계좌 개설에 실패했습니다.'))
     }
   }
 
@@ -112,7 +117,7 @@ export default function Account() {
       setDepositForm({ accountNo: '', amount: '' })
       await fetchAccounts()
     } catch (e) {
-      setActionError(e.response?.data || e.message)
+      setActionError(formatApiError(e.response?.data || e.message, '입금에 실패했습니다.'))
     }
   }
 
@@ -130,7 +135,7 @@ export default function Account() {
       setWithdrawForm({ accountNo: '', amount: '' })
       await fetchAccounts()
     } catch (e) {
-      setActionError(e.response?.data || e.message)
+      setActionError(formatApiError(e.response?.data || e.message, '출금에 실패했습니다.'))
     }
   }
 
@@ -159,7 +164,7 @@ export default function Account() {
       })
       await fetchAccounts()
     } catch (e) {
-      setActionError(e.response?.data || e.message)
+      setActionError(formatApiError(e.response?.data || e.message, '이체에 실패했습니다.'))
     }
   }
 
@@ -174,16 +179,30 @@ export default function Account() {
 
   return (
     <div className="account-page">
+      <section className="account-overview-card">
+        <div className="account-overview-card__main">
+          <span className="intro-eyebrow">Account Center</span>
+          <h2>계좌와 잔액을 한 번에 관리</h2>
+          <p className="account-subtitle">계좌 상태 확인, 입출금, 이체, 새 계좌 개설을 한 흐름으로 정리했습니다.</p>
+        </div>
+        <div className="account-overview-card__side">
+          <div className="account-overview-card__info">
+            <span>로그인 상태</span>
+            <strong>{auth?.user ? '정상 이용 중' : '로그인 필요'}</strong>
+          </div>
+          <button onClick={fetchAccounts} className="ghost-button" disabled={loading}>
+            {loading ? '불러오는 중...' : '계좌 새로고침'}
+          </button>
+        </div>
+      </section>
+
       <section className="account-hero">
         <div>
-          <h2>Account</h2>
-          <p className="account-subtitle">계좌 현황 확인과 거래를 한 번에 관리하세요.</p>
+          <h2>내 계좌 현황</h2>
+          <p className="account-subtitle">보유 중인 계좌와 사용 가능 금액을 먼저 확인한 뒤 필요한 작업을 진행하세요.</p>
         </div>
         <div className="account-hero__meta">
-          {auth?.user ? <span>로그인 상태</span> : <span>로그인이 필요합니다</span>}
-          <button onClick={fetchAccounts} className="ghost-button" disabled={loading}>
-            {loading ? '불러오는 중...' : '새로고침'}
-          </button>
+          <span>{loading ? '계좌를 불러오는 중입니다.' : '최신 계좌 기준입니다.'}</span>
         </div>
       </section>
 
@@ -198,7 +217,7 @@ export default function Account() {
         </div>
         <div className="account-summary__card">
           <span>사용 가능 금액 합계</span>
-          <strong>{totalAvailable.toLocaleString('en-US')}</strong>
+          <strong>{formatMoney(totalAvailable)}</strong>
         </div>
         <div className="account-summary__card">
           <span>보유 통화</span>
@@ -248,9 +267,9 @@ export default function Account() {
         </div>
       </section>
 
-      {error && <div className="account-alert is-error">{JSON.stringify(error)}</div>}
+      {error && <div className="account-alert is-error">{error}</div>}
       {actionMessage && <div className="account-alert is-success">{actionMessage}</div>}
-      {actionError && <div className="account-alert is-error">{JSON.stringify(actionError)}</div>}
+      {actionError && <div className="account-alert is-error">{actionError}</div>}
 
       <section className="account-grid">
         {accounts.length === 0 ? (
@@ -264,17 +283,17 @@ export default function Account() {
                   <p>{account.currency} · {account.type}</p>
                 </div>
                 <span className={`account-status account-status--${account.status?.toLowerCase() || 'active'}`}>
-                  {account.status}
+                  {formatAccountStatus(account.status)}
                 </span>
               </div>
               <div className="account-card__body">
                 <div>
-                  <span>Cash Balance</span>
-                  <strong>{account.cashBalance}</strong>
+                  <span>총 잔액</span>
+                  <strong>{formatMoney(account.cashBalance)}</strong>
                 </div>
                 <div>
-                  <span>Available</span>
-                  <strong>{account.availableCash}</strong>
+                  <span>사용 가능 금액</span>
+                  <strong>{formatMoney(account.availableCash)}</strong>
                 </div>
               </div>
             </article>
@@ -285,6 +304,7 @@ export default function Account() {
       <section className="account-actions">
         <form className="account-panel" onSubmit={handleCreate}>
           <h3>계좌 개설</h3>
+          <p className="account-panel__hint">새 통화 계좌가 필요할 때 가장 먼저 사용하는 작업입니다.</p>
           <label>계좌 유형</label>
           <select
             value={createForm.accountType}
@@ -306,6 +326,7 @@ export default function Account() {
 
         <form className="account-panel" onSubmit={handleDeposit}>
           <h3>입금</h3>
+          <p className="account-panel__hint">활성 계좌를 선택하고 입금 금액을 입력하세요.</p>
           <label>계좌번호</label>
           <select
             value={depositForm.accountNo}
@@ -330,6 +351,7 @@ export default function Account() {
 
         <form className="account-panel" onSubmit={handleWithdraw}>
           <h3>출금</h3>
+          <p className="account-panel__hint">출금 전 사용 가능 금액을 먼저 확인하세요.</p>
           <label>계좌번호</label>
           <select
             value={withdrawForm.accountNo}
@@ -354,6 +376,7 @@ export default function Account() {
 
         <form className="account-panel account-panel--wide" onSubmit={handleTransfer}>
           <h3>계좌 이체</h3>
+          <p className="account-panel__hint">같은 사용자 계좌 사이에서 자금을 이동할 때 사용합니다.</p>
           <div className="account-row">
             <div>
               <label>출금 계좌</label>
