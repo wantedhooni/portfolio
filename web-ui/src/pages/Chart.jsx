@@ -201,7 +201,7 @@ export default function Chart() {
           <span className="intro-eyebrow">Market Center</span>
           <h2>{displayName} 시세와 차트</h2>
           <p className="market-summary__text">
-            검색, 현재가 확인, 차트 검토, 주문 이동까지 같은 화면에서 이어지도록 정리했습니다.
+            종목을 찾고 현재가와 차트만 먼저 확인할 수 있게 단순화했습니다.
           </p>
           <div className="market-actions market-actions--embedded">
             <SymbolSearch value={symbol} onChange={setSymbol} onSelect={(s) => { setSymbol(s); onSearch(s) }} />
@@ -214,14 +214,13 @@ export default function Chart() {
           <Link to={`/trade?symbol=${encodeURIComponent(displaySymbol)}`} className="primary-button">
             이 종목 주문하기
           </Link>
-          <Link to="/orders" className="ghost-button">주문 상태 보기</Link>
         </div>
       </section>
 
       {error ? <div className="trade-alert is-error">{error}</div> : null}
 
       <section className="quick-symbols">
-        <span className="quick-symbols__label">자주 보는 종목</span>
+        <span className="quick-symbols__label">빠른 종목</span>
         <div className="quick-symbols__chips">
           {QUICK_SYMBOLS.map(item => (
             <button
@@ -248,7 +247,7 @@ export default function Chart() {
           <p className="market-hero__sub">{info?.exchange || info?.sector || 'Global Equity'}</p>
         </div>
         <div className="market-hero__actions">
-          <span className="market-hero__hint">차트를 왼쪽으로 이동하면 과거 데이터가 이어서 추가됩니다.</span>
+          <span className="market-hero__hint">왼쪽으로 이동하면 과거 데이터가 추가됩니다.</span>
         </div>
       </section>
 

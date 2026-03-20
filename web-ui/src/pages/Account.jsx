@@ -183,7 +183,7 @@ export default function Account() {
         <div className="account-overview-card__main">
           <span className="intro-eyebrow">Account Center</span>
           <h2>계좌와 잔액을 한 번에 관리</h2>
-          <p className="account-subtitle">계좌 상태 확인, 입출금, 이체, 새 계좌 개설을 한 흐름으로 정리했습니다.</p>
+          <p className="account-subtitle">계좌 현황을 먼저 보고 필요한 작업만 선택할 수 있게 정리했습니다.</p>
         </div>
         <div className="account-overview-card__side">
           <div className="account-overview-card__info">
@@ -199,7 +199,7 @@ export default function Account() {
       <section className="account-hero">
         <div>
           <h2>내 계좌 현황</h2>
-          <p className="account-subtitle">보유 중인 계좌와 사용 가능 금액을 먼저 확인한 뒤 필요한 작업을 진행하세요.</p>
+          <p className="account-subtitle">보유 계좌와 사용 가능 금액만 먼저 확인하세요.</p>
         </div>
         <div className="account-hero__meta">
           <span>{loading ? '계좌를 불러오는 중입니다.' : '최신 계좌 기준입니다.'}</span>
@@ -304,7 +304,6 @@ export default function Account() {
       <section className="account-actions">
         <form className="account-panel" onSubmit={handleCreate}>
           <h3>계좌 개설</h3>
-          <p className="account-panel__hint">새 통화 계좌가 필요할 때 가장 먼저 사용하는 작업입니다.</p>
           <label>계좌 유형</label>
           <select
             value={createForm.accountType}
@@ -326,7 +325,6 @@ export default function Account() {
 
         <form className="account-panel" onSubmit={handleDeposit}>
           <h3>입금</h3>
-          <p className="account-panel__hint">활성 계좌를 선택하고 입금 금액을 입력하세요.</p>
           <label>계좌번호</label>
           <select
             value={depositForm.accountNo}
@@ -351,7 +349,6 @@ export default function Account() {
 
         <form className="account-panel" onSubmit={handleWithdraw}>
           <h3>출금</h3>
-          <p className="account-panel__hint">출금 전 사용 가능 금액을 먼저 확인하세요.</p>
           <label>계좌번호</label>
           <select
             value={withdrawForm.accountNo}
@@ -376,7 +373,6 @@ export default function Account() {
 
         <form className="account-panel account-panel--wide" onSubmit={handleTransfer}>
           <h3>계좌 이체</h3>
-          <p className="account-panel__hint">같은 사용자 계좌 사이에서 자금을 이동할 때 사용합니다.</p>
           <div className="account-row">
             <div>
               <label>출금 계좌</label>

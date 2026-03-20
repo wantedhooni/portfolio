@@ -285,7 +285,7 @@ export default function Trade() {
       <section className="trade-hero">
         <div>
           <h2>주식 구매</h2>
-          <p className="trade-subtitle">종목 가격과 동일 통화 계좌 잔고를 함께 확인하세요.</p>
+          <p className="trade-subtitle">시세와 주문만 단순하게 확인할 수 있도록 정리했습니다.</p>
         </div>
         <div className="trade-meta">
           {auth?.user ? <span>로그인됨</span> : <span>로그인이 필요합니다</span>}
@@ -303,7 +303,7 @@ export default function Trade() {
       </section>
 
       <section className="quick-symbols">
-        <span className="quick-symbols__label">빠른 종목 선택</span>
+        <span className="quick-symbols__label">빠른 종목</span>
         <div className="quick-symbols__chips">
           {QUICK_TRADE_SYMBOLS.map(item => (
             <button

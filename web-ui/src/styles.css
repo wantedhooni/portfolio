@@ -19,7 +19,7 @@
 	--danger: #e5484d;
 	--accent: #ff9800;
 	--card-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
-	--card-shadow-soft: 0 2px 10px rgba(15, 23, 42, 0.04);
+	--card-shadow-soft: 0 1px 6px rgba(15, 23, 42, 0.03);
 }
 
 /* Dark theme variables */
@@ -124,7 +124,7 @@ a { color: inherit; }
 	flex-wrap: wrap;
 }
 .app-nav__link {
-	padding: 10px 14px;
+	padding: 8px 12px;
 	border-radius: 999px;
 	text-decoration: none;
 	color: var(--muted);
@@ -169,29 +169,13 @@ a { color: inherit; }
 	text-transform: uppercase;
 	letter-spacing: 0.08em;
 }
-.app-context__links {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	flex-wrap: wrap;
-}
-.app-context__link {
-	text-decoration: none;
-	padding: 8px 12px;
-	border-radius: 999px;
-	background: var(--surface-2);
-	border: 1px solid var(--surface-border);
-	color: var(--text);
-	font-size: 13px;
-	font-weight: 600;
-}
 .app-user-chip,
 .app-guest-chip {
 	display: inline-flex;
 	flex-direction: column;
 	gap: 2px;
-	padding: 10px 14px;
-	border-radius: 16px;
+	padding: 8px 12px;
+	border-radius: 14px;
 	background: var(--surface-2);
 	border: 1px solid var(--surface-border);
 	min-width: 132px;
@@ -222,6 +206,10 @@ a { color: inherit; }
 	padding: 9px 11px;
 	border-radius: 12px;
 	cursor: pointer;
+}
+.app-context__hint {
+	color: var(--muted);
+	font-size: 13px;
 }
 .app-main { padding-bottom: 48px; }
 
@@ -302,10 +290,10 @@ button {
 	display: grid;
 	grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.6fr);
 	gap: 18px;
-	padding: 24px;
+	padding: 20px;
 	background: var(--card);
 	border: 1px solid var(--surface-border);
-	border-radius: 28px;
+	border-radius: 22px;
 	box-shadow: var(--card-shadow-soft);
 }
 
@@ -316,7 +304,7 @@ button {
 
 .market-overview-card__main h2 {
 	margin: 0;
-	font-size: 28px;
+	font-size: 26px;
 }
 
 .market-overview-card__side {
@@ -492,8 +480,8 @@ button {
 .primary-button {
 	background: var(--primary);
 	color: #fff;
-	padding: 13px 18px;
-	border-radius: 16px;
+	padding: 11px 16px;
+	border-radius: 14px;
 	font-weight: 600;
 }
 
@@ -501,14 +489,14 @@ button {
 	background: var(--card);
 	border: 1px solid var(--surface-border);
 	color: var(--text);
-	padding: 12px 16px;
+	padding: 10px 14px;
 	border-radius: 999px;
 	font-weight: 600;
 }
 
 .chart-card {
 	background: var(--surface);
-	border-radius: 28px;
+	border-radius: 20px;
 	border: 1px solid var(--surface-border);
 	padding: 14px;
 	position: relative;
@@ -577,8 +565,8 @@ button {
 
 .stat-card {
 	background: var(--card);
-	border-radius: 20px;
-	padding: 18px;
+	border-radius: 16px;
+	padding: 16px;
 	border: 1px solid var(--surface-border);
 	display: flex;
 	flex-direction: column;
@@ -599,9 +587,9 @@ button {
 
 .overview-card {
 	background: var(--card);
-	border-radius: 24px;
+	border-radius: 20px;
 	border: 1px solid var(--surface-border);
-	padding: 24px;
+	padding: 20px;
 	display: grid;
 	grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
 	gap: 18px;
@@ -708,19 +696,19 @@ button {
 .portal-flow {
 	background: var(--card);
 	border: 1px solid var(--surface-border);
-	border-radius: 28px;
+	border-radius: 20px;
 	box-shadow: var(--card-shadow-soft);
 }
 
 .portal-hero__main {
-	padding: 30px;
+	padding: 24px;
 	display: grid;
-	gap: 14px;
+	gap: 12px;
 }
 
 .portal-hero__title {
 	margin: 0;
-	font-size: 34px;
+	font-size: 30px;
 	line-height: 1.2;
 }
 
@@ -738,18 +726,19 @@ button {
 }
 
 .portal-hero__side {
-	padding: 18px;
-	display: grid;
-	gap: 12px;
+	padding: 16px;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
 }
 
 .portal-quick-card {
 	background: var(--surface-2);
 	border: 1px solid var(--surface-border);
-	border-radius: 22px;
-	padding: 18px;
+	border-radius: 16px;
+	padding: 16px;
 	display: grid;
-	gap: 8px;
+	gap: 6px;
 }
 
 .portal-quick-card__label {
@@ -771,11 +760,11 @@ button {
 }
 
 .portal-card {
-	padding: 22px;
+	padding: 18px;
 	display: flex;
 	flex-direction: column;
 	justify-content: space-between;
-	gap: 18px;
+	gap: 12px;
 }
 
 .portal-card h3,
@@ -793,39 +782,6 @@ button {
 .portal-card__link {
 	color: var(--primary-strong);
 	text-decoration: none;
-	font-weight: 700;
-}
-
-.portal-flow {
-	padding: 24px;
-	display: grid;
-	gap: 16px;
-}
-
-.portal-flow__steps {
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-	gap: 12px;
-}
-
-.portal-step {
-	padding: 16px 18px;
-	border-radius: 20px;
-	background: var(--surface-2);
-	border: 1px solid var(--surface-border);
-	display: grid;
-	gap: 8px;
-}
-
-.portal-step span {
-	width: 28px;
-	height: 28px;
-	border-radius: 999px;
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	background: rgba(49, 130, 246, 0.12);
-	color: var(--primary-strong);
 	font-weight: 700;
 }
 
@@ -1471,9 +1427,9 @@ button {
 
 .account-overview-card {
 	background: var(--card);
-	border-radius: 28px;
+	border-radius: 20px;
 	border: 1px solid var(--surface-border);
-	padding: 24px;
+	padding: 20px;
 	display: grid;
 	grid-template-columns: minmax(0, 1.3fr) minmax(260px, 0.7fr);
 	gap: 18px;
@@ -1537,9 +1493,9 @@ button {
 
 .account-summary__card {
 	background: var(--card);
-	border-radius: 22px;
+	border-radius: 16px;
 	border: 1px solid var(--surface-border);
-	padding: 18px;
+	padding: 16px;
 	display: grid;
 	gap: 6px;
 	box-shadow: var(--card-shadow-soft);
@@ -1561,9 +1517,9 @@ button {
 	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 	gap: 12px;
 	background: var(--card);
-	border-radius: 24px;
+	border-radius: 18px;
 	border: 1px solid var(--surface-border);
-	padding: 18px;
+	padding: 16px;
 	box-shadow: var(--card-shadow-soft);
 }
 
@@ -1610,9 +1566,9 @@ button {
 
 .account-card {
 	background: var(--card);
-	border-radius: 24px;
+	border-radius: 18px;
 	border: 1px solid var(--surface-border);
-	padding: 20px;
+	padding: 16px;
 	display: flex;
 	flex-direction: column;
 	gap: 12px;
@@ -1691,9 +1647,9 @@ button {
 
 .account-panel {
 	background: var(--card);
-	border-radius: 24px;
+	border-radius: 18px;
 	border: 1px solid var(--surface-border);
-	padding: 20px;
+	padding: 16px;
 	display: flex;
 	flex-direction: column;
 	gap: 10px;
@@ -1702,13 +1658,6 @@ button {
 
 .account-panel h3 {
 	margin: 0 0 6px;
-}
-
-.account-panel__hint {
-	margin: 0 0 6px;
-	color: var(--muted);
-	font-size: 13px;
-	line-height: 1.5;
 }
 
 .account-panel--wide {
@@ -1782,9 +1731,9 @@ button {
 
 .trade-summary-bar__item {
 	background: var(--card);
-	border-radius: 22px;
+	border-radius: 16px;
 	border: 1px solid var(--surface-border);
-	padding: 18px;
+	padding: 14px;
 	display: grid;
 	gap: 6px;
 	box-shadow: var(--card-shadow-soft);
@@ -1825,9 +1774,9 @@ button {
 
 .trade-card {
 	background: var(--card);
-	border-radius: 24px;
+	border-radius: 18px;
 	border: 1px solid var(--surface-border);
-	padding: 20px;
+	padding: 16px;
 	display: flex;
 	flex-direction: column;
 	gap: 12px;
@@ -1908,8 +1857,8 @@ button {
 	justify-content: space-between;
 	align-items: center;
 	background: var(--surface-2);
-	border-radius: 18px;
-	padding: 14px 16px;
+	border-radius: 14px;
+	padding: 12px 14px;
 	border: 1px solid transparent;
 	color: inherit;
 	cursor: pointer;
@@ -1991,8 +1940,8 @@ button {
 	display: grid;
 	grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 	gap: 12px;
-	padding: 16px;
-	border-radius: 20px;
+	padding: 14px;
+	border-radius: 16px;
 	background: var(--surface-2);
 }
 
@@ -2053,7 +2002,7 @@ button {
 	align-items: center;
 	gap: 12px;
 	padding: 12px 14px;
-	border-radius: 18px;
+	border-radius: 14px;
 	border: 1px solid transparent;
 	background: var(--surface-2);
 	color: var(--text);
@@ -2100,9 +2049,9 @@ button {
 
 .orders-card {
 	background: var(--card);
-	border-radius: 24px;
+	border-radius: 16px;
 	border: 1px solid var(--surface-border);
-	padding: 20px;
+	padding: 16px;
 	overflow-x: auto;
 	box-shadow: var(--card-shadow-soft);
 }
@@ -2115,9 +2064,9 @@ button {
 
 .orders-summary__item {
 	background: var(--card);
-	border-radius: 22px;
+	border-radius: 14px;
 	border: 1px solid var(--surface-border);
-	padding: 18px;
+	padding: 14px;
 	display: grid;
 	gap: 6px;
 	box-shadow: var(--card-shadow-soft);

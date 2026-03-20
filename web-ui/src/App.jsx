@@ -109,18 +109,9 @@ export default function App() {
               <span className="app-context__label">현재 화면</span>
               <strong>{currentLabel}</strong>
             </div>
-            {auth?.user ? (
-              <div className="app-context__links">
-                <Link to="/chart" className="app-context__link">시장 보기</Link>
-                <Link to="/account" className="app-context__link">계좌 확인</Link>
-                <Link to="/trade" className="app-context__link">주문하기</Link>
-              </div>
-            ) : (
-              <div className="app-context__links">
-                <Link to="/login" className="app-context__link">로그인</Link>
-                <Link to="/signup" className="app-context__link">계정 만들기</Link>
-              </div>
-            )}
+            <span className="app-context__hint">
+              {auth?.user ? '필요한 메뉴만 선택해 바로 이동하세요.' : '로그인 후 전체 기능을 사용할 수 있습니다.'}
+            </span>
           </div>
         </div>
       </header>
