@@ -1543,52 +1543,6 @@ button {
 	gap: 12px;
 }
 
-.account-shortcuts {
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-	gap: 10px;
-}
-
-.account-shortcut {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	padding: 12px 14px;
-	border-radius: 12px;
-	background: var(--surface-2);
-	border: 1px solid var(--surface-border);
-	text-decoration: none;
-	font-weight: 600;
-}
-
-.account-featured {
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-	gap: 12px;
-}
-
-.account-featured__item {
-	display: flex;
-	justify-content: space-between;
-	align-items: flex-start;
-	gap: 12px;
-	padding: 16px;
-	border-radius: 14px;
-	background: #f8fbff;
-	border: 1px solid #dbeafe;
-}
-
-.account-featured__item p,
-.account-featured__item span {
-	margin: 4px 0 0;
-	color: var(--muted);
-	font-size: 12px;
-}
-
-.account-featured__item strong {
-	display: block;
-}
-
 .account-summary__card {
 	background: var(--card);
 	border-radius: 14px;
@@ -1654,56 +1608,166 @@ button {
 	color: var(--success);
 }
 
-.account-grid {
+.account-workspace {
 	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-	gap: 14px;
+	grid-template-columns: minmax(0, 1.2fr) minmax(360px, 0.8fr);
+	gap: 16px;
 }
 
-.account-card {
+.account-list-panel,
+.account-power-panel {
 	background: var(--card);
 	border-radius: 14px;
 	border: 1px solid var(--surface-border);
-	padding: 16px;
+	padding: 18px;
 	display: flex;
 	flex-direction: column;
-	gap: 12px;
+	gap: 14px;
 	box-shadow: var(--card-shadow-soft);
 }
 
-.account-card__header {
+.account-list-panel__header,
+.account-power-panel__header {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	gap: 16px;
+}
+
+.account-spotlight {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	gap: 16px;
+	padding: 16px;
+	border-radius: 14px;
+	background: var(--surface-2);
+	border: 1px solid var(--surface-border);
+}
+
+.account-spotlight span,
+.account-list-item__body span,
+.account-power-panel__selected span,
+.account-power-panel__footnote span {
+	color: var(--muted);
+	font-size: 12px;
+}
+
+.account-spotlight strong,
+.account-power-panel__selected strong {
+	display: block;
+	margin-top: 4px;
+	font-size: 20px;
+}
+
+.account-spotlight p,
+.account-power-panel__selected p {
+	margin: 6px 0 0;
+	color: var(--muted);
+	font-size: 13px;
+}
+
+.account-spotlight__stats {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 12px;
+	min-width: 220px;
+}
+
+.account-spotlight__stats strong,
+.account-power-panel__footnote strong {
+	display: block;
+	margin-top: 4px;
+}
+
+.account-list {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 12px;
+}
+
+.account-list-item {
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	padding: 16px;
+	border-radius: 14px;
+	border: 1px solid var(--surface-border);
+	background: var(--card);
+	text-align: left;
+	color: inherit;
+}
+
+.account-list-item.is-selected {
+	border-color: rgba(49, 130, 246, 0.28);
+	background: rgba(49, 130, 246, 0.06);
+}
+
+.account-list-item__header {
 	display: flex;
 	justify-content: space-between;
 	align-items: flex-start;
 	gap: 10px;
 }
 
-.account-card__header h3 {
-	margin: 0;
-	font-size: 18px;
-}
-
-.account-card__header p {
+.account-list-item__header p {
 	margin: 4px 0 0;
 	color: var(--muted);
 	font-size: 13px;
 }
 
-.account-card__body {
+.account-list-item__body {
 	display: grid;
 	grid-template-columns: repeat(2, minmax(0, 1fr));
 	gap: 10px;
 }
 
-.account-card__body span {
-	color: var(--muted);
-	font-size: 12px;
+.account-list-item__body strong {
+	display: block;
+	margin-top: 4px;
+	font-size: 16px;
 }
 
-.account-card__body strong {
-	font-size: 16px;
-	margin-top: 4px;
-	display: block;
+.account-action-tabs {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 10px;
+}
+
+.account-action-tab {
+	display: grid;
+	gap: 4px;
+	padding: 14px;
+	border-radius: 14px;
+	background: var(--surface-2);
+	border: 1px solid var(--surface-border);
+	color: inherit;
+	text-align: left;
+}
+
+.account-action-tab span {
+	color: var(--muted);
+	font-size: 12px;
+	line-height: 1.45;
+}
+
+.account-action-tab.is-active {
+	border-color: rgba(49, 130, 246, 0.3);
+	background: rgba(49, 130, 246, 0.08);
+}
+
+.account-power-panel__selected,
+.account-power-panel__footnote {
+	padding: 14px 16px;
+	border-radius: 14px;
+	background: var(--surface-2);
+	border: 1px solid var(--surface-border);
+}
+
+.account-power-panel__form {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
 }
 
 .account-status {
@@ -1734,31 +1798,6 @@ button {
 	color: var(--muted);
 }
 
-.account-actions {
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-	gap: 16px;
-}
-
-.account-panel {
-	background: var(--card);
-	border-radius: 14px;
-	border: 1px solid var(--surface-border);
-	padding: 16px;
-	display: flex;
-	flex-direction: column;
-	gap: 10px;
-	box-shadow: var(--card-shadow-soft);
-}
-
-.account-panel h3 {
-	margin: 0 0 6px;
-}
-
-.account-panel--wide {
-	grid-column: 1 / -1;
-}
-
 .account-row {
 	display: grid;
 	grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -1766,7 +1805,7 @@ button {
 }
 
 .account-row label,
-.account-panel label {
+.account-power-panel label {
 	font-size: 12px;
 	color: var(--muted);
 }
@@ -1789,7 +1828,10 @@ button {
 		text-align: left;
 	}
 
-	.account-card__body,
+	.account-spotlight,
+	.account-spotlight__stats,
+	.account-list-item__body,
+	.account-action-tabs,
 	.trade-quote,
 	.orders-mobile-item__grid {
 		grid-template-columns: 1fr;
@@ -2482,8 +2524,8 @@ button {
 		grid-template-columns: repeat(4, minmax(0, 1fr));
 	}
 
-	.account-actions {
-		grid-template-columns: repeat(3, minmax(0, 1fr));
+	.account-workspace {
+		grid-template-columns: minmax(0, 1.2fr) minmax(360px, 0.8fr);
 	}
 
 	.trade-summary-bar {
@@ -2531,7 +2573,6 @@ button {
 	.trade-summary-bar,
 	.orders-summary,
 	.market-stats-grid,
-	.account-actions,
 	.trade-step-strip,
 	.orders-highlight {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2540,13 +2581,14 @@ button {
 	.portal-hero,
 	.market-overview-card,
 	.account-overview-card,
+	.account-workspace,
 	.trade-grid,
 	.trade-bottom {
 		grid-template-columns: 1fr;
 	}
 
 	.trade-book__grid,
-	.account-card__body {
+	.account-list-item__body {
 		grid-template-columns: 1fr;
 	}
 }
@@ -2706,7 +2748,7 @@ button {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 
-	.account-actions,
+	.account-workspace,
 	.trade-grid,
 	.market-stats-grid {
 		grid-template-columns: 1fr;
@@ -2816,15 +2858,17 @@ button {
 	.trade-summary,
 	.trade-order__overview,
 	.trade-order__grid,
-	.account-actions,
+	.account-workspace,
+	.account-action-tabs,
+	.account-list-item__body,
+	.account-spotlight,
+	.account-spotlight__stats,
 	.trade-grid,
 	.trade-lower,
 	.trade-bottom,
 	.trade-step-strip,
 	.orders-highlight,
-	.orders-list-item__grid,
-	.account-shortcuts,
-	.account-featured {
+	.orders-list-item__grid {
 		grid-template-columns: 1fr;
 	}
 
@@ -2856,7 +2900,7 @@ button {
 
 	.orders-size select,
 	.trade-form select,
-	.account-panel select {
+	.account-power-panel select {
 		width: 100%;
 	}
 
