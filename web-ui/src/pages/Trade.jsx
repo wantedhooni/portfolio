@@ -344,9 +344,41 @@ export default function Trade() {
         </div>
       </section>
 
+      <section className="trade-step-strip">
+        <article className="trade-step">
+          <span>1</span>
+          <div>
+            <strong>종목 확인</strong>
+            <p>심볼과 현재가를 먼저 확인</p>
+          </div>
+        </article>
+        <article className="trade-step">
+          <span>2</span>
+          <div>
+            <strong>계좌 선택</strong>
+            <p>같은 통화 계좌에서 주문 가능 금액 확인</p>
+          </div>
+        </article>
+        <article className="trade-step">
+          <span>3</span>
+          <div>
+            <strong>주문 입력</strong>
+            <p>수량과 가격만 입력해 바로 주문</p>
+          </div>
+        </article>
+      </section>
+
       {summaryError && <div className="trade-alert is-error">{summaryError}</div>}
       {notice && <div className="trade-alert">{notice}</div>}
       {summaryOrderError && <div className="trade-alert is-error">{summaryOrderError}</div>}
+
+      <section className="section-heading">
+        <div>
+          <span className="section-heading__eyebrow">1. 시세와 계좌</span>
+          <h3 className="section-heading__title">지금 거래 기준을 먼저 확인하세요</h3>
+          <p className="section-heading__text">현재 시세와 주문 가능한 계좌를 먼저 보고 주문 판단을 할 수 있습니다.</p>
+        </div>
+      </section>
 
       <section className="trade-grid">
         <TradeQuoteCard
@@ -367,11 +399,17 @@ export default function Trade() {
        
       </section>
 
+      <section className="section-heading">
+        <div>
+          <span className="section-heading__eyebrow">2. 주문 입력</span>
+          <h3 className="section-heading__title">호가를 보고 바로 주문하세요</h3>
+          <p className="section-heading__text">호가와 주문 폼을 같은 흐름으로 정리해 한 화면에서 바로 입력할 수 있습니다.</p>
+        </div>
+      </section>
 
       <section className="trade-lower">
-        <section className="trade-bottom ">
-          <section>
-            <TradeOrderbookCard
+        <section className="trade-bottom">
+          <TradeOrderbookCard
             orderbook={orderbook}
             orderbookUpdatedAt={orderbookUpdatedAt}
             limitPrice={limitPrice}
@@ -380,8 +418,6 @@ export default function Trade() {
             onRefresh={() => buildOrderbook(price, currencyDecimals)}
             canRefresh={!!price}
           />
-          </section>
-          <section>
           <TradeOrderFormCard
             accounts={accounts}
             selectedAccountNo={selectedAccountNo}
@@ -401,24 +437,29 @@ export default function Trade() {
             submitting={submitting}
             canSubmit={!!snapshot}
           />
-          </section>
-          
-          
         </section>
-        <TradeOrdersPanel
-          orders={orders}
-          ordersLoading={ordersLoading}
-          ordersError={ordersError}
-          ordersMessage={ordersMessage}
-          ordersSize={ordersSize}
-          ordersStatus={ordersStatus}
-          onChangeSize={setOrdersSize}
-          onChangeStatus={setOrdersStatus}
-          onRefresh={fetchOrders}
-          onCancel={handleCancelOrder}
-        />
-       
       </section>
+
+      <section className="section-heading">
+        <div>
+          <span className="section-heading__eyebrow">3. 최근 주문</span>
+          <h3 className="section-heading__title">방금 넣은 주문 상태를 바로 확인하세요</h3>
+          <p className="section-heading__text">주문 입력 아래에서 최근 주문만 바로 확인하고 필요한 경우 취소할 수 있습니다.</p>
+        </div>
+      </section>
+
+      <TradeOrdersPanel
+        orders={orders}
+        ordersLoading={ordersLoading}
+        ordersError={ordersError}
+        ordersMessage={ordersMessage}
+        ordersSize={ordersSize}
+        ordersStatus={ordersStatus}
+        onChangeSize={setOrdersSize}
+        onChangeStatus={setOrdersStatus}
+        onRefresh={fetchOrders}
+        onCancel={handleCancelOrder}
+      />
 
     </div>
   )

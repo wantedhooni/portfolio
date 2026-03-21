@@ -11,20 +11,20 @@ export default function TradeOrderbookCard({
 }) {
   return (
     <div className="trade-card trade-book">
-      <div className="trade-book__header">
+      <div className="trade-card__title-row">
         <div>
           <h3>호가</h3>
-          <p>가격을 선택하면 지정가에 반영됩니다.</p>
-        </div>
-        <div className="trade-book__actions">
-          <span>{orderbookUpdatedAt ? orderbookUpdatedAt.toLocaleTimeString() : '-'}</span>
-          <button type="button" className="ghost-button" onClick={onRefresh} disabled={!canRefresh}>
-            갱신
-          </button>
+          <p className="trade-card__caption">가격을 선택하면 지정가에 바로 반영됩니다.</p>
         </div>
       </div>
+      <div className="trade-card__toolbar">
+        <span className="trade-toolbar-chip">기준 시각 {orderbookUpdatedAt ? orderbookUpdatedAt.toLocaleTimeString() : '-'}</span>
+        <button type="button" className="ghost-button" onClick={onRefresh} disabled={!canRefresh}>
+          새로고침
+        </button>
+      </div>
       {orderbook.asks.length === 0 ? (
-        <div className="trade-empty">호가 데이터를 불러오세요.</div>
+        <div className="trade-empty trade-empty--boxed">호가 데이터를 불러오세요.</div>
       ) : (
         <div className="trade-book__grid">
           <div className="trade-book__side">

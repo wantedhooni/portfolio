@@ -116,7 +116,7 @@ export default function Exchange() {
         <div className="exchange-card">
           <div className="exchange-hero">
             <div>
-              <span className="intro-eyebrow">Currency Exchange</span>
+              <span className="intro-eyebrow">환전</span>
               <h2 className="exchange-hero__title">환전 금액과 적용 환율을 바로 확인</h2>
               <p className="exchange-hero__text">
                 송금 화면처럼 보이지 않도록 환전 기준으로 다시 정리했습니다. 기준 통화, 환전 후 금액, 보유 계좌를 한 번에 확인할 수 있습니다.

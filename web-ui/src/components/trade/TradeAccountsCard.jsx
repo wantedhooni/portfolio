@@ -10,7 +10,12 @@ export default function TradeAccountsCard({
 }) {
   return (
     <div className="trade-card">
-      <h3>동일 통화 계좌 잔고</h3>
+      <div className="trade-card__title-row">
+        <div>
+          <h3>주문 가능한 계좌</h3>
+          <p className="trade-card__caption">현재 종목 통화와 같은 계좌만 먼저 보여줍니다.</p>
+        </div>
+      </div>
       {currency ? (
         <div className="trade-balance">
           <div className="trade-balance__total">
@@ -28,11 +33,11 @@ export default function TradeAccountsCard({
                     className={`trade-account-item ${selectedAccountNo === account.accountNo ? 'is-selected' : ''}`}
                     onClick={() => onSelectAccount(account.accountNo)}
                   >
-                    <div>
+                    <div className="trade-account-item__meta">
                       <strong>{account.accountNo}</strong>
                       <span>{account.type}</span>
                     </div>
-                    <div>
+                    <div className="trade-account-item__amount">
                       <span>주문 가능 금액</span>
                       <strong>{formatAmount(account.availableCash)}</strong>
                     </div>

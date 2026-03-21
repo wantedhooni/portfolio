@@ -8,9 +8,18 @@ export default function TradeQuoteCard({ snapshot, price, currency, formatAmount
 
   return (
     <div className="trade-card">
-      <h3>현재 시세</h3>
+      <div className="trade-card__title-row">
+        <div>
+          <h3>현재 시세</h3>
+          <p className="trade-card__caption">현재가와 전일 대비만 먼저 확인할 수 있게 정리했습니다.</p>
+        </div>
+      </div>
       {snapshot ? (
         <div className="trade-quote">
+          <div className="trade-quote__headline">
+            <span className="trade-symbol-badge">{snapshot.symbol}</span>
+            <strong className="trade-quote__price">{formatAmount(price)}</strong>
+          </div>
           <div>
             <span>심볼</span>
             <strong>{snapshot.symbol}</strong>

@@ -59,6 +59,10 @@ export default function Account() {
     () => Array.from(new Set(accounts.map(account => account.currency).filter(Boolean))),
     [accounts]
   )
+  const featuredAccounts = useMemo(
+    () => activeAccounts.slice(0, 3),
+    [activeAccounts]
+  )
 
   const filterPayload = useMemo(() => {
     return {
@@ -225,6 +229,30 @@ export default function Account() {
         </div>
       </section>
 
+      <section className="account-shortcuts">
+        <a href="#account-list" className="account-shortcut">계좌 목록 보기</a>
+        <a href="#account-create" className="account-shortcut">계좌 개설</a>
+        <a href="#account-deposit" className="account-shortcut">입금</a>
+        <a href="#account-transfer" className="account-shortcut">이체</a>
+      </section>
+
+      {featuredAccounts.length > 0 ? (
+        <section className="account-featured">
+          {featuredAccounts.map(account => (
+            <article key={`featured-${account.accountNo}`} className="account-featured__item">
+              <div>
+                <strong>{account.accountNo}</strong>
+                <p>{account.currency} · {account.type}</p>
+              </div>
+              <div>
+                <span>사용 가능 금액</span>
+                <strong>{formatMoney(account.availableCash)}</strong>
+              </div>
+            </article>
+          ))}
+        </section>
+      ) : null}
+
       <section className="account-filters">
         <div className="account-filter">
           <label>통화</label>
@@ -271,6 +299,14 @@ export default function Account() {
       {actionMessage && <div className="account-alert is-success">{actionMessage}</div>}
       {actionError && <div className="account-alert is-error">{actionError}</div>}
 
+      <section id="account-list" className="section-heading">
+        <div>
+          <span className="section-heading__eyebrow">1. 계좌 확인</span>
+          <h3 className="section-heading__title">내 계좌를 먼저 확인하세요</h3>
+          <p className="section-heading__text">계좌번호, 통화, 사용 가능 금액만 먼저 보이도록 정리했습니다.</p>
+        </div>
+      </section>
+
       <section className="account-grid">
         {accounts.length === 0 ? (
           <div className="account-empty">표시할 계좌가 없습니다.</div>
@@ -301,8 +337,16 @@ export default function Account() {
         )}
       </section>
 
+      <section className="section-heading">
+        <div>
+          <span className="section-heading__eyebrow">2. 바로 처리</span>
+          <h3 className="section-heading__title">자주 하는 작업을 아래에서 바로 진행하세요</h3>
+          <p className="section-heading__text">계좌 개설, 입금, 출금, 이체를 별도 화면 이동 없이 처리할 수 있습니다.</p>
+        </div>
+      </section>
+
       <section className="account-actions">
-        <form className="account-panel" onSubmit={handleCreate}>
+        <form id="account-create" className="account-panel" onSubmit={handleCreate}>
           <h3>계좌 개설</h3>
           <label>계좌 유형</label>
           <select
@@ -323,7 +367,7 @@ export default function Account() {
           <button type="submit" className="primary-button">개설</button>
         </form>
 
-        <form className="account-panel" onSubmit={handleDeposit}>
+        <form id="account-deposit" className="account-panel" onSubmit={handleDeposit}>
           <h3>입금</h3>
           <label>계좌번호</label>
           <select
@@ -347,7 +391,7 @@ export default function Account() {
           <button type="submit" className="primary-button">입금</button>
         </form>
 
-        <form className="account-panel" onSubmit={handleWithdraw}>
+        <form id="account-withdraw" className="account-panel" onSubmit={handleWithdraw}>
           <h3>출금</h3>
           <label>계좌번호</label>
           <select
@@ -371,7 +415,7 @@ export default function Account() {
           <button type="submit" className="primary-button">출금</button>
         </form>
 
-        <form className="account-panel account-panel--wide" onSubmit={handleTransfer}>
+        <form id="account-transfer" className="account-panel account-panel--wide" onSubmit={handleTransfer}>
           <h3>계좌 이체</h3>
           <div className="account-row">
             <div>

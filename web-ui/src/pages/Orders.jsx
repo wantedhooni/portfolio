@@ -47,6 +47,7 @@ export default function Orders() {
   const totalElements = data?.totalElements ?? orders.length
   const activeOrders = orders.filter(order => CANCELABLE.has(order.status)).length
   const filledOrders = orders.filter(order => order.status === 'FILLED').length
+  const latestOrder = orders[0] || null
 
   return (
     <div className="orders-page">
@@ -74,12 +75,37 @@ export default function Orders() {
           <h2>주문 조회</h2>
           <p>주문 내역을 확인하고 취소 가능한 주문만 바로 처리할 수 있습니다.</p>
         </div>
-        <div className="orders-actions">
-          <button className="ghost-button" onClick={() => fetchOrders(page)} disabled={loading}>
-            {loading ? '불러오는 중...' : '새로고침'}
-          </button>
-        </div>
       </section>
+      <div className="orders-toolbar">
+        <div className="orders-size">
+          <label>페이지 크기</label>
+          <select value={size} onChange={e => setSize(Number(e.target.value))}>
+            {[10, 20, 30, 50].map(opt => (
+              <option key={opt} value={opt}>{opt}</option>
+            ))}
+          </select>
+        </div>
+        <button className="ghost-button" onClick={() => fetchOrders(page)} disabled={loading}>
+          {loading ? '불러오는 중...' : '새로고침'}
+        </button>
+      </div>
+
+      {latestOrder ? (
+        <section className="orders-highlight">
+          <div>
+            <span>가장 최근 주문</span>
+            <strong>{latestOrder.symbol} · {latestOrder.accountNo}</strong>
+          </div>
+          <div>
+            <span>상태</span>
+            <strong>{formatOrderStatus(latestOrder.status)}</strong>
+          </div>
+          <div>
+            <span>수량</span>
+            <strong>{latestOrder.qty}</strong>
+          </div>
+        </section>
+      ) : null}
 
       {error && <div className="trade-alert is-error">{error}</div>}
       {actionMessage && <div className="trade-alert">{actionMessage}</div>}
@@ -88,68 +114,19 @@ export default function Orders() {
         {orders.length === 0 ? (
           <div className="trade-empty">주문 내역이 없습니다.</div>
         ) : (
-          <>
-          <table className="orders-table">
-            <thead>
-              <tr>
-                <th>주문 ID</th>
-                <th>계좌</th>
-                <th>심볼</th>
-                <th>구분</th>
-                <th>유형</th>
-                <th>상태</th>
-                <th>수량</th>
-                <th>지정가</th>
-                <th>통화</th>
-                <th>액션</th>
-              </tr>
-            </thead>
-            <tbody>
-              {orders.map(order => (
-                <tr key={order.id}>
-                  <td>{order.id}</td>
-                  <td>{order.accountNo}</td>
-                  <td>{order.symbol}</td>
-                  <td>{order.side}</td>
-                  <td>{order.type}</td>
-                  <td>
-                    <span className={`order-status-badge order-status-badge--${String(order.status || '').toLowerCase()}`}>
-                      {formatOrderStatus(order.status)}
-                    </span>
-                  </td>
-                  <td>{order.qty}</td>
-                  <td>{order.limitPriceAmount ?? '-'}</td>
-                  <td>{order.priceCurrency ?? '-'}</td>
-                  <td>
-                    {CANCELABLE.has(order.status) ? (
-                      <button className="ghost-button" onClick={() => handleCancel(order.id)}>
-                        취소
-                      </button>
-                    ) : (
-                      <span className="orders-muted">-</span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <div className="orders-mobile-list">
+          <div className="orders-list">
             {orders.map(order => (
-              <article key={`mobile-${order.id}`} className="orders-mobile-item">
-                <div className="orders-mobile-item__header">
+              <article key={order.id} className="orders-list-item">
+                <div className="orders-list-item__header">
                   <div>
                     <strong>{order.symbol}</strong>
-                    <p>{order.accountNo}</p>
+                    <p>{order.accountNo} · 주문 ID {order.id}</p>
                   </div>
                   <span className={`order-status-badge order-status-badge--${String(order.status || '').toLowerCase()}`}>
                     {formatOrderStatus(order.status)}
                   </span>
                 </div>
-                <div className="orders-mobile-item__grid">
-                  <div>
-                    <span>주문 ID</span>
-                    <strong>{order.id}</strong>
-                  </div>
+                <div className="orders-list-item__grid">
                   <div>
                     <span>구분</span>
                     <strong>{order.side}</strong>
@@ -171,15 +148,19 @@ export default function Orders() {
                     <strong>{order.priceCurrency ?? '-'}</strong>
                   </div>
                 </div>
-                {CANCELABLE.has(order.status) ? (
-                  <button className="ghost-button orders-mobile-item__button" onClick={() => handleCancel(order.id)}>
-                    주문 취소
-                  </button>
-                ) : null}
+                <div className="orders-list-item__footer">
+                  <span className="orders-muted">
+                    {CANCELABLE.has(order.status) ? '지금 취소할 수 있는 주문입니다.' : '조회 전용 주문입니다.'}
+                  </span>
+                  {CANCELABLE.has(order.status) ? (
+                    <button className="ghost-button" onClick={() => handleCancel(order.id)}>
+                      주문 취소
+                    </button>
+                  ) : null}
+                </div>
               </article>
             ))}
           </div>
-          </>
         )}
       </section>
 
@@ -201,14 +182,6 @@ export default function Orders() {
         >
           다음
         </button>
-        <div className="orders-size">
-          <label>페이지 크기</label>
-          <select value={size} onChange={e => setSize(Number(e.target.value))}>
-            {[10, 20, 30, 50].map(opt => (
-              <option key={opt} value={opt}>{opt}</option>
-            ))}
-          </select>
-        </div>
       </section>
     </div>
   )
