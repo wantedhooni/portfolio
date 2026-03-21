@@ -5,8 +5,8 @@ import { useAuth } from '../auth/AuthProvider'
 export default function Home() {
   const auth = useAuth()
   const isLoggedIn = Boolean(auth?.user)
-  const primaryCta = isLoggedIn ? { to: '/chart', label: '시장 바로 보기' } : { to: '/login', label: '로그인' }
-  const secondaryCta = isLoggedIn ? { to: '/account', label: '내 계좌 확인' } : { to: '/signup', label: '회원가입' }
+  const primaryCta = isLoggedIn ? { to: '/chart', label: '시장 보기' } : { to: '/login', label: '로그인' }
+  const secondaryCta = isLoggedIn ? { to: '/account', label: '계좌 보기' } : { to: '/signup', label: '회원가입' }
   const actionCards = [
     { title: '시장', text: '종목과 차트 확인', to: '/chart' },
     { title: '계좌', text: '잔액과 입출금 관리', to: '/account' },
@@ -18,10 +18,10 @@ export default function Home() {
     <div className="intro-page">
       <section className="portal-hero">
         <div className="portal-hero__main">
-          <span className="intro-eyebrow">Customer Front</span>
-          <h1 className="portal-hero__title">필요한 작업만 바로 시작할 수 있는 화면</h1>
+          <span className="intro-eyebrow">고객 화면</span>
+          <h1 className="portal-hero__title">자주 쓰는 메뉴만 간단하게 모았습니다</h1>
           <p className="portal-hero__text">
-            시세 확인, 계좌 관리, 환전 계산, 주문 확인만 단순하게 이동할 수 있도록 정리했습니다.
+            시세 확인, 계좌 조회, 환전 계산, 주문 확인을 한 화면에서 바로 이동할 수 있습니다.
           </p>
           <div className="portal-hero__actions">
             <Link to={primaryCta.to} className="primary-button">{primaryCta.label}</Link>
@@ -30,9 +30,9 @@ export default function Home() {
         </div>
         <div className="portal-hero__side">
           <div className="portal-quick-card">
-            <span className="portal-quick-card__label">안내</span>
-            <strong>{isLoggedIn ? '로그인 상태' : '테스트 계정 제공'}</strong>
-            <p>{isLoggedIn ? '시장 또는 계좌 화면으로 바로 이동하세요.' : 'user1@example.com / Password!'}</p>
+            <span className="portal-quick-card__label">{isLoggedIn ? '현재 상태' : '테스트 계정'}</span>
+            <strong>{isLoggedIn ? '바로 이용할 수 있습니다' : '로그인 후 전체 기능 이용 가능'}</strong>
+            <p>{isLoggedIn ? '시장, 계좌, 환전, 주문 메뉴를 바로 이용하세요.' : 'user1@example.com / Password!'}</p>
           </div>
         </div>
       </section>

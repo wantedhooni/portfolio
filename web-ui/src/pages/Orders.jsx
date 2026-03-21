@@ -72,7 +72,7 @@ export default function Orders() {
       <section className="orders-header">
         <div>
           <h2>주문 조회</h2>
-          <p>계정의 주문 내역을 확인하고 취소할 수 있습니다.</p>
+          <p>주문 내역을 확인하고 취소 가능한 주문만 바로 처리할 수 있습니다.</p>
         </div>
         <div className="orders-actions">
           <button className="ghost-button" onClick={() => fetchOrders(page)} disabled={loading}>
@@ -88,6 +88,7 @@ export default function Orders() {
         {orders.length === 0 ? (
           <div className="trade-empty">주문 내역이 없습니다.</div>
         ) : (
+          <>
           <table className="orders-table">
             <thead>
               <tr>
@@ -132,6 +133,53 @@ export default function Orders() {
               ))}
             </tbody>
           </table>
+          <div className="orders-mobile-list">
+            {orders.map(order => (
+              <article key={`mobile-${order.id}`} className="orders-mobile-item">
+                <div className="orders-mobile-item__header">
+                  <div>
+                    <strong>{order.symbol}</strong>
+                    <p>{order.accountNo}</p>
+                  </div>
+                  <span className={`order-status-badge order-status-badge--${String(order.status || '').toLowerCase()}`}>
+                    {formatOrderStatus(order.status)}
+                  </span>
+                </div>
+                <div className="orders-mobile-item__grid">
+                  <div>
+                    <span>주문 ID</span>
+                    <strong>{order.id}</strong>
+                  </div>
+                  <div>
+                    <span>구분</span>
+                    <strong>{order.side}</strong>
+                  </div>
+                  <div>
+                    <span>유형</span>
+                    <strong>{order.type}</strong>
+                  </div>
+                  <div>
+                    <span>수량</span>
+                    <strong>{order.qty}</strong>
+                  </div>
+                  <div>
+                    <span>지정가</span>
+                    <strong>{order.limitPriceAmount ?? '-'}</strong>
+                  </div>
+                  <div>
+                    <span>통화</span>
+                    <strong>{order.priceCurrency ?? '-'}</strong>
+                  </div>
+                </div>
+                {CANCELABLE.has(order.status) ? (
+                  <button className="ghost-button orders-mobile-item__button" onClick={() => handleCancel(order.id)}>
+                    주문 취소
+                  </button>
+                ) : null}
+              </article>
+            ))}
+          </div>
+          </>
         )}
       </section>
 

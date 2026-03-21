@@ -57,7 +57,7 @@ export default function App() {
               <span className="app-brand__mark">SM</span>
               <span className="app-brand__text">
                 <strong>SM 고객 포털</strong>
-                <span>투자 · 계좌 · 환전 · 주문</span>
+                <span>간단한 금융 업무 화면</span>
               </span>
             </Link>
             <span className="app-version">{appEnv} · v{appVersion}</span>
@@ -81,13 +81,13 @@ export default function App() {
           <div className="app-actions">
             {auth?.user ? (
               <div className="app-user-chip">
-                <span className="app-user-chip__label">이용 중</span>
+                <span className="app-user-chip__label">사용 중</span>
                 <strong>{displayName}</strong>
               </div>
             ) : (
               <div className="app-guest-chip">
                 <span>안내</span>
-                <strong>로그인 후 전체 기능 이용</strong>
+                <strong>로그인 후 전체 메뉴 이용</strong>
               </div>
             )}
 
@@ -106,11 +106,11 @@ export default function App() {
         <div className="app-header__context">
           <div className="app-header__context-inner">
             <div className="app-context">
-              <span className="app-context__label">현재 화면</span>
+              <span className="app-context__label">화면</span>
               <strong>{currentLabel}</strong>
             </div>
             <span className="app-context__hint">
-              {auth?.user ? '필요한 메뉴만 선택해 바로 이동하세요.' : '로그인 후 전체 기능을 사용할 수 있습니다.'}
+              {auth?.user ? '필요한 메뉴만 바로 이용하세요.' : '로그인 후 전체 메뉴를 사용할 수 있습니다.'}
             </span>
           </div>
         </div>

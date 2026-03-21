@@ -181,9 +181,9 @@ export default function Account() {
     <div className="account-page">
       <section className="account-overview-card">
         <div className="account-overview-card__main">
-          <span className="intro-eyebrow">Account Center</span>
-          <h2>계좌와 잔액을 한 번에 관리</h2>
-          <p className="account-subtitle">계좌 현황을 먼저 보고 필요한 작업만 선택할 수 있게 정리했습니다.</p>
+          <span className="intro-eyebrow">계좌</span>
+          <h2>계좌와 잔액을 한 번에 확인합니다</h2>
+          <p className="account-subtitle">계좌 현황을 먼저 보고 필요한 작업만 바로 진행할 수 있습니다.</p>
         </div>
         <div className="account-overview-card__side">
           <div className="account-overview-card__info">
@@ -199,7 +199,7 @@ export default function Account() {
       <section className="account-hero">
         <div>
           <h2>내 계좌 현황</h2>
-          <p className="account-subtitle">보유 계좌와 사용 가능 금액만 먼저 확인하세요.</p>
+          <p className="account-subtitle">보유 계좌와 사용 가능 금액을 먼저 확인하세요.</p>
         </div>
         <div className="account-hero__meta">
           <span>{loading ? '계좌를 불러오는 중입니다.' : '최신 계좌 기준입니다.'}</span>
