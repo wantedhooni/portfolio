@@ -128,6 +128,7 @@ cd web-ui && npm install && npm run dev
 ### 포트폴리오 산출물
 - Markdown 문서: `output/doc/web-ui-portfolio.md`
 - DOCX 문서: `output/doc/web-ui-portfolio.docx`
+- PDF 문서: `output/doc/web-ui-portfolio.pdf`
 - 화면 스크린샷: `output/playwright/portfolio-*.png`
 - 환전 화면의 송금형 문구를 환전 계산 흐름 중심으로 재정리
 - 거래 화면에서 주문 통화 계좌가 없을 때 안내 문구와 비활성 상태를 명확히 표시
