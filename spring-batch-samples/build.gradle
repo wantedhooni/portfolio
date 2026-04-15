@@ -1,0 +1,131 @@
+plugins {
+	id 'java'
+}
+
+group = 'org.springframework.batch'
+version = '6.0.4-SNAPSHOT'
+description = 'Sample batch jobs using Spring Batch'
+
+ext {
+	environment = 'hsql'
+	moduleName = 'spring.batch.samples'
+
+	springBatchVersion = '6.0.4-SNAPSHOT'
+
+	// 아래 값들은 기존 pom의 property 참조값이라 별도 정의 필요
+	springFrameworkVersion = findProperty('springFrameworkVersion') ?: ''
+	micrometerVersion = findProperty('micrometerVersion') ?: ''
+	commonsIoVersion = findProperty('commonsIoVersion') ?: ''
+	jakartaMailApiVersion = findProperty('jakartaMailApiVersion') ?: ''
+	aspectjVersion = findProperty('aspectjVersion') ?: ''
+	hibernateCoreVersion = findProperty('hibernateCoreVersion') ?: ''
+	commonsDbcp2Version = findProperty('commonsDbcp2Version') ?: ''
+	jakartaInjectApiVersion = findProperty('jakartaInjectApiVersion') ?: ''
+	artemisVersion = findProperty('artemisVersion') ?: ''
+	springDataMongodbVersion = findProperty('springDataMongodbVersion') ?: ''
+	springDataCommonsVersion = findProperty('springDataCommonsVersion') ?: ''
+	springDataJpaVersion = findProperty('springDataJpaVersion') ?: ''
+	springAmqpVersion = findProperty('springAmqpVersion') ?: ''
+	springRabbitVersion = findProperty('springRabbitVersion') ?: ''
+	quartzVersion = findProperty('quartzVersion') ?: ''
+	springIntegrationVersion = findProperty('springIntegrationVersion') ?: ''
+	jakartaValidationApiVersion = findProperty('jakartaValidationApiVersion') ?: ''
+	hibernateValidatorVersion = findProperty('hibernateValidatorVersion') ?: ''
+	jakartaElVersion = findProperty('jakartaElVersion') ?: ''
+	mongodbDriverVersion = findProperty('mongodbDriverVersion') ?: ''
+	postgresqlVersion = findProperty('postgresqlVersion') ?: ''
+	prometheusMetricsExporterPushgatewayVersion = findProperty('prometheusMetricsExporterPushgatewayVersion') ?: ''
+	jackson2Version = findProperty('jackson2Version') ?: ''
+	jackson3Version = findProperty('jackson3Version') ?: ''
+	xstreamVersion = findProperty('xstreamVersion') ?: ''
+	logbackVersion = findProperty('logbackVersion') ?: ''
+
+	junitJupiterVersion = findProperty('junitJupiterVersion') ?: ''
+	testcontainersVersion = findProperty('testcontainersVersion') ?: ''
+	hamcrestVersion = findProperty('hamcrestVersion') ?: ''
+	mockitoVersion = findProperty('mockitoVersion') ?: ''
+	jakartaElApiVersion = findProperty('jakartaElApiVersion') ?: ''
+	hsqldbVersion = findProperty('hsqldbVersion') ?: ''
+	groovyVersion = findProperty('groovyVersion') ?: ''
+	gsonVersion = findProperty('gsonVersion') ?: ''
+	log4jVersion = findProperty('log4jVersion') ?: ''
+}
+
+repositories {
+	mavenCentral()
+	maven { url = 'https://repo.spring.io/snapshot' } // SNAPSHOT 필요 시
+}
+
+dependencies {
+	implementation platform("org.springframework.batch:spring-batch-bom:${springBatchVersion}")
+
+	implementation 'org.springframework.batch:spring-batch-core'
+	implementation 'org.springframework.batch:spring-batch-integration'
+
+	implementation "org.springframework:spring-jdbc:${springFrameworkVersion}"
+	implementation "org.springframework:spring-orm:${springFrameworkVersion}"
+	implementation "org.springframework:spring-context-support:${springFrameworkVersion}"
+	implementation "io.micrometer:micrometer-registry-prometheus:${micrometerVersion}"
+	implementation "commons-io:commons-io:${commonsIoVersion}"
+	implementation "jakarta.mail:jakarta.mail-api:${jakartaMailApiVersion}"
+	implementation "org.aspectj:aspectjrt:${aspectjVersion}"
+	implementation "org.aspectj:aspectjweaver:${aspectjVersion}"
+	implementation "org.hibernate.orm:hibernate-core:${hibernateCoreVersion}"
+	implementation "org.apache.commons:commons-dbcp2:${commonsDbcp2Version}"
+	implementation "jakarta.inject:jakarta.inject-api:${jakartaInjectApiVersion}"
+	implementation "org.apache.activemq:artemis-jakarta-client:${artemisVersion}"
+	implementation "org.apache.activemq:artemis-server:${artemisVersion}"
+
+	implementation("org.springframework.data:spring-data-mongodb:${springDataMongodbVersion}") {
+		exclude group: 'org.mongodb', module: 'mongodb-driver-core'
+		exclude group: 'org.mongodb', module: 'mongodb-driver-sync'
+		exclude group: 'org.springframework', module: 'spring-expression'
+		exclude group: 'org.springframework.data', module: 'spring-data-commons'
+	}
+
+	implementation "org.springframework.data:spring-data-commons:${springDataCommonsVersion}"
+	implementation "org.springframework.data:spring-data-jpa:${springDataJpaVersion}"
+
+	implementation("org.springframework.amqp:spring-amqp:${springAmqpVersion}") {
+		exclude group: 'org.springframework.retry', module: 'spring-retry'
+	}
+
+	implementation "org.springframework.amqp:spring-rabbit:${springRabbitVersion}"
+	implementation "org.quartz-scheduler:quartz:${quartzVersion}"
+	implementation "org.springframework.integration:spring-integration-jms:${springIntegrationVersion}"
+	implementation "jakarta.validation:jakarta.validation-api:${jakartaValidationApiVersion}"
+	implementation "org.hibernate.validator:hibernate-validator:${hibernateValidatorVersion}"
+	implementation "org.glassfish:jakarta.el:${jakartaElVersion}"
+	implementation "org.mongodb:mongodb-driver-core:${mongodbDriverVersion}"
+	implementation "org.mongodb:mongodb-driver-sync:${mongodbDriverVersion}"
+	implementation "org.postgresql:postgresql:${postgresqlVersion}"
+	implementation "io.prometheus:prometheus-metrics-exporter-pushgateway:${prometheusMetricsExporterPushgatewayVersion}"
+	implementation "com.fasterxml.jackson.core:jackson-databind:${jackson2Version}"
+	implementation "tools.jackson.core:jackson-databind:${jackson3Version}"
+	implementation "org.springframework:spring-oxm:${springFrameworkVersion}"
+	implementation "com.thoughtworks.xstream:xstream:${xstreamVersion}"
+	implementation "ch.qos.logback:logback-classic:${logbackVersion}"
+
+	testImplementation 'org.springframework.batch:spring-batch-test'
+	testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitJupiterVersion}"
+	testImplementation "org.testcontainers:testcontainers-junit-jupiter:${testcontainersVersion}"
+	testImplementation "org.testcontainers:testcontainers-rabbitmq:${testcontainersVersion}"
+	testImplementation "org.testcontainers:testcontainers-postgresql:${testcontainersVersion}"
+	testImplementation "org.hamcrest:hamcrest-library:${hamcrestVersion}"
+	testImplementation "org.mockito:mockito-core:${mockitoVersion}"
+	testImplementation "org.springframework:spring-test:${springFrameworkVersion}"
+	testImplementation "jakarta.el:jakarta.el-api:${jakartaElApiVersion}"
+	testImplementation "org.hsqldb:hsqldb:${hsqldbVersion}"
+	testImplementation "org.codehaus.groovy:groovy:${groovyVersion}"
+	testImplementation "org.codehaus.groovy:groovy-ant:${groovyVersion}"
+	testImplementation "com.google.code.gson:gson:${gsonVersion}"
+	testImplementation "org.apache.logging.log4j:log4j-core:${log4jVersion}"
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+
+tasks.withType(PublishToMavenRepository).configureEach {
+	enabled = false
+}

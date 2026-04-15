@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:batch="http://www.springframework.org/schema/batch"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/batch https://www.springframework.org/schema/batch/spring-batch.xsd">
+
+	<batch:job id="ioSampleJob">
+		<batch:step id="step1">
+			<batch:tasklet>
+				<batch:chunk reader="itemReader" writer="itemWriter" commit-interval="2"/>
+			</batch:tasklet>
+		</batch:step>
+	</batch:job>
+
+    <bean id="inputResource" class="org.springframework.core.io.FileSystemResource" scope="step">
+        <constructor-arg type="java.lang.String" value="#{jobParameters[inputFile]}" />
+    </bean>
+
+	<bean id="itemReader" class="org.springframework.batch.infrastructure.item.file.FlatFileItemReader">
+		<property name="resource" ref="inputResource" />
+		<constructor-arg name="lineMapper" ref="prefixMatchingLineMapper"/>
+	</bean>
+
+	<bean id="prefixMatchingLineMapper"
+		class="org.springframework.batch.infrastructure.item.file.mapping.PatternMatchingCompositeLineMapper">
+		<constructor-arg name="tokenizers">
+			<map>
+				<entry key="TRAD*" value-ref="tradeLineTokenizer" />
+				<entry key="CUST*" value-ref="customerLineTokenizer" />
+			</map>
+		</constructor-arg>
+		<constructor-arg name="fieldSetMappers">
+			<map>
+				<entry key="TRAD*" value-ref="tradeFieldSetMapper" />
+				<entry key="CUST*" value-ref="customerFieldSetMapper" />
+			</map>
+		</constructor-arg>
+	</bean>
+
+	<bean id="tradeLineTokenizer"
+		class="org.springframework.batch.infrastructure.item.file.transform.FixedLengthTokenizer">
+		<property name="names" value="isin,quantity,price,customer" />
+		<property name="columns" value="5-16,17-19,20-25,26-34" />
+	</bean>
+
+	<bean id="customerLineTokenizer"
+		class="org.springframework.batch.infrastructure.item.file.transform.FixedLengthTokenizer">
+		<property name="names" value="id,name,credit" />
+		<property name="columns" value="5-9,10-18,19-26" />
+	</bean>
+
+	<bean id="tradeFieldSetMapper"
+		class="org.springframework.batch.samples.domain.trade.internal.TradeFieldSetMapper" />
+
+	<bean id="customerFieldSetMapper"
+		class="org.springframework.batch.samples.domain.trade.internal.CustomerCreditFieldSetMapper" />
+
+
+	<bean id="itemWriter" class="org.springframework.batch.infrastructure.item.file.FlatFileItemWriter" scope="step">
+		<property name="resource" value="#{jobParameters[outputFile]}" />
+		<constructor-arg name="lineAggregator">
+			<bean class="org.springframework.batch.samples.file.multirecordtype.DelegatingTradeLineAggregator">
+				<property name="tradeLineAggregator" ref="tradeLineAggregator" />
+				<property name="customerLineAggregator" ref="customerLineAggregator" />
+			</bean>
+		</constructor-arg>
+	</bean>
+
+	<bean id="tradeLineAggregator"
+		class="org.springframework.batch.infrastructure.item.file.transform.FormatterLineAggregator">
+		<property name="fieldExtractor">
+			<bean class="org.springframework.batch.infrastructure.item.file.transform.BeanWrapperFieldExtractor">
+				<property name="names" value="isin,quantity,price,customer" />
+			</bean>
+		</property>
+		<constructor-arg name="format" value="TRAD%-12s%-3d%6s%-9s" />
+	</bean>
+
+	<bean id="customerLineAggregator"
+		class="org.springframework.batch.infrastructure.item.file.transform.FormatterLineAggregator">
+		<property name="fieldExtractor">
+			<bean class="org.springframework.batch.infrastructure.item.file.transform.BeanWrapperFieldExtractor">
+				<property name="names" value="id,name,credit" />
+			</bean>
+		</property>
+		<constructor-arg name="format" value="CUST%05d%-9s%08.0f" />
+	</bean>
+</beans>
