@@ -1,0 +1,39 @@
+spring:
+  application:
+    name: batch-application
+
+  # 배치 설정
+  batch:
+    job:
+      enabled: true  # 자동 실행 활성화
+      names: ${job.name:}  # 실행할 Job 지정
+    jdbc:
+      initialize-database: always  # 배치 테이블 자동 생성
+
+  # 데이터베이스
+  datasource:
+    url: jdbc:mysql://localhost:3306/batch_db
+    username: root
+    password: password
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 20000
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+
+logging:
+  level:
+    org.springframework.batch: INFO
+    org.springframework.jdbc: INFO
+
+# 배치 Job 설정
+job:
+  name: memberJob
