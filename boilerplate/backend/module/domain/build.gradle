@@ -1,8 +1,0 @@
-dependencies {
-    api project(':module:core:core-domain')
-    implementation 'org.springframework.boot:spring-boot-starter-validation'
-
-    implementation "com.querydsl:querydsl-jpa:${querydslVersion}:jakarta"
-    annotationProcessor "com.querydsl:querydsl-apt:${querydslVersion}:jakarta"
-    annotationProcessor 'jakarta.persistence:jakarta.persistence-api'
-}
