@@ -21,6 +21,9 @@ extra["querydslVersion"] = "5.1.0"
 extra["uuidCreatorVersion"] = "5.1.0"
 extra["commonLang3Version"] = "3.20.0"
 
+ext {
+
+}
 val querydslVersion = rootProject.extra["querydslVersion"] as String
 val uuidCreatorVersion = rootProject.extra["uuidCreatorVersion"] as String
 val commonLang3Version = rootProject.extra["commonLang3Version"] as String
@@ -42,7 +45,7 @@ dependencies {
     annotationProcessor("com.querydsl:querydsl-apt:${querydslVersion}:jakarta")
     annotationProcessor("jakarta.persistence:jakarta.persistence-api:3.2.0")
     annotationProcessor("jakarta.annotation:jakarta.annotation-api:3.0.0")
-
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.1")
 
 
 
