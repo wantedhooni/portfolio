@@ -22,7 +22,6 @@ extra["uuidCreatorVersion"] = "5.1.0"
 extra["commonLang3Version"] = "3.20.0"
 
 ext {
-
 }
 val querydslVersion = rootProject.extra["querydslVersion"] as String
 val uuidCreatorVersion = rootProject.extra["uuidCreatorVersion"] as String
@@ -34,6 +33,8 @@ dependencies {
     // Source: https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
     implementation("org.apache.commons:commons-lang3:$commonLang3Version")
 
+
+    implementation("org.springframework.boot:spring-boot-starter-aop")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
 
