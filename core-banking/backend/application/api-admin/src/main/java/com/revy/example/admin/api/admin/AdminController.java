@@ -1,41 +1,52 @@
 package com.revy.example.admin.api.admin;
 
+import com.revy.example.admin.api.common.ApiConstants;
+import com.revy.example.admin.api.admin.payload.AdminCreatePayload;
+import com.revy.example.admin.api.admin.payload.AdminSearchPayload;
+import com.revy.example.admin.api.admin.payload.AdminUpdatePayload;
+import com.revy.example.admin.api.admin.usecase.AdminUseCase;
 import com.revy.example.admin.api.common.AbstractCrudApi;
 import com.revy.example.core.common.ApiPageResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.UUID;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/v1/admin")
-public class AdminController extends AbstractCrudApi {
+@RequestMapping(ApiConstants.PREFIX_API_V1 + "/admin")
+public class AdminController extends
+        AbstractCrudApi<Long, AdminCreatePayload.Request, AdminUpdatePayload.Request, AdminSearchPayload.Request, Void> {
 
+    private final AdminUseCase useCase ;
+
+    public AdminController(AdminUseCase useCase) {
+        this.useCase = useCase;
+    }
 
     @Override
-    protected ApiPageResponse getPage(int page, int size, String sortBy, String sortDirection, String paramQuery) {
+    protected ApiPageResponse<Void> getPage(Pageable pageable, AdminSearchPayload.Request searchRequest) {
         return null;
     }
 
     @Override
-    protected Object doCreate(Object req) {
+    protected Void doCreate(AdminCreatePayload.Request request) {
         return null;
     }
 
     @Override
-    protected Object doGet(UUID id) {
+    protected Void doGet(Long aLong) {
         return null;
     }
 
     @Override
-    protected Object doUpdate(UUID id, Object req) {
+    protected Void doUpdate(Long aLong, AdminUpdatePayload.Request request) {
         return null;
     }
 
     @Override
-    protected void doDelete(UUID id) {
+    protected void doDelete(Long aLong) {
 
     }
 }

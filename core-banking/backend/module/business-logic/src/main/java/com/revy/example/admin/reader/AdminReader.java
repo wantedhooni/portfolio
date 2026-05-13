@@ -1,14 +1,16 @@
 package com.revy.example.admin.reader;
 
-import aj.org.objectweb.asm.commons.Remapper;
-import com.revy.example.doamin.admin.Admin;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
+import com.revy.example.domain.admin.Admin;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.Optional;
 
 public interface AdminReader {
+
     Optional<Admin> findById(Long id);
 
-    Optional<Admin> findByEmail( String email);
+    Optional<Admin> findByEmail(String email);
+
+    Page<Admin> search(Pageable pageable, String name);
 }

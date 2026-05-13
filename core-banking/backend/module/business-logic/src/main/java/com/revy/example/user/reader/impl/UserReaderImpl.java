@@ -1,8 +1,8 @@
 package com.revy.example.user.reader.impl;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.revy.example.doamin.user.QUser;
-import com.revy.example.doamin.user.User;
+import com.revy.example.domain.user.QUser;
+import com.revy.example.domain.user.User;
 import com.revy.example.user.reader.UserReader;
 import org.springframework.stereotype.Component;
 

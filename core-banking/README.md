@@ -1,1 +1,12 @@
-# ADMIN / SAAS API 서버 보일러 플레이트
+#코어뱅킹
+
+## 도메인
+- ADMIN
+- USER
+
+계좌
+- ACCOUNT
+- ACCOUNT Trasaction
+
+
+

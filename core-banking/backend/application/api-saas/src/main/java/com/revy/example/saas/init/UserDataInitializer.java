@@ -1,6 +1,6 @@
 package com.revy.example.saas.init;
 
-import com.revy.example.doamin.user.User;
+import com.revy.example.domain.user.User;
 import com.revy.example.user.reader.UserReader;
 import jakarta.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;

@@ -5,58 +5,75 @@ import com.revy.example.core.common.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-
-import java.util.UUID;
 
 @Slf4j(access = AccessLevel.PROTECTED)
-public abstract class AbstractCrudApi<CREQ, UREQ, RES> {
+public abstract class AbstractCrudApi<ID, CREQ, UREQ, SREQ, RES> {
 
-    @PostMapping("/create")
-    public ResponseEntity<ApiResponse<RES>> create(@Valid @RequestBody CREQ req) {
-        return ResponseEntity.ok(ApiResponse.ok(doCreate(req)));
+    @PostMapping
+    public ResponseEntity<ApiResponse<RES>> create(
+            @Valid @RequestBody CREQ request
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.ok(doCreate(request)));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<RES>> get(@PathVariable UUID id) {
-        return ResponseEntity.ok(ApiResponse.ok(doGet(id)));
+    public ResponseEntity<ApiResponse<RES>> get(
+            @PathVariable ID id
+    ) {
+        return ok(doGet(id));
     }
 
-    @GetMapping({"/search"})
-    public ResponseEntity<ApiResponse<ApiPageResponse<RES>>> search(@RequestParam(defaultValue = "0") int page,
-                                                                    @RequestParam(defaultValue = "20") int size,
-                                                                    @RequestParam(required = false) String sortBy,
-                                                                    @RequestParam(defaultValue = "DESC") String sortDirection,
-                                                                    @RequestParam(required = false) String paramQuery) {
-        return ResponseEntity.ok(ApiResponse.ok(getPage(page, size, sortBy, sortDirection, paramQuery)));
+    @GetMapping
+    public ResponseEntity<ApiResponse<ApiPageResponse<RES>>> search(
+            Pageable pageable,
+            @Valid @ModelAttribute SREQ searchRequest
+    ) {
+        return ok(getPage(pageable, searchRequest));
     }
 
-    @PostMapping("/{id}/update")
-    public ResponseEntity<ApiResponse<RES>> update(@PathVariable UUID id, @Valid @RequestBody UREQ req) {
-        return ResponseEntity.ok(ApiResponse.ok(doUpdate(id, req)));
+    @PatchMapping("/{id}")
+    public ResponseEntity<ApiResponse<RES>> update(
+            @PathVariable ID id,
+            @Valid @RequestBody UREQ request
+    ) {
+        return ok(doUpdate(id, request));
     }
 
-    @PostMapping("/{id}/delete")
-    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID id) {
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<Void>> delete(
+            @PathVariable ID id
+    ) {
         doDelete(id);
+        return ok();
+    }
+
+    private <T> ResponseEntity<ApiResponse<T>> ok(T data) {
+        return ResponseEntity.ok(ApiResponse.ok(data));
+    }
+
+    private ResponseEntity<ApiResponse<Void>> ok() {
         return ResponseEntity.ok(ApiResponse.ok());
     }
 
-    protected abstract ApiPageResponse<RES> getPage(int page, int size, String sortBy, String sortDirection,
-                                                    String paramQuery);
+    protected abstract ApiPageResponse<RES> getPage(Pageable pageable, SREQ searchRequest);
 
-    protected abstract RES doCreate(CREQ req);
+    protected abstract RES doCreate(CREQ request);
 
-    protected abstract RES doGet(UUID id);
+    protected abstract RES doGet(ID id);
 
+    protected abstract RES doUpdate(ID id, UREQ request);
 
-    protected abstract RES doUpdate(UUID id, UREQ req);
-
-    protected abstract void doDelete(UUID id);
+    protected abstract void doDelete(ID id);
 }
-

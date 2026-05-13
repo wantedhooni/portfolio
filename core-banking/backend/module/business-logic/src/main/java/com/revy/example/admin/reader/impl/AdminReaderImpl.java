@@ -1,15 +1,18 @@
 package com.revy.example.admin.reader.impl;
 
 import com.querydsl.core.BooleanBuilder;
-import com.querydsl.core.types.ExpressionUtils;
-import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.revy.example.admin.reader.AdminReader;
-import com.revy.example.doamin.admin.Admin;
-import com.revy.example.doamin.admin.QAdmin;
+import com.revy.example.domain.admin.Admin;
+import com.revy.example.domain.admin.QAdmin;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
+import java.util.List;
 import java.util.Optional;
 
 
@@ -36,8 +39,25 @@ public class AdminReaderImpl implements AdminReader {
         return Optional.ofNullable(result);
     }
 
-    public void search(){
+    @Override
+    public Page<Admin> search(Pageable pageable, String name) {
         BooleanBuilder where = new BooleanBuilder();
-        where.and(ADMIN.email.eq("admin"));
+        if (StringUtils.hasText(name)) {
+            where.and(ADMIN.name.containsIgnoreCase(name));
+        }
+
+        List<Admin> content = jpaQueryFactory.selectFrom(ADMIN)
+                                             .where(where)
+                                             .orderBy(ADMIN.id.desc())
+                                             .offset(pageable.getOffset())
+                                             .limit(pageable.getPageSize())
+                                             .fetch();
+
+        Long total = jpaQueryFactory.select(ADMIN.count())
+                                    .from(ADMIN)
+                                    .where(where)
+                                    .fetchOne();
+
+        return new PageImpl<>(content, pageable, total == null ? 0 : total);
     }
 }

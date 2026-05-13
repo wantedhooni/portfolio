@@ -1,7 +1,7 @@
 package com.revy.example.admin;
 
 import com.revy.example.admin.reader.AdminReader;
-import com.revy.example.doamin.admin.Admin;
+import com.revy.example.domain.admin.Admin;
 import jakarta.persistence.EntityManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

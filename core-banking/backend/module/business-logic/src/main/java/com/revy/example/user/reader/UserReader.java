@@ -1,6 +1,6 @@
 package com.revy.example.user.reader;
 
-import com.revy.example.doamin.user.User;
+import com.revy.example.domain.user.User;
 
 import java.util.Optional;
 
