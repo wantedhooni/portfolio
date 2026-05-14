@@ -8,7 +8,6 @@ version: "3.8"
 #   5432 → primary     DBA 직접 접속
 #   5433 → secondary   DBA 직접 접속
 #   9898 → pcp         pgpool 관리 CLI
-#   8080 → pgpoolAdmin 웹 UI  http://localhost:8080/pgpooladmin
 # ─────────────────────────────────────────────────────────────────────────────
 
 networks:
