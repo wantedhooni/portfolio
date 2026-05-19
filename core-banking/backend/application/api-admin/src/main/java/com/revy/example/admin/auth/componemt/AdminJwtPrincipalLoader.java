@@ -2,7 +2,7 @@ package com.revy.example.admin.auth.componemt;
 
 
 import com.revy.example.admin.auth.mapper.JwtPrincipalMapper;
-import com.revy.example.admin.reader.AdminReader;
+import com.revy.example.admin.AdminReader;
 import com.revy.example.jwt.payload.JwtPrincipal;
 import com.revy.example.jwt.JwtPrincipalLoader;
 import com.revy.example.jwt.enums.PrincipalType;

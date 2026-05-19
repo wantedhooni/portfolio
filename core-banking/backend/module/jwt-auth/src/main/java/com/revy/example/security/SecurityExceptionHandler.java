@@ -39,9 +39,9 @@ public class SecurityExceptionHandler implements AuthenticationEntryPoint, Acces
     }
 
     private void write(HttpServletResponse response, ErrorCode errorCode) throws IOException {
-        response.setStatus(errorCode.status().value());
+        response.setStatus(errorCode.getStatus());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
-        objectMapper.writeValue(response.getWriter(), ApiResponse.fail(errorCode.message()));
+        objectMapper.writeValue(response.getWriter(), ApiResponse.fail(errorCode.getMessage()));
     }
 }

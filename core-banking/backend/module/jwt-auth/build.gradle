@@ -2,6 +2,7 @@ ext {
     jjwtVersion = '0.12.6'
 }
 dependencies {
+    api project(':module:core:core-exception')
     implementation project(':module:core:core-web')
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-validation'

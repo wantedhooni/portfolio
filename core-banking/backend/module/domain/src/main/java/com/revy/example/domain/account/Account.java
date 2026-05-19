@@ -1,16 +1,17 @@
 package com.revy.example.domain.account;
 
 import com.revy.example.domain.account.enums.AccountStatus;
-import com.revy.example.domain.bank.Bank;
+import com.revy.example.domain.account.enums.AccountType;
+import com.revy.example.domain.account.exception.AccountNotActiveException;
+import com.revy.example.domain.account.exception.InsufficientBalanceException;
 import com.revy.example.domain.common.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import jakarta.persistence.Version;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -19,109 +20,109 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "account")
+@Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Getter(AccessLevel.PUBLIC)
+@Table(
+    name = "account",
+    uniqueConstraints = @UniqueConstraint(
+        name = "uq_account_number",
+        columnNames = "account_number"
+    ),
+    indexes = @Index(name = "idx_account_user_id", columnList = "user_id")
+)
 public class Account extends BaseEntity {
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "bank_id")  // 연관관계 주인 (FK 보유)
-    private Bank bank;
-
-    private Long userId;
-
     /**
-     * 낙관적 락 버전 컬럼
-     * - 동시에 두 트랜잭션이 같은 Account를 수정하려 할 때,
-     * 먼저 커밋된 쪽이 version을 올리면 나머지는 ObjectOptimisticLockingFailureException 발생
-     * - DB 컬럼: account.version (INT NOT NULL DEFAULT 0)
+     * 낙관적 락 버전
+     * balance / availableBalance는 동시 주문·입출금에서 충돌 가능성이 높다.
+     * @Version으로 충돌을 감지하고 OptimisticLockException → 호출부에서 재시도 처리.
      */
     @Version
-    @Column(nullable = false)
+    @Column(name = "version", nullable = false)
     private Long version;
 
-    @Column(nullable = false, unique = true, length = 20)
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
+
+    @Column(name = "account_number", nullable = false, length = 20)
     private String accountNumber;
 
-    @Column(nullable = false, length = 50)
-    private String ownerName;
-
-    @Column(nullable = false, precision = 19, scale = 4)
-    private BigDecimal balance;
+    @Column(name = "account_name", nullable = false, length = 100)
+    private String accountName;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 10)
-    private AccountStatus status;
+    @Column(name = "account_type", nullable = false, length = 20)
+    private AccountType accountType;        // REAL / VIRTUAL
 
+    @Column(name = "currency", nullable = false, length = 3)
+    private String currency;               // "KRW", "USD"
 
-    // ── 생성 팩토리 메서드 ──────────────────────────────
+    @Column(name = "balance", nullable = false, precision = 20, scale = 4)
+    private BigDecimal balance;
 
-    /**
-     * @param accountNumber 한국 계좌번호 형식: 은행코드(3)+상품코드(2)+일련번호(6)+검증번호(1) = 12자리
-     *                      예) 004-01-123456-7 (KB국민은행 개인입출금)
-     */
-    public static Account create(Bank bank, String accountNumber, String ownerName) {
-        Account account = new Account();
-        account.bank = bank;
-        account.accountNumber = accountNumber;
-        account.ownerName = ownerName;
-        account.balance = BigDecimal.ZERO;
-        account.status = AccountStatus.ACTIVE;
-        return account;
+    @Column(name = "available_balance", nullable = false, precision = 20, scale = 4)
+    private BigDecimal availableBalance;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
+    private AccountStatus status;          // ACTIVE / SUSPENDED / CLOSED
+
+    // ── 팩토리 ────────────────────────────────────────────────────
+    public static Account open(Long userId, String accountNumber,
+                               String accountName, AccountType type, String currency) {
+        Account a = new Account();
+        a.userId           = userId;
+        a.accountNumber    = accountNumber;
+        a.accountName      = accountName;
+        a.accountType      = type;
+        a.currency         = currency;
+        a.balance          = BigDecimal.ZERO;
+        a.availableBalance = BigDecimal.ZERO;
+        a.status           = AccountStatus.ACTIVE;
+        return a;
     }
 
-    // ── 도메인 비즈니스 메서드 ─────────────────────────
-
-    /**
-     * 입금
-     */
-    public AccountTransaction deposit(BigDecimal amount, String description) {
+    // ── 비즈니스 ──────────────────────────────────────────────────
+    public void deposit(BigDecimal amount) {
         validateActive();
-        validatePositiveAmount(amount);
-
-        this.balance = this.balance.add(amount);
-        return AccountTransaction.ofDeposit(this, amount, this.balance, description);
+        this.balance          = this.balance.add(amount);
+        this.availableBalance = this.availableBalance.add(amount);
     }
 
-    /**
-     * 출금
-     */
-    public AccountTransaction withdraw(BigDecimal amount, String description) {
+    public void withdraw(BigDecimal amount) {
         validateActive();
-        validatePositiveAmount(amount);
-        validateSufficientBalance(amount);
+        if (this.availableBalance.compareTo(amount) < 0)
+            throw new InsufficientBalanceException();
+        this.balance          = this.balance.subtract(amount);
+        this.availableBalance = this.availableBalance.subtract(amount);
+    }
 
+    /** 주문 제출 시 가용잔고 선점 */
+    public void reserveForOrder(BigDecimal amount) {
+        validateActive();
+        if (this.availableBalance.compareTo(amount) < 0)
+            throw new InsufficientBalanceException();
+        this.availableBalance = this.availableBalance.subtract(amount);
+    }
+
+    /** 체결 확정 시 실잔고 차감 */
+    public void confirmBuy(BigDecimal amount) {
         this.balance = this.balance.subtract(amount);
-        return AccountTransaction.ofWithdraw(this, amount, this.balance, description);
     }
 
-    /**
-     * 계좌 해지
-     */
-    public void close() {
-        validateActive();
-        if (this.balance.compareTo(BigDecimal.ZERO) > 0) {
-            throw new IllegalStateException("잔액이 남아 있는 계좌는 해지할 수 없습니다.");
-        }
-        this.status = AccountStatus.CLOSED;
+    /** 매도 대금 입금 */
+    public void creditSaleProceeds(BigDecimal proceeds) {
+        this.balance          = this.balance.add(proceeds);
+        this.availableBalance = this.availableBalance.add(proceeds);
     }
 
-    // ── 검증 메서드 ────────────────────────────────────
+    /** 주문 취소 시 가용잔고 복원 */
+    public void releaseReservation(BigDecimal amount) {
+        this.availableBalance = this.availableBalance.add(amount);
+    }
+
     private void validateActive() {
-        if (this.status != AccountStatus.ACTIVE) {
-            throw new IllegalStateException("활성 상태의 계좌만 거래할 수 있습니다. 현재 상태: " + this.status);
-        }
-    }
-
-    private void validatePositiveAmount(BigDecimal amount) {
-        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("거래 금액은 0보다 커야 합니다.");
-        }
-    }
-
-    private void validateSufficientBalance(BigDecimal amount) {
-        if (this.balance.compareTo(amount) < 0) {
-            throw new IllegalStateException(String.format("잔액이 부족합니다. 현재 잔액: %s, 요청 금액: %s", this.balance, amount));
-        }
+        if (this.status != AccountStatus.ACTIVE)
+            throw new AccountNotActiveException();
     }
 }

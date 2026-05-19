@@ -4,7 +4,7 @@ import com.revy.example.admin.auth.componemt.AdminJwtPrincipal;
 import com.revy.example.admin.auth.mapper.JwtPrincipalMapper;
 import com.revy.example.admin.auth.payload.AdminAuthResponse;
 import com.revy.example.admin.auth.usecase.AuthUseCase;
-import com.revy.example.admin.reader.AdminReader;
+import com.revy.example.admin.AdminReader;
 import com.revy.example.core.error.BusinessException;
 import com.revy.example.core.error.ErrorCode;
 import com.revy.example.domain.admin.Admin;

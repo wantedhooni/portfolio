@@ -1,23 +1,29 @@
 package com.revy.example.admin.api.admin;
 
+import com.revy.example.admin.api.admin.payload.AdminPayload;
 import com.revy.example.admin.api.common.ApiConstants;
-import com.revy.example.admin.api.admin.payload.AdminCreatePayload;
-import com.revy.example.admin.api.admin.payload.AdminSearchPayload;
-import com.revy.example.admin.api.admin.payload.AdminUpdatePayload;
 import com.revy.example.admin.api.admin.usecase.AdminUseCase;
 import com.revy.example.admin.api.common.AbstractCrudApi;
 import com.revy.example.core.common.ApiPageResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 
 @Slf4j
 @RestController
 @RequestMapping(ApiConstants.PREFIX_API_V1 + "/admin")
 public class AdminController extends
-        AbstractCrudApi<Long, AdminCreatePayload.Request, AdminUpdatePayload.Request, AdminSearchPayload.Request, Void> {
+        AbstractCrudApi<Long,
+                AdminPayload.CreateRequest,
+                AdminPayload.UpdateRequest,
+                AdminPayload.SearchRequest,
+                AdminPayload.ModelResponse> {
 
     private final AdminUseCase useCase ;
 
@@ -25,23 +31,27 @@ public class AdminController extends
         this.useCase = useCase;
     }
 
+
     @Override
-    protected ApiPageResponse<Void> getPage(Pageable pageable, AdminSearchPayload.Request searchRequest) {
+    protected ApiPageResponse<AdminPayload.ModelResponse> getPage(Pageable pageable,
+                                                                  AdminPayload.SearchRequest searchRequest) {
+
+        PageImpl<AdminPayload.ModelResponse> result = useCase.search(pageable, searchRequest);
+        return ApiPageResponse.of(result.getContent(), result.getTotalElements(), result.getNumber(), result.getSize());
+    }
+
+    @Override
+    protected AdminPayload.ModelResponse doCreate(AdminPayload.CreateRequest request) {
         return null;
     }
 
     @Override
-    protected Void doCreate(AdminCreatePayload.Request request) {
-        return null;
+    protected AdminPayload.ModelResponse doGet(Long id) {
+        return useCase.getAdmin(id);
     }
 
     @Override
-    protected Void doGet(Long aLong) {
-        return null;
-    }
-
-    @Override
-    protected Void doUpdate(Long aLong, AdminUpdatePayload.Request request) {
+    protected AdminPayload.ModelResponse doUpdate(Long aLong, AdminPayload.UpdateRequest request) {
         return null;
     }
 

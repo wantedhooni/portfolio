@@ -1,4 +1,5 @@
 dependencies {
+    api project(':module:core:core-exception')
     api project(':module:core:core-domain')
     implementation 'org.springframework.boot:spring-boot-starter-validation'
 

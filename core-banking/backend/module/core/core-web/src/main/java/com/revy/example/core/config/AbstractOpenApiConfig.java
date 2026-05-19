@@ -16,9 +16,6 @@ import org.springframework.stereotype.Component;
 public abstract class AbstractOpenApiConfig {
 
     private static final String SECURITY_SCHEME_NAME = "bearerAuth";
-//    private static final String TITLE = "api-admin";
-//    private static final String DESCRIPTION = "api-admin 명세서";
-//    private static final String INFO_VERSION = "v1";
 
     @Bean
     public OpenAPI openAPI() {
@@ -30,7 +27,6 @@ public abstract class AbstractOpenApiConfig {
 
         // 2. SecurityScheme 정의
         SecurityScheme securityScheme = new SecurityScheme()
-                .name(SECURITY_SCHEME_NAME)
                 .type(SecurityScheme.Type.HTTP)
                 .scheme("bearer")
                 .bearerFormat("JWT");

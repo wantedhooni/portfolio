@@ -53,6 +53,9 @@ public final class QuerydslUtils {
     }
 
     private static String escapeLike(String value) {
+        if (!hasText(value)) {
+            return null;
+        }
         return value
             .replace("\\", "\\\\")
             .replace("%", "\\%")
