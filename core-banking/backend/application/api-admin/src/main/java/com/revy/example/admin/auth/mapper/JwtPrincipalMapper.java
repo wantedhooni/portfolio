@@ -1,13 +1,21 @@
 package com.revy.example.admin.auth.mapper;
 
-import com.revy.example.domain.admin.Admin;
+import com.revy.example.admin.dto.AdminCredentialResult;
+import com.revy.example.admin.dto.AdminResult;
 import com.revy.example.jwt.enums.PrincipalType;
 import com.revy.example.jwt.payload.DefaultJwtPrincipal;
 import com.revy.example.jwt.payload.JwtPrincipal;
 
-public class JwtPrincipalMapper {
+public final class JwtPrincipalMapper {
 
-    public static JwtPrincipal toJwtPrincipal(Admin admin) {
-        return new DefaultJwtPrincipal(admin.getId(), admin.getEmail(), admin.getRole(), PrincipalType.ADMIN);
+    private JwtPrincipalMapper() {
+    }
+
+    public static JwtPrincipal toJwtPrincipal(AdminResult admin) {
+        return new DefaultJwtPrincipal(admin.id(), admin.email(), admin.role(), PrincipalType.ADMIN);
+    }
+
+    public static JwtPrincipal toJwtPrincipal(AdminCredentialResult admin) {
+        return new DefaultJwtPrincipal(admin.id(), admin.email(), admin.role(), PrincipalType.ADMIN);
     }
 }

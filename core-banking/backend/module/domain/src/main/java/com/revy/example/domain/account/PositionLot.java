@@ -2,6 +2,7 @@ package com.revy.example.domain.account;
 
 
 import com.revy.example.domain.account.enums.LotStatus;
+import com.revy.example.domain.account.exception.InvalidLotDisposalException;
 import com.revy.example.domain.common.BaseEntity;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -105,7 +106,7 @@ public class PositionLot extends BaseEntity {
      * 이 로트에서 일부(또는 전량)를 처분하고 LotDisposal을 반환
      */
     LotDisposal dispose(Long sellTxId, BigDecimal qty, BigDecimal sellPrice, Instant disposedAt) {
-        if (this.remainingQuantity.compareTo(qty) < 0) throw new IllegalArgumentException("처분 수량이 잔여 수량을 초과합니다.");
+        if (this.remainingQuantity.compareTo(qty) < 0) throw new InvalidLotDisposalException();
 
         this.remainingQuantity = this.remainingQuantity.subtract(qty);
         this.lotStatus = this.remainingQuantity.compareTo(BigDecimal.ZERO) == 0 ? LotStatus.CLOSED : LotStatus.PARTIAL;

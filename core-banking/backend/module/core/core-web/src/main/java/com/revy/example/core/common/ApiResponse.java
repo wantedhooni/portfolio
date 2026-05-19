@@ -1,5 +1,8 @@
 package com.revy.example.core.common;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(name = "ApiResponse")
 public record ApiResponse<T>(boolean success,
                              T data,
                              String message,

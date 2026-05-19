@@ -1,16 +1,21 @@
 package com.revy.example.saas.auth.mapper;
 
-import com.revy.example.domain.user.User;
 import com.revy.example.jwt.enums.PrincipalType;
 import com.revy.example.jwt.payload.DefaultJwtPrincipal;
 import com.revy.example.jwt.payload.JwtPrincipal;
+import com.revy.example.user.reader.dto.UserCredentialResult;
+import com.revy.example.user.reader.dto.UserResult;
 
-public class JwtPrincipalMapper {
+public final class JwtPrincipalMapper {
 
     private JwtPrincipalMapper() {
     }
 
-    public static JwtPrincipal toJwtPrincipal(User user) {
-        return new DefaultJwtPrincipal(user.getId(), user.getEmail(), user.getRole(), PrincipalType.USER);
+    public static JwtPrincipal toJwtPrincipal(UserResult user) {
+        return new DefaultJwtPrincipal(user.id(), user.email(), user.role(), PrincipalType.USER);
+    }
+
+    public static JwtPrincipal toJwtPrincipal(UserCredentialResult user) {
+        return new DefaultJwtPrincipal(user.id(), user.email(), user.role(), PrincipalType.USER);
     }
 }

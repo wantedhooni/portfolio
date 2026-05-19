@@ -49,6 +49,18 @@ public class Stock extends BaseEntity {
     @Column(name = "last_synced_at")
     private Instant lastSyncedAt;
 
+    // ── 팩토리 ────────────────────────────────────────────────────
+    public static Stock create(String ticker, String name, String exchange, String sector, String currency) {
+        Stock s = new Stock();
+        s.ticker    = ticker;
+        s.name      = name;
+        s.exchange  = exchange;
+        s.sector    = sector;
+        s.currency  = currency;
+        s.isActive  = true;
+        return s;
+    }
+
     // ── 비즈니스 ──────────────────────────────────────────────────
     public void updateMarketData(BigDecimal lastPrice, BigDecimal marketCap) {
         this.lastPrice = lastPrice;

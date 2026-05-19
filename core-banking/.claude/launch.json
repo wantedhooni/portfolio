@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "api-admin",
+      "runtimeExecutable": "backend/gradlew",
+      "runtimeArgs": ["-p", "backend", ":application:api-admin:bootRun"],
+      "port": 8081
+    },
+    {
+      "name": "api-saas",
+      "runtimeExecutable": "backend/gradlew",
+      "runtimeArgs": ["-p", "backend", ":application:api-saas:bootRun"],
+      "port": 8091
+    },
+    {
+      "name": "web-admin",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "frontned/web-admin", "run", "dev"],
+      "port": 18081
+    }
+  ]
+}

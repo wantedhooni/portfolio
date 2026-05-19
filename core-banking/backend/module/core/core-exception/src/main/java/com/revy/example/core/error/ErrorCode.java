@@ -24,6 +24,13 @@ public enum ErrorCode {
     // ── Account ───────────────────────────────────────────────────
     INSUFFICIENT_BALANCE(422, "ACCOUNT-001", "잔고가 부족합니다."),
     ACCOUNT_NOT_ACTIVE(403, "ACCOUNT-002", "계좌가 활성 상태가 아닙니다."),
+    ACCOUNT_NOT_FOUND(404, "ACCOUNT-003", "계좌를 찾을 수 없습니다."),
+    ACCOUNT_NUMBER_DUPLICATED(409, "ACCOUNT-004", "이미 사용 중인 계좌번호입니다."),
+
+    // ── Stock ─────────────────────────────────────────────────────
+    STOCK_NOT_FOUND(404, "STOCK-001", "종목을 찾을 수 없습니다."),
+    STOCK_DUPLICATED(409, "STOCK-002", "이미 등록된 종목입니다."),
+    STOCK_NOT_ACTIVE(422, "STOCK-003", "거래 중단된 종목입니다."),
 
     // ── Position ──────────────────────────────────────────────────
     INSUFFICIENT_POSITION(422, "POSITION-001", "보유 수량이 부족합니다."),

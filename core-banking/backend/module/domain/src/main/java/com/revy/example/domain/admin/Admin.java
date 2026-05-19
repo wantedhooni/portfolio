@@ -39,4 +39,12 @@ public class Admin extends BaseEntity {
     public void updateName(String name) {
         this.name = name;
     }
+
+    public void updatePassword(String encodedPassword) {
+        this.password = encodedPassword;
+    }
+
+    public void changeRole(String role) {
+        this.role = role;
+    }
 }
