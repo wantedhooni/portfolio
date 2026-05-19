@@ -10,3 +10,8 @@ cd "$here"
 # pg
 cd ./infra/pgpool
 docker compose down -v
+
+cd "$here"
+# pg
+cd ./infra/metrics
+docker compose down -v

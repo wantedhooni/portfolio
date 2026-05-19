@@ -7,6 +7,8 @@ include ':module:core:core-domain'
 include ':module:domain'
 include ':module:business-logic'
 include ':module:jwt-auth'
+include ':module:tools:log-elk'
+include ':module:tools:metrics'
 
 // application-server
 include ':application:api-admin'

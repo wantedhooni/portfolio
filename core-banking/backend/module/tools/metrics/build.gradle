@@ -1,0 +1,7 @@
+dependencies {
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("io.micrometer:micrometer-registry-prometheus")
+    // implementation("io.micrometer:micrometer-registry-prometheus-simpleclient")
+    // Spring Boot 4 / Prometheus Java Client 1.x Pushgateway
+    implementation("io.prometheus:prometheus-metrics-exporter-pushgateway")
+}

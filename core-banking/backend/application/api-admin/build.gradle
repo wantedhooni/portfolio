@@ -6,6 +6,7 @@ dependencies {
     implementation project(':module:core:core-web')
     implementation project(':module:jwt-auth')
     implementation project(':module:business-logic')
+    implementation project(':module:tools:metrics')
 
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
