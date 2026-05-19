@@ -1,6 +1,7 @@
 package com.revy.example.utils;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.ComparableExpression;
 import com.querydsl.core.types.dsl.SimpleExpression;
 import com.querydsl.core.types.dsl.StringExpression;
 
@@ -46,6 +47,20 @@ public final class QuerydslUtils {
             return null;
         }
         return path.containsIgnoreCase(value);
+    }
+
+    public static <T extends Comparable<?>> BooleanExpression goe(ComparableExpression<T> path, T value) {
+        if (value == null) {
+            return null;
+        }
+        return path.goe(value);
+    }
+
+    public static <T extends Comparable<?>> BooleanExpression loe(ComparableExpression<T> path, T value) {
+        if (value == null) {
+            return null;
+        }
+        return path.loe(value);
     }
 
     private static boolean hasText(String value) {

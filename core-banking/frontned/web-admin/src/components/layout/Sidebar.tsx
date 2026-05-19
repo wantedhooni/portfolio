@@ -4,10 +4,13 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { logout } from '@/features/auth/service';
 import {
+  BriefcaseIcon,
   LayoutDashboardIcon,
+  LineChartIcon,
   LogOutIcon,
   ReceiptIcon,
   ShieldIcon,
+  TrendingUpIcon,
   UserRoundIcon
 
 } from 'lucide-react';
@@ -24,11 +27,13 @@ import {
 } from '@/components/ui/sidebar';
 
 const NAV_ITEMS = [
-  { href: '/dashboard',                    label: '대시보드',    icon: LayoutDashboardIcon },
-  { href: '/dashboard/user',            label: '사용자 관리',   icon: UserRoundIcon },
-  { href: '/dashboard/account',            label: '계정 관리',   icon: ReceiptIcon },
-  { href: '/dashboard/account-transaction',label: '거래 내역',   icon: ReceiptIcon },
-  { href: '/dashboard/admin',              label: '어드민 관리', icon: ShieldIcon },
+  { href: '/dashboard',                     label: '대시보드',    icon: LayoutDashboardIcon },
+  { href: '/dashboard/user',                label: '사용자 관리', icon: UserRoundIcon },
+  { href: '/dashboard/account',             label: '계좌 관리',   icon: BriefcaseIcon },
+  { href: '/dashboard/account-transaction', label: '거래 내역',   icon: ReceiptIcon },
+  { href: '/dashboard/stock',               label: '종목 관리',   icon: TrendingUpIcon },
+  { href: '/dashboard/portfolio',           label: '포트폴리오',  icon: LineChartIcon },
+  { href: '/dashboard/admin',               label: '어드민 관리', icon: ShieldIcon },
 ];
 
 export default function AppSidebar() {

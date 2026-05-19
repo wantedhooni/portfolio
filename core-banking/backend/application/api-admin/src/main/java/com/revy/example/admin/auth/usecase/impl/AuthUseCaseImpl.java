@@ -1,15 +1,16 @@
 package com.revy.example.admin.auth.usecase.impl;
 
+import com.revy.example.admin.AdminReader;
 import com.revy.example.admin.auth.componemt.AdminJwtPrincipal;
 import com.revy.example.admin.auth.mapper.JwtPrincipalMapper;
 import com.revy.example.admin.auth.payload.AdminAuthResponse;
 import com.revy.example.admin.auth.usecase.AuthUseCase;
-import com.revy.example.admin.AdminReader;
+import com.revy.example.admin.dto.AdminCredentialResult;
+import com.revy.example.admin.dto.AdminResult;
 import com.revy.example.core.error.BusinessException;
 import com.revy.example.core.error.ErrorCode;
-import com.revy.example.domain.admin.Admin;
-import com.revy.example.jwt.payload.JwtSession;
 import com.revy.example.jwt.JwtSessionService;
+import com.revy.example.jwt.payload.JwtSession;
 import com.revy.example.jwt.payload.JwtTokenPair;
 import com.revy.example.jwt.payload.LoginRequest;
 import com.revy.example.jwt.payload.LogoutRequest;
@@ -23,17 +24,16 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class AuthUseCaseImpl implements AuthUseCase {
 
-    private final AdminReader  adminReader;
-    private final PasswordEncoder passwordEncoder;
+    private final AdminReader       adminReader;
+    private final PasswordEncoder   passwordEncoder;
     private final JwtSessionService jwtSessionService;
-
 
     @Transactional(readOnly = true)
     public AdminAuthResponse login(LoginRequest request) {
-        Admin admin = adminReader.findByEmail(request.email())
-                                     .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_CREDENTIALS));
+        AdminCredentialResult admin = adminReader.findCredentialByEmail(request.email())
+            .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_CREDENTIALS));
 
-        if (!passwordEncoder.matches(request.password(), admin.getPassword())) {
+        if (!passwordEncoder.matches(request.password(), admin.encodedPassword())) {
             throw new BusinessException(ErrorCode.INVALID_CREDENTIALS);
         }
 
@@ -45,8 +45,8 @@ public class AuthUseCaseImpl implements AuthUseCase {
     public AdminAuthResponse refresh(RefreshTokenRequest request) {
         JwtSession session = jwtSessionService.refresh(request, AdminJwtPrincipal.TYPE);
         JwtTokenPair tokenPair = session.tokens();
-        Admin admin = adminReader.findById(session.principal().id())
-                                     .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+        AdminResult admin = adminReader.findById(session.principal().id())
+            .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
         return AdminAuthResponse.of(tokenPair.accessToken(), tokenPair.refreshToken());
     }
 
@@ -56,7 +56,7 @@ public class AuthUseCaseImpl implements AuthUseCase {
         jwtSessionService.logout(authorization, request);
     }
 
-    private AdminAuthResponse issueTokens(Admin admin) {
+    private AdminAuthResponse issueTokens(AdminCredentialResult admin) {
         JwtTokenPair tokenPair = jwtSessionService.issue(JwtPrincipalMapper.toJwtPrincipal(admin)).tokens();
         return AdminAuthResponse.of(tokenPair.accessToken(), tokenPair.refreshToken());
     }

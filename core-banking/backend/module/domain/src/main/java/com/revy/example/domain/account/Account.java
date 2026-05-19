@@ -107,18 +107,39 @@ public class Account extends BaseEntity {
 
     /** 체결 확정 시 실잔고 차감 */
     public void confirmBuy(BigDecimal amount) {
+        validateActive();
         this.balance = this.balance.subtract(amount);
     }
 
     /** 매도 대금 입금 */
     public void creditSaleProceeds(BigDecimal proceeds) {
+        validateActive();
         this.balance          = this.balance.add(proceeds);
         this.availableBalance = this.availableBalance.add(proceeds);
     }
 
     /** 주문 취소 시 가용잔고 복원 */
     public void releaseReservation(BigDecimal amount) {
+        validateActive();
         this.availableBalance = this.availableBalance.add(amount);
+    }
+
+    /** 배당금 등 시스템 입금 — 계좌 상태와 무관하게 입금 처리 (CLOSED는 호출부에서 차단) */
+    public void creditDividend(BigDecimal netAmount) {
+        this.balance          = this.balance.add(netAmount);
+        this.availableBalance = this.availableBalance.add(netAmount);
+    }
+
+    public void suspend() {
+        this.status = AccountStatus.SUSPENDED;
+    }
+
+    public void close() {
+        this.status = AccountStatus.CLOSED;
+    }
+
+    public void updateName(String accountName) {
+        this.accountName = accountName;
     }
 
     private void validateActive() {

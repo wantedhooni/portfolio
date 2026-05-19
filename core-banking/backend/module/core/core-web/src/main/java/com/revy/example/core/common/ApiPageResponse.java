@@ -1,7 +1,10 @@
 package com.revy.example.core.common;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import java.util.List;
 
+@Schema(name = "ApiPageResponse")
 public record ApiPageResponse<T>(
         List<T> content,
         long totalElements,

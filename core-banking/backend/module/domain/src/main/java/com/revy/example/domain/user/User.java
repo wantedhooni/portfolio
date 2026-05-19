@@ -27,10 +27,22 @@ public class User extends BaseEntity {
 
     public static User create(String email, String password, String name) {
         User user = new User();
-        user.email = email;
+        user.email    = email;
         user.password = password;
-        user.name = name;
-        user.role = "USER";
+        user.name     = name;
+        user.role     = "USER";
         return user;
+    }
+
+    public void updateName(String name) {
+        this.name = name;
+    }
+
+    public void updatePassword(String encodedPassword) {
+        this.password = encodedPassword;
+    }
+
+    public void changeRole(String role) {
+        this.role = role;
     }
 }

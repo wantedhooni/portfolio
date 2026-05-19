@@ -1,6 +1,7 @@
 package com.revy.example.admin;
 
-import com.revy.example.domain.admin.Admin;
+import com.revy.example.admin.dto.AdminCredentialResult;
+import com.revy.example.admin.dto.AdminResult;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -8,9 +9,14 @@ import java.util.Optional;
 
 public interface AdminReader {
 
-    Optional<Admin> findById(Long id);
+    Optional<AdminResult> findById(Long id);
 
-    Optional<Admin> findByEmail(String email);
+    Optional<AdminResult> findByEmail(String email);
 
-    Page<Admin> search(Pageable pageable, String name);
+    /** 인증 전용 — encodedPassword 포함. 로그인 흐름에서만 호출. */
+    Optional<AdminCredentialResult> findCredentialByEmail(String email);
+
+    boolean existsByEmail(String email);
+
+    Page<AdminResult> search(Pageable pageable, String name);
 }
