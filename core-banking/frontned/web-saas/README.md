@@ -1,36 +1,61 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# web-saas
 
-## Getting Started
+사용자 SaaS용 코어뱅킹 프론트엔드입니다. `saas-api-docs.json`의 SAAS-API 명세를 기준으로 인증, 계좌, 입출금, 주식 거래, 배당, 보유종목, 포트폴리오, 거래내역, 종목 조회 화면을 제공합니다.
 
-First, run the development server:
+## 기술 스택
+
+- Next.js 16 App Router
+- React 19
+- TypeScript
+- Tailwind CSS v4
+- shadcn/ui
+- axios
+
+## 실행
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+./scripts/all-start.sh
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+접속 URL은 `http://localhost:18091`입니다.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+중지와 재시작은 아래 스크립트를 사용합니다.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+./scripts/all-stop.sh
+./scripts/all-restart.sh
+```
 
-## Learn More
+## 환경 변수
 
-To learn more about Next.js, take a look at the following resources:
+| 이름 | 기본값 | 설명 |
+| --- | --- | --- |
+| `NEXT_PUBLIC_BASE_API_URL` | `http://localhost:8091` | SAAS-API 서버 주소 |
+| `NEXT_PUBLIC_DEMO_USER` | `demo@corebanking.local` | 화면 표시용 데모 계정 |
+| `NEXT_PUBLIC_DEMO_USER_PASSWORD` | `demo1234!` | 화면 표시용 데모 비밀번호 |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 주요 화면
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- 로그인: 데모 모드와 실제 API 로그인 모드 전환
+- 가입: 사용자 기본 정보 입력, 유효성 검증, 로컬 가입 요청 접수
+- 대시보드: 총 자산, 현금, 평가금액, 손익률 요약
+- 계좌: 계좌 검색, 선택, 잔고 확인
+- 입출금: `/api/v1/accounts/{accountId}/deposit`, `/withdraw` 대응 폼
+- 거래: `/trades/buy`, `/trades/sell`, `/trades/dividend` 대응 폼
+- 종목: `/api/v1/stocks` 검색 결과 테이블
+- 거래내역: `/api/v1/accounts/{accountId}/transactions` 결과 테이블
 
-## Deploy on Vercel
+## API 연동 구조
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+API 호출은 `src/services/saasBankingService.ts`의 `SaasBankingService`가 담당합니다. 기존 `src/lib/api.ts` axios 인스턴스를 사용하므로 access token 자동 첨부와 refresh token 재발급 흐름을 그대로 재사용합니다.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+백엔드가 실행되지 않는 개발 환경에서도 UI 확인이 가능하도록 데모 모드를 제공합니다. 실제 API 검증은 로그인 화면에서 `API` 모드를 선택하고 SAAS-API 서버를 `NEXT_PUBLIC_BASE_API_URL`에 맞춰 실행한 뒤 진행합니다.
+
+현재 `saas-api-docs.json`에는 회원가입 엔드포인트가 없습니다. `/signup` 화면은 가입 요청을 입력받아 로컬 접수증으로 저장하며, 백엔드가 `/api/v1/auth/signup` 확장 API를 제공하면 같은 폼에서 API 제출 모드로 전환할 수 있습니다.
+
+## 검증
+
+```bash
+npm run lint
+npm run build
+```

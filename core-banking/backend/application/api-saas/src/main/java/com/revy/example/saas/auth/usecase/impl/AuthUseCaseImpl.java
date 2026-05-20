@@ -11,7 +11,11 @@ import com.revy.example.jwt.payload.RefreshTokenRequest;
 import com.revy.example.saas.auth.compoenet.UserJwtPrincipal;
 import com.revy.example.saas.auth.mapper.JwtPrincipalMapper;
 import com.revy.example.saas.auth.payload.UserAuthResponse;
+import com.revy.example.saas.auth.payload.SignupRequest;
+import com.revy.example.saas.auth.payload.SignupResponse;
 import com.revy.example.saas.auth.usecase.AuthUseCase;
+import com.revy.example.user.command.UserCommand;
+import com.revy.example.user.command.dto.RegisterUserCommand;
 import com.revy.example.user.reader.UserReader;
 import com.revy.example.user.reader.dto.UserCredentialResult;
 import com.revy.example.user.reader.dto.UserResult;
@@ -26,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthUseCaseImpl implements AuthUseCase {
 
     private final UserReader        userReader;
+    private final UserCommand       userCommand;
     private final PasswordEncoder   passwordEncoder;
     private final JwtSessionService jwtSessionService;
 
@@ -53,6 +58,16 @@ public class AuthUseCaseImpl implements AuthUseCase {
     @Transactional
     public void logout(String authorization, LogoutRequest request) {
         jwtSessionService.logout(authorization, request);
+    }
+
+    @Transactional
+    public SignupResponse signup(SignupRequest request) {
+        userCommand.register(new RegisterUserCommand(
+                request.email(),
+                passwordEncoder.encode(request.password()),
+                request.name()
+        ));
+        return SignupResponse.of(request.email(), request.organizationName());
     }
 
     private UserAuthResponse issueTokens(UserCredentialResult user) {

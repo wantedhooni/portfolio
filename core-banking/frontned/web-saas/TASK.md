@@ -1,0 +1,94 @@
+# 작업 기록
+
+## 2026-05-19
+- `saas-api-docs.json`를 확인해 인증, 계좌, 입출금, 주식 거래, 포트폴리오, 거래내역, 종목 조회 API 범위를 파악했다.
+- Next.js 16 App Router 문서와 shadcn 프로젝트 규칙을 확인했다.
+- 사용자 SaaS용 코어뱅킹 워크스페이스, API 서비스 계층, 데모 데이터, 실행 스크립트, README 업데이트를 완료했다.
+- `npm run lint`, `npm run build`, 브라우저 렌더링 검증을 완료했다.
+- 메인 페이지를 랜딩 페이지로 변경하고 상단 `로그인` / `가입` 버튼을 추가했다.
+- dev 서버 CSS chunk 캐시 문제를 확인해 `.next/dev` 재생성으로 해결했고, 실행 스크립트를 `nohup` 기반으로 보강했다.
+- `/signup` 가입 폼을 구현했다. 현재 명세에 회원가입 API가 없어 로컬 가입 요청 접수로 동작하며, `/api/v1/auth/signup` 확장 API 연결 메서드를 준비했다.
+- Sonner 알림 영역이 grid 레이아웃 첫 칸을 차지하던 문제를 수정해 `/login`과 대시보드 밀림 현상을 해결했다.
+- 가입 폼 내부 `div`까지 중앙 정렬하던 넓은 CSS 선택자를 직계 자식 기준으로 좁혀 `/signup` 입력 레이아웃 깨짐을 수정했다.
+- `SaasWorkspace.tsx` 단일 파일(803줄)을 기능별 레이어로 분리했다.
+  - 더미 데이터(`saas-demo-data.ts`)와 데모 모드 완전 제거.
+  - `src/lib/format.ts`: 포매터 유틸 분리.
+  - `src/hooks/useSession.ts`: 로그인 / 로그아웃 훅.
+  - `src/hooks/useWorkspace.ts`: 워크스페이스 전체 데이터 상태 훅 (API 전용).
+  - `src/components/saas/auth/LoginForm.tsx`: 로그인 UI.
+  - `src/components/saas/workspace/`: WorkspaceProvider, WorkspaceSidebar, PageHeader, MetricBar, AccountPanel, CashPanel, TradePanel, AllocationPanel, StockPanel, LedgerPanel로 분리.
+  - 라우트: `/workspace`(대시보드), `/workspace/accounts`(계좌+입출금), `/workspace/trades`(매매+거래내역), `/workspace/stocks`(종목 검색).
+  - `npm run build` 통과 확인.
+- 백엔드 실제 응답과 타입 불일치를 발견해 `src/types/index.ts`를 전면 수정했다.
+  - `Account.cashBalance` → `balance`, `availableBalance` 추가.
+  - `Portfolio`: `cashBalance` → `balance`, `totalProfitLoss` → `totalRealizedPnl`, `totalUnrealizedPnl` 추가, 프론트 파생 필드(`totalAssetAmount`, `stockValuationAmount`, `totalProfitLossRate`) 제거.
+  - `Position`: 기존 시장가 기반 구조 → lot 기반 구조(`totalQuantity`, `realizedPnl`, `lots[]`)로 교체.
+  - `AccountTransaction`: `ticker` 필드 제거 (API 미반환).
+  - `AllocationPanel`: stocks 목록으로 stockId → ticker / 현재가 조회 후 평가금액 산출.
+  - `LedgerPanel`: stocks 전달받아 stockId를 ticker로 변환 표시.
+  - curl 검증: 로그인, 계좌 생성, 입금, 포지션 응답 확인 완료.
+- 도메인 기반 아키텍처로 전면 리팩토링했다.
+  - `src/shared/`: 공유 인프라 분리.
+    - `api/client.ts`: axios 인스턴스 + 401 토큰 갱신 인터셉터.
+    - `auth/tokenStore.ts`: 쿠키 기반 토큰 저장소.
+    - `types/api.types.ts`: `ApiResponse`, `Pageable`, `ApiPageResponse`, `UserAuthResponse` 등 공통 타입.
+  - `src/features/`: 도메인별 타입·서비스·컴포넌트 분리.
+    - `auth/`: `auth.types`, `AuthService`, `LoginForm`, `SignupForm`.
+    - `account/`: `account.types`, `AccountService`, `AccountPanel`, `CashPanel`.
+    - `trade/`: `trade.types`, `TradeService`, `TradePanel`, `LedgerPanel`.
+    - `stock/`: `stock.types`, `StockService`, `StockPanel`.
+    - `portfolio/`: `portfolio.types`, `PortfolioService`, `MetricBar`, `AllocationPanel`.
+  - `src/workspace/`: 워크스페이스 오케스트레이션 분리.
+    - `useSession.ts`, `useWorkspace.ts`, `WorkspaceProvider.tsx`, `WorkspaceSidebar.tsx`, `PageHeader.tsx`.
+  - `SignupForm` 이중 모드(`useApi` 체크박스) 제거 — 로컬 접수 단일 흐름으로 단순화.
+  - `src/types/index.ts`를 도메인 타입 재내보내기 배럴로 교체.
+  - 구버전 파일 전체 삭제: `components/saas/`, `services/`, `hooks/useSession`, `hooks/useWorkspace`, `lib/api.ts`, `lib/authStore-local.ts`.
+  - `npm run build` 통과 확인.
+- Next.js ESLint 오류 수정 (`react-hooks/set-state-in-effect`) — `useEffect` 내 setState를 `startTransition`으로 래핑.
+- `LoginForm`: 로그인 실패 시 리다이렉트 대신 인라인 `Alert` 에러 표시로 변경. `<Toaster>` 제거.
+- `workspace/layout.tsx` 하이드레이션 불일치 수정 — `useState(false)` + `useEffect` 패턴으로 SSR/클라이언트 일치.
+- `shared/api/client.ts`: `withCredentials: true` 제거 — Bearer 토큰 인증에 불필요, CORS preflight 오버헤드 제거.
+- `SignupForm`: 비밀번호 확인 인풋에 `signup-input-wrap` + `KeyRound` 아이콘 추가해 비밀번호 인풋과 통일. 버튼 텍스트 "즉시 가입"으로 변경.
+- 백엔드 `api-saas` 회원가입 API 추가:
+  - `AuthController.java`: `POST /api/v1/auth/signup` 엔드포인트 추가.
+  - `AuthUseCase.java`: `signup(SignupRequest)` 메서드 추가.
+  - `AuthUseCaseImpl.java`: `UserCommand.register()` 호출 구현.
+  - `SignupRequest.java`, `SignupResponse.java` 페이로드 클래스 생성.
+  - `SecurityConfig.java`: `/api/v1/auth/signup` 인증 허용 목록에 추가.
+  - `gradle compileJava` 빌드 성공 확인. 서버 재시작 필요.
+- 회원가입 완료 페이지 추가 (`/signup/complete`):
+  - 가입 성공 후 `/login` 대신 `/signup/complete?email=...`로 이동.
+  - `CheckCircle2` 아이콘, 이메일 접수증, 로그인하기/메인으로 버튼.
+- 워크스페이스 UI 전면 개편 (SaaS 랜딩 페이지 스타일):
+  - 좌측 사이드바 → 상단 수평 네비게이션(`WorkspaceTopNav`) 교체.
+  - `WorkspaceTopNav`: 브랜드 마크, 메뉴 링크, 계좌 선택, 새로고침, 로그아웃 포함.
+  - `workspace/layout.tsx`: `bank-app-shell` → `saas-shell` + `WorkspaceTopNav` 구조로 변경.
+  - 대시보드(`/workspace`): 총 자산 히어로 카드, 4종 지표 그리드, 빠른 실행 카드 4개, 최근 거래 5건.
+  - `PageHeader` 단순화: context 의존성 제거, 제목만 표시 (`saas-page-title`).
+  - `globals.css`: `saas-*` 레이아웃·히어로·지표·액션카드 스타일 추가, 반응형 미디어 쿼리 포함.
+  - `npm run build` 통과 확인.
+- 워크스페이스 좌측 사이드바 레이아웃 + 카드 반응형 + 거래 폼 UX 개선:
+  - `WorkspaceSidebar.tsx` 전면 재작성: 아이콘+레이블 네비게이션, 계좌 선택, 새로고침/로그아웃을 포함한 좌측 사이드바.
+  - `workspace/layout.tsx`: `WorkspaceTopNav` → `WorkspaceSidebar` 교체.
+  - `globals.css`: `saas-shell`을 `grid(240px, 1fr)` 레이아웃으로 변경. `saas-sidebar` 스타일 추가(sticky, 100svh, border-right).
+  - 반응형: `@media (max-width: 900px)` — 사이드바가 3.5rem 상단바로 축소(아이콘만 표시), 계좌 선택 숨김.
+  - `TradePanel.tsx`: 7열 가로 그리드 → 레이블+인풋 `bank-trade-fields` 2열 그리드 수직 레이아웃(Toss 스타일).
+  - `globals.css`: `bank-trade-fields`, `bank-trade-field`, `bank-trade-label` 스타일 추가. `bank-form.trade` 제거.
+  - `bank-content-grid` 비율 조정(1.55fr/320px → 1.4fr/300px).
+  - `npm run build` 통과 확인.
+- 추가 기능 전체 구현 (P1~P3):
+  - [P1] `AccountPanel.tsx` 전면 재작성: 계좌 생성(Dialog), 이름 수정(인라인), 폐쇄(AlertDialog) 지원.
+  - [P1] `PositionTable.tsx` 신규: 보유수량·평균단가·현재가·평가금액·미실현/실현손익 표시.
+  - [P1] `useWorkspace.ts`: `createAccount`, `updateAccount`, `closeAccount`, `user(me)`, `autoRefreshInterval` 추가.
+  - [P1] `workspace/accounts/page.tsx`: PositionTable 추가.
+  - [P1] `auth.types.ts`: JwtPrincipal 구체화(id, email, name, organizationName).
+  - [P2] `LedgerPanel.tsx`: 유형 필터 칩(전체/입금/출금/매수/매도/배당) + 날짜 범위 필터 + 행 클릭 상세 다이얼로그.
+  - [P2] `TransactionDetailDialog.tsx` 신규: 거래 단건 상세(Dialog).
+  - [P2] `StockPanel.tsx`: 종목 행 클릭 → 상세 슬라이드 패널.
+  - [P2] `StockDetailPanel.tsx` 신규: 종목명·현재가·거래소·섹터·상태 + 거래하기 버튼(Sheet).
+  - [P3] `AllocationChart.tsx` 신규: recharts PieChart 자산배분 도넛 차트.
+  - [P3] `WorkspaceSidebar.tsx`: 사용자 프로필(아바타+이름+이메일), 다크모드 토글(next-themes), 자동갱신 주기 선택.
+  - [P3] `app/layout.tsx`: ThemeProvider 추가(suppressHydrationWarning).
+  - [P3] `globals.css`: `.dark` bank 변수 추가. 신규 컴포넌트 스타일(sidebar user profile, account CRUD, ledger filter, position table, stock detail, tx dialog, alloc chart, empty state).
+  - [P3] `workspace/page.tsx`: 계좌 없음 Empty State + AllocationChart 대시보드 통합.
+  - `npm run build` 통과 확인.

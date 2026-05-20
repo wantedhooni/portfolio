@@ -1,0 +1,9 @@
+package com.revy.example.domain.insurance.enums;
+
+public enum PremiumFrequency {
+    MONTHLY,      // 월납
+    QUARTERLY,    // 분기납
+    SEMIANNUAL,   // 반기납
+    ANNUAL,       // 연납
+    ONE_TIME      // 일시납
+}

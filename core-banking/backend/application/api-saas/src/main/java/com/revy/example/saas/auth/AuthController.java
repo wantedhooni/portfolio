@@ -5,6 +5,8 @@ import com.revy.example.jwt.payload.JwtPrincipal;
 import com.revy.example.jwt.payload.LoginRequest;
 import com.revy.example.jwt.payload.LogoutRequest;
 import com.revy.example.jwt.payload.RefreshTokenRequest;
+import com.revy.example.saas.auth.payload.SignupRequest;
+import com.revy.example.saas.auth.payload.SignupResponse;
 import com.revy.example.saas.auth.payload.UserAuthResponse;
 import com.revy.example.saas.auth.usecase.AuthUseCase;
 import jakarta.validation.Valid;
@@ -24,6 +26,11 @@ class AuthController {
     private final AuthUseCase authUseCase;
     public AuthController(AuthUseCase authUseCase) {
         this.authUseCase = authUseCase;
+    }
+
+    @PostMapping("/signup")
+    public ApiResponse<SignupResponse> signup(@Valid @RequestBody SignupRequest request) {
+        return ApiResponse.ok(authUseCase.signup(request));
     }
 
     @PostMapping("/login")

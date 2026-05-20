@@ -20,39 +20,37 @@ import org.springframework.web.cors.CorsConfigurationSource;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-
-    private CorsConfigurationSource corsConfigurationSource;
+    private final CorsConfigurationSource corsConfigurationSource;
+    private static final String[] ALLOW_LIST = {
+        "/swagger-ui.html",
+        "/swagger-ui/**",
+        "/v3/api-docs/**",
+        "/api/v1/auth/signup",
+        "/api/v1/auth/login",
+        "/actuator/health"};
 
     public SecurityConfig(CorsConfigurationSource corsConfigurationSource) {
         this.corsConfigurationSource = corsConfigurationSource;
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http,
-                                                   JwtAuthenticationFilter jwtAuthenticationFilter,
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter,
                                                    SecurityExceptionHandler securityExceptionHandler) throws Exception {
         return http.csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> cors.configurationSource(corsConfigurationSource))
-                   .httpBasic(AbstractHttpConfigurer::disable)
-                   .formLogin(AbstractHttpConfigurer::disable)
-                   .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                   .authorizeHttpRequests(auth -> auth.requestMatchers(ALLOW_LIST)
-                                                      .permitAll()
-                                                      .anyRequest()
-                                                      .authenticated())
-                   .exceptionHandling(exception -> exception.authenticationEntryPoint(securityExceptionHandler)
-                                                            .accessDeniedHandler(securityExceptionHandler))
-                   .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                   .build();
+            .cors(cors -> cors.configurationSource(corsConfigurationSource))
+            .httpBasic(AbstractHttpConfigurer::disable)
+            .formLogin(AbstractHttpConfigurer::disable)
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(auth -> auth.requestMatchers(ALLOW_LIST)
+                .permitAll()
+                .anyRequest()
+                .authenticated())
+            .exceptionHandling(exception -> exception.authenticationEntryPoint(securityExceptionHandler)
+                .accessDeniedHandler(securityExceptionHandler))
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+            .build();
     }
 
-    private static final String[] ALLOW_LIST = {
-            "/swagger-ui.html",
-            "/swagger-ui/**",
-            "/v3/api-docs/**",
-            "/api/v1/auth/login",
-            "/actuator/health"
-    };
 
     @Bean
     public PasswordEncoder passwordEncoder() {

@@ -4,6 +4,10 @@ spring:
   profiles:
     active: ${APP_PROFILE:local}
     default: local
+  config:
+    import:
+      - "optional:classpath:/metrics.yml"
+      - "optional:classpath:/springdoc.yml"
   datasource:
     url: ${ADMIN_DB_URL:jdbc:postgresql://localhost:5431/appdb}
     username: ${DB_USERNAME:postgres}
@@ -47,3 +51,5 @@ app:
 logging:
   level:
     org.hibernate.SQL: debug
+    org.springframework.boot.micrometer.metrics.export.prometheus.**: DEBUG
+    io.prometheus.metrics: DEBUG

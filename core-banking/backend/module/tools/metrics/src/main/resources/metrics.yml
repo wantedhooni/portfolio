@@ -1,0 +1,37 @@
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+        pushgateway:
+          # Pushgateway 사용 여부
+          # true: Spring Boot가 Pushgateway로 메트릭을 주기적으로 push
+          # false: Pushgateway 사용 안 함
+          enabled: true
+
+          # Pushgateway 서버 주소
+          # 형식: host:port
+          # Docker Compose 내부 실행 시: pushgateway:9091
+          address: localhost:39091
+
+          # Pushgateway에 등록될 job 이름
+          # Prometheus/Grafana에서 job="monolith-api" label로 조회 가능
+          job: monolith-api
+          # Spring Boot가 Pushgateway로 메트릭을 push하는 주기
+          # 예: 10s, 30s, 1m
+          push-rate: 10s
+          # 애플리케이션 종료 시 Pushgateway에 대해 수행할 동작
+          # push: 종료 직전에 마지막 메트릭을 한 번 더 push
+          # none/delete 계열 옵션은 버전별 지원 여부 확인 필요
+          shutdown-operation: POST
+          # Pushgateway에서 메트릭 그룹을 구분하기 위한 key-value label
+          # 같은 job + grouping-key 조합이면 같은 그룹으로 취급됨
+          # 인스턴스별로 구분하지 않으면 여러 Spring Boot 인스턴스가
+          # 같은 메트릭 그룹을 덮어쓸 수 있으므로 instance 지정 권장
+          grouping-key:
+            application: ${spring.application.name}
+            instance: ${INSTANCE_NAME:local}

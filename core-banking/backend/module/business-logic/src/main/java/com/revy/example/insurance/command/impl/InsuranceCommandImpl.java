@@ -1,0 +1,243 @@
+package com.revy.example.insurance.command.impl;
+
+import com.revy.example.account.command.AccountCommand;
+import com.revy.example.account.command.dto.DepositCommand;
+import com.revy.example.account.command.dto.WithdrawCommand;
+import com.revy.example.core.error.BusinessException;
+import com.revy.example.core.error.ErrorCode;
+import com.revy.example.domain.insurance.InsuranceClaim;
+import com.revy.example.domain.insurance.InsurancePolicy;
+import com.revy.example.domain.insurance.InsuranceProduct;
+import com.revy.example.domain.insurance.PremiumPayment;
+import com.revy.example.domain.insurance.enums.PaymentStatus;
+import com.revy.example.domain.insurance.exception.ClaimNotFoundException;
+import com.revy.example.domain.insurance.exception.InsuranceProductNotFoundException;
+import com.revy.example.domain.insurance.exception.PolicyNotFoundException;
+import com.revy.example.insurance.command.InsuranceCommand;
+import com.revy.example.insurance.command.dto.ApproveClaimCommand;
+import com.revy.example.insurance.command.dto.CreateInsuranceProductCommand;
+import com.revy.example.insurance.command.dto.EnrollPolicyCommand;
+import com.revy.example.insurance.command.dto.PayClaimCommand;
+import com.revy.example.insurance.command.dto.PayPremiumCommand;
+import com.revy.example.insurance.command.dto.SubmitClaimCommand;
+import com.revy.example.insurance.reader.InsuranceReader;
+import jakarta.persistence.EntityManager;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.UUID;
+
+@Slf4j
+@Component
+@Transactional
+@RequiredArgsConstructor
+public class InsuranceCommandImpl implements InsuranceCommand {
+
+    private final EntityManager    entityManager;
+    private final InsuranceReader  insuranceReader;
+    private final AccountCommand   accountCommand;
+
+    // ── Product ──────────────────────────────────────────────────
+
+    @Override
+    public Long createProduct(CreateInsuranceProductCommand command) {
+        if (insuranceReader.findProductByCode(command.productCode()).isPresent()) {
+            throw new BusinessException(ErrorCode.INSURANCE_PRODUCT_DISCONTINUED, "duplicate code");
+        }
+        InsuranceProduct p = InsuranceProduct.create(
+            command.productCode(), command.name(), command.description(),
+            command.insuranceType(), command.basePremium(), command.premiumFrequency(),
+            command.coverageAmount(), command.durationMonths(), command.currency()
+        );
+        entityManager.persist(p);
+        return p.getId();
+    }
+
+    @Override
+    public void updateProductPricing(Long productId, BigDecimal basePremium, BigDecimal coverageAmount) {
+        loadProduct(productId).updatePricing(basePremium, coverageAmount);
+    }
+
+    @Override
+    public void discontinueProduct(Long productId) {
+        loadProduct(productId).discontinue();
+    }
+
+    // ── Policy ───────────────────────────────────────────────────
+
+    @Override
+    public Long enrollPolicy(EnrollPolicyCommand command) {
+        InsuranceProduct product = loadProduct(command.productId());
+        if (!product.isActive()) {
+            throw new BusinessException(ErrorCode.INSURANCE_PRODUCT_DISCONTINUED);
+        }
+
+        String policyNumber = "POL-" + UUID.randomUUID().toString().substring(0, 12).toUpperCase();
+        var endDate = command.startDate().plusMonths(product.getDurationMonths());
+
+        InsurancePolicy policy = InsurancePolicy.enroll(
+            policyNumber, product.getId(),
+            command.userId(), command.insuredUserId(), command.billingAccountId(),
+            product.getBasePremium(), product.getPremiumFrequency(),
+            product.getCoverageAmount(), product.getCurrency(),
+            command.startDate(), endDate
+        );
+
+        if (command.beneficiaries() != null) {
+            for (var b : command.beneficiaries()) {
+                policy.addBeneficiary(b.beneficiaryUserId(), b.name(), b.relationship(),
+                                      b.sharePercent(), b.type());
+            }
+        }
+
+        entityManager.persist(policy);
+        return policy.getId();
+    }
+
+    @Override
+    public void activatePolicy(Long policyId) {
+        loadPolicy(policyId).activate(Instant.now());
+    }
+
+    @Override
+    public void suspendPolicy(Long policyId) {
+        loadPolicy(policyId).suspend();
+    }
+
+    @Override
+    public void reactivatePolicy(Long policyId) {
+        loadPolicy(policyId).reactivate();
+    }
+
+    @Override
+    public void terminatePolicy(Long policyId) {
+        loadPolicy(policyId).terminate(Instant.now());
+    }
+
+    @Override
+    public void cancelPolicy(Long policyId) {
+        loadPolicy(policyId).cancel();
+    }
+
+    // ── Premium ──────────────────────────────────────────────────
+
+    @Override
+    public void payPremium(PayPremiumCommand command) {
+        if (insuranceReader.existsPaymentByReferenceId(command.referenceId())) {
+            log.info("Duplicate premium payment ignored. referenceId={}", command.referenceId());
+            return;
+        }
+
+        PremiumPayment payment = loadPayment(command.paymentId());
+        if (payment.getStatus() == PaymentStatus.PAID) {
+            throw new BusinessException(ErrorCode.PREMIUM_ALREADY_PAID);
+        }
+
+        InsurancePolicy policy = loadPolicy(payment.getPolicyId());
+        policy.validateActive();
+
+        // 출금 (자동이체)
+        try {
+            accountCommand.withdraw(new WithdrawCommand(
+                policy.getBillingAccountId(), payment.getAmount(), command.referenceId()
+            ));
+        } catch (RuntimeException e) {
+            payment.markFailed(e.getMessage());
+            return;
+        }
+
+        // 납부 처리 + 다음 납부일 진행
+        payment.markPaid(null, Instant.now());  // 실제론 AccountTx ID 연결 필요 (Account.withdraw 시그니처 확장 시)
+        policy.advanceNextPaymentDate();
+        // 분개: (차) 보통예금 / (대) 보험료수익 — LedgerCommand 위임 (구현 생략, 후속 작업)
+    }
+
+    @Override
+    public void markPremiumOverdue(Long paymentId) {
+        loadPayment(paymentId).markOverdue();
+    }
+
+    // ── Claim ────────────────────────────────────────────────────
+
+    @Override
+    public Long submitClaim(SubmitClaimCommand command) {
+        InsurancePolicy policy = loadPolicy(command.policyId());
+        policy.validateActive();
+
+        String claimNumber = "CLM-" + UUID.randomUUID().toString().substring(0, 12).toUpperCase();
+        InsuranceClaim claim = InsuranceClaim.submit(
+            claimNumber, command.policyId(), command.claimantUserId(),
+            command.eventDate(), command.claimReason(), command.claimAmount(),
+            command.payoutAccountId(), Instant.now()
+        );
+        entityManager.persist(claim);
+        return claim.getId();
+    }
+
+    @Override
+    public void startClaimReview(Long claimId, Long reviewerAdminId) {
+        loadClaim(claimId).startReview(reviewerAdminId);
+    }
+
+    @Override
+    public void approveClaim(ApproveClaimCommand command) {
+        InsuranceClaim claim = loadClaim(command.claimId());
+        InsurancePolicy policy = loadPolicy(claim.getPolicyId());
+        claim.approve(command.approvedAmount(), policy.getCoverageAmount(),
+                      command.reviewNotes(), Instant.now());
+    }
+
+    @Override
+    public void rejectClaim(Long claimId, Long reviewerAdminId, String reviewNotes) {
+        InsuranceClaim claim = loadClaim(claimId);
+        // reviewer가 review를 시작 안 한 경우 자동 startReview
+        if (claim.getReviewerAdminId() == null) claim.startReview(reviewerAdminId);
+        claim.reject(reviewNotes, Instant.now());
+    }
+
+    @Override
+    public void payClaim(PayClaimCommand command) {
+        InsuranceClaim claim = loadClaim(command.claimId());
+        if (claim.getApprovedAmount() == null || claim.getApprovedAmount().signum() <= 0) {
+            throw new BusinessException(ErrorCode.CLAIM_NOT_PENDING);
+        }
+
+        // payout 계좌 입금
+        accountCommand.deposit(new DepositCommand(
+            claim.getPayoutAccountId(), claim.getApprovedAmount(), command.referenceId()
+        ));
+
+        claim.markPaid(null, Instant.now());
+        // 분개: (차) 보험금지급(비용) / (대) 보통예금 — 후속 작업
+    }
+
+    // ── 내부 ─────────────────────────────────────────────────────
+
+    private InsuranceProduct loadProduct(Long id) {
+        InsuranceProduct p = entityManager.find(InsuranceProduct.class, id);
+        if (p == null) throw new InsuranceProductNotFoundException();
+        return p;
+    }
+
+    private InsurancePolicy loadPolicy(Long id) {
+        InsurancePolicy p = entityManager.find(InsurancePolicy.class, id);
+        if (p == null) throw new PolicyNotFoundException();
+        return p;
+    }
+
+    private PremiumPayment loadPayment(Long id) {
+        PremiumPayment p = entityManager.find(PremiumPayment.class, id);
+        if (p == null) throw new BusinessException(ErrorCode.ENTITY_NOT_FOUND, "PremiumPayment id=" + id);
+        return p;
+    }
+
+    private InsuranceClaim loadClaim(Long id) {
+        InsuranceClaim c = entityManager.find(InsuranceClaim.class, id);
+        if (c == null) throw new ClaimNotFoundException();
+        return c;
+    }
+}
