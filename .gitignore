@@ -75,4 +75,7 @@ gradle-app.setting
 .idea
 bin
 **/bin/
+
+# Node
+.env
 .playwright-mcp
