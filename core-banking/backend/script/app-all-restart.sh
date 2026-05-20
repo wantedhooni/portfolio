@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
 
-./script/all-stop.sh || true
+./script/app-all-stop.sh || true
 echo 'node kill'
-./script/all-start.sh
+./script/app-all-start.sh
