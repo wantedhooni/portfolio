@@ -1,5 +1,5 @@
 #!/bin/bash
 set -e
 
-kill $(lsof -ti :8081)
-kill $(lsof -ti :8091)
+kill -9 $(ss -lntp '( sport = :8091 )' | grep -oP 'pid=\K\d+')
+kill -9 $(ss -lntp '( sport = :8091 )' | grep -oP 'pid=\K\d+')

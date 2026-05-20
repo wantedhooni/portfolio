@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
 
-kill $(lsof -ti :18081)
-kill $(lsof -ti :18091)
+kill -9 $(ss -lntp '( sport = :18081 )' | grep -oP 'pid=\K\d+')
+kill -9 $(ss -lntp '( sport = :18091 )' | grep -oP 'pid=\K\d+')
 
