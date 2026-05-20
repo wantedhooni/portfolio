@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { COOKIE_KEYS, getToken } from "@/shared/auth/tokenStore";
 import { WorkspaceProvider } from "@/workspace/WorkspaceProvider";
-import { WorkspaceTopNav } from "@/workspace/WorkspaceTopNav";
+import { WorkspaceSidebar } from "@/workspace/WorkspaceSidebar";
 import { Toaster } from "@/components/ui/sonner";
 
 export default function WorkspaceLayout({ children }: { children: ReactNode }) {
@@ -26,7 +26,7 @@ export default function WorkspaceLayout({ children }: { children: ReactNode }) {
     <WorkspaceProvider>
       <Toaster position="top-right" />
       <div className="saas-shell">
-        <WorkspaceTopNav />
+        <WorkspaceSidebar />
         <main className="saas-page">{children}</main>
       </div>
     </WorkspaceProvider>

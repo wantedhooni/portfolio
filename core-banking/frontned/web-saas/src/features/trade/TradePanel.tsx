@@ -109,7 +109,7 @@ export function TradePanel({ stocks, isLoading, onBuy, onSell, onDividend }: Pro
         <Separator className="bank-panel-separator" />
       </div>
 
-      <form className="bank-form trade" onSubmit={handleSubmit}>
+      <form className="bank-form" onSubmit={handleSubmit}>
         <ToggleGroup
           type="single"
           value={action}
@@ -122,51 +122,84 @@ export function TradePanel({ stocks, isLoading, onBuy, onSell, onDividend }: Pro
           <ToggleGroupItem value="dividend">배당</ToggleGroupItem>
         </ToggleGroup>
 
-        <select
-          className="bank-select"
-          value={stockId}
-          onChange={(e) => onStockChange(e.target.value)}
-          aria-label="거래 종목"
-        >
-          {stocks.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.ticker} · {s.name}
-            </option>
-          ))}
-        </select>
+        <div className="bank-trade-fields">
+          <div className="bank-trade-field bank-trade-field--full">
+            <label className="bank-trade-label" htmlFor="trade-stock">
+              종목
+            </label>
+            <select
+              id="trade-stock"
+              className="bank-select"
+              value={stockId}
+              onChange={(e) => onStockChange(e.target.value)}
+              aria-label="거래 종목"
+            >
+              {stocks.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.ticker} · {s.name}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        <Input
-          aria-label="수량"
-          inputMode="decimal"
-          placeholder="수량"
-          value={quantity}
-          disabled={isDividend}
-          onChange={(e) => setQuantity(e.target.value)}
-        />
-        <Input
-          aria-label={isDividend ? "배당총액" : "가격"}
-          inputMode="decimal"
-          placeholder={isDividend ? "배당총액" : "가격"}
-          value={price}
-          onChange={(e) => setPrice(e.target.value)}
-        />
-        <Input
-          aria-label="수수료"
-          inputMode="decimal"
-          placeholder="수수료"
-          value={fee}
-          disabled={isDividend}
-          onChange={(e) => setFee(e.target.value)}
-        />
-        <Input
-          aria-label="세금"
-          inputMode="decimal"
-          placeholder="세금"
-          value={tax}
-          onChange={(e) => setTax(e.target.value)}
-        />
+          {!isDividend && (
+            <div className="bank-trade-field">
+              <label className="bank-trade-label" htmlFor="trade-qty">
+                수량
+              </label>
+              <Input
+                id="trade-qty"
+                inputMode="decimal"
+                placeholder="0"
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
+              />
+            </div>
+          )}
 
-        <Button type="submit" disabled={isLoading || stocks.length === 0}>
+          <div className="bank-trade-field">
+            <label className="bank-trade-label" htmlFor="trade-price">
+              {isDividend ? "배당 총액" : "단가"}
+            </label>
+            <Input
+              id="trade-price"
+              inputMode="decimal"
+              placeholder="0"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+            />
+          </div>
+
+          {!isDividend && (
+            <div className="bank-trade-field">
+              <label className="bank-trade-label" htmlFor="trade-fee">
+                수수료
+              </label>
+              <Input
+                id="trade-fee"
+                inputMode="decimal"
+                placeholder="0"
+                value={fee}
+                onChange={(e) => setFee(e.target.value)}
+              />
+            </div>
+          )}
+
+          <div className="bank-trade-field">
+            <label className="bank-trade-label" htmlFor="trade-tax">
+              세금
+            </label>
+            <Input
+              id="trade-tax"
+              inputMode="decimal"
+              placeholder="0"
+              value={tax}
+              onChange={(e) => setTax(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <Button type="submit" size="lg" className="bank-trade-submit" disabled={isLoading || stocks.length === 0}>
           거래 생성
         </Button>
       </form>

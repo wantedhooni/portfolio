@@ -31,7 +31,7 @@ class AdminServerApplication {
     public void on(ApplicationStartedEvent event) {
         log.info("Admin Server Application Started");
         log.info("APP_PROFILE = {}", System.getenv("APP_PROFILE"));
-        log.info("SPRING_PROFILES_ACTIVE = {}", env.getActiveProfiles().toString());
+        log.info("SPRING_PROFILES_ACTIVE = {}", (String[]) env.getActiveProfiles());
 
 
     }

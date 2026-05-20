@@ -219,8 +219,8 @@ SELECT
     a.id,
     NULL,
     'DEPOSIT',
-    -- 30M~200M 사이 (현실적 초기 자금)
-    (30000000 + (abs(hashtext(a.account_number || 'dep')) % 170000000))::numeric,
+    -- 500M~2.5B (BIGINT — INT4 오버플로 방지)
+    (500000000::bigint + (abs(hashtext(a.account_number || 'dep'))::bigint % 2000000000::bigint))::numeric,
     NULL, NULL, 0, 0, 'COMPLETED',
     'DEMO-DEP-' || a.id,
     a.created_at + interval '1 hour'

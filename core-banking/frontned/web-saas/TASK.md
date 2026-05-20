@@ -67,3 +67,28 @@
   - `PageHeader` 단순화: context 의존성 제거, 제목만 표시 (`saas-page-title`).
   - `globals.css`: `saas-*` 레이아웃·히어로·지표·액션카드 스타일 추가, 반응형 미디어 쿼리 포함.
   - `npm run build` 통과 확인.
+- 워크스페이스 좌측 사이드바 레이아웃 + 카드 반응형 + 거래 폼 UX 개선:
+  - `WorkspaceSidebar.tsx` 전면 재작성: 아이콘+레이블 네비게이션, 계좌 선택, 새로고침/로그아웃을 포함한 좌측 사이드바.
+  - `workspace/layout.tsx`: `WorkspaceTopNav` → `WorkspaceSidebar` 교체.
+  - `globals.css`: `saas-shell`을 `grid(240px, 1fr)` 레이아웃으로 변경. `saas-sidebar` 스타일 추가(sticky, 100svh, border-right).
+  - 반응형: `@media (max-width: 900px)` — 사이드바가 3.5rem 상단바로 축소(아이콘만 표시), 계좌 선택 숨김.
+  - `TradePanel.tsx`: 7열 가로 그리드 → 레이블+인풋 `bank-trade-fields` 2열 그리드 수직 레이아웃(Toss 스타일).
+  - `globals.css`: `bank-trade-fields`, `bank-trade-field`, `bank-trade-label` 스타일 추가. `bank-form.trade` 제거.
+  - `bank-content-grid` 비율 조정(1.55fr/320px → 1.4fr/300px).
+  - `npm run build` 통과 확인.
+- 추가 기능 전체 구현 (P1~P3):
+  - [P1] `AccountPanel.tsx` 전면 재작성: 계좌 생성(Dialog), 이름 수정(인라인), 폐쇄(AlertDialog) 지원.
+  - [P1] `PositionTable.tsx` 신규: 보유수량·평균단가·현재가·평가금액·미실현/실현손익 표시.
+  - [P1] `useWorkspace.ts`: `createAccount`, `updateAccount`, `closeAccount`, `user(me)`, `autoRefreshInterval` 추가.
+  - [P1] `workspace/accounts/page.tsx`: PositionTable 추가.
+  - [P1] `auth.types.ts`: JwtPrincipal 구체화(id, email, name, organizationName).
+  - [P2] `LedgerPanel.tsx`: 유형 필터 칩(전체/입금/출금/매수/매도/배당) + 날짜 범위 필터 + 행 클릭 상세 다이얼로그.
+  - [P2] `TransactionDetailDialog.tsx` 신규: 거래 단건 상세(Dialog).
+  - [P2] `StockPanel.tsx`: 종목 행 클릭 → 상세 슬라이드 패널.
+  - [P2] `StockDetailPanel.tsx` 신규: 종목명·현재가·거래소·섹터·상태 + 거래하기 버튼(Sheet).
+  - [P3] `AllocationChart.tsx` 신규: recharts PieChart 자산배분 도넛 차트.
+  - [P3] `WorkspaceSidebar.tsx`: 사용자 프로필(아바타+이름+이메일), 다크모드 토글(next-themes), 자동갱신 주기 선택.
+  - [P3] `app/layout.tsx`: ThemeProvider 추가(suppressHydrationWarning).
+  - [P3] `globals.css`: `.dark` bank 변수 추가. 신규 컴포넌트 스타일(sidebar user profile, account CRUD, ledger filter, position table, stock detail, tx dialog, alloc chart, empty state).
+  - [P3] `workspace/page.tsx`: 계좌 없음 Empty State + AllocationChart 대시보드 통합.
+  - `npm run build` 통과 확인.

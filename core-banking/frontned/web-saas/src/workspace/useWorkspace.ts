@@ -3,7 +3,14 @@
 import { startTransition, useCallback, useEffect, useState } from "react";
 
 import { accountService } from "@/features/account/account.service";
-import type { Account, MoneyMoveRequest } from "@/features/account/account.types";
+import type {
+  Account,
+  AccountCreateRequest,
+  AccountUpdateRequest,
+  MoneyMoveRequest,
+} from "@/features/account/account.types";
+import { authService } from "@/features/auth/auth.service";
+import type { JwtPrincipal } from "@/features/auth/auth.types";
 import { tradeService } from "@/features/trade/trade.service";
 import type { AccountTransaction, DividendRequest, TradeRequest } from "@/features/trade/trade.types";
 import { stockService } from "@/features/stock/stock.service";
@@ -40,6 +47,8 @@ export function useWorkspace() {
   const [positions, setPositions] = useState<Position[]>([]);
   const [transactions, setTransactions] = useState<AccountTransaction[]>([]);
   const [selectedAccountId, setSelectedAccountId] = useState<number | null>(null);
+  const [user, setUser] = useState<JwtPrincipal | null>(null);
+  const [autoRefreshInterval, setAutoRefreshIntervalState] = useState<number>(0);
 
   const selectedAccount = accounts.find((a) => a.id === selectedAccountId) ?? null;
 
@@ -103,6 +112,21 @@ export function useWorkspace() {
       void refresh();
     });
   }, [refresh]);
+
+  useEffect(() => {
+    authService
+      .me()
+      .then((u) => startTransition(() => setUser(u)))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!autoRefreshInterval) return;
+    const timer = setInterval(() => {
+      void refresh(selectedAccountId ?? undefined);
+    }, autoRefreshInterval);
+    return () => clearInterval(timer);
+  }, [autoRefreshInterval, selectedAccountId, refresh]);
 
   /**
    * 계좌를 선택하고 해당 계좌의 데이터를 즉시 갱신합니다.
@@ -183,6 +207,39 @@ export function useWorkspace() {
     [selectedAccountId, loadForAccount],
   );
 
+  /**
+   * 신규 계좌를 생성하고 목록을 갱신합니다.
+   */
+  const createAccount = useCallback(
+    async (payload: AccountCreateRequest) => {
+      await accountService.createAccount(payload);
+      await refresh(selectedAccountId ?? undefined);
+    },
+    [selectedAccountId, refresh],
+  );
+
+  /**
+   * 계좌 표시명을 수정하고 목록을 갱신합니다.
+   */
+  const updateAccount = useCallback(
+    async (accountId: number, payload: AccountUpdateRequest) => {
+      await accountService.updateAccount(accountId, payload);
+      await refresh(selectedAccountId ?? undefined);
+    },
+    [selectedAccountId, refresh],
+  );
+
+  /**
+   * 계좌를 폐쇄하고 목록을 갱신합니다.
+   */
+  const closeAccount = useCallback(
+    async (accountId: number) => {
+      await accountService.closeAccount(accountId);
+      await refresh(selectedAccountId === accountId ? undefined : selectedAccountId ?? undefined);
+    },
+    [selectedAccountId, refresh],
+  );
+
   return {
     isLoading,
     error,
@@ -193,6 +250,9 @@ export function useWorkspace() {
     transactions,
     selectedAccount,
     selectedAccountId,
+    user,
+    autoRefreshInterval,
+    setAutoRefreshInterval: setAutoRefreshIntervalState,
     selectAccount,
     refresh,
     deposit,
@@ -200,5 +260,8 @@ export function useWorkspace() {
     buy,
     sell,
     dividend,
+    createAccount,
+    updateAccount,
+    closeAccount,
   };
 }

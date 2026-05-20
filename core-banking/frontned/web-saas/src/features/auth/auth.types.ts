@@ -26,5 +26,10 @@ export interface SignupReceipt {
 }
 
 export interface JwtPrincipal {
+  id?: number;
+  email?: string;
+  name?: string;
+  organizationName?: string;
+  role?: string;
   [key: string]: unknown;
 }

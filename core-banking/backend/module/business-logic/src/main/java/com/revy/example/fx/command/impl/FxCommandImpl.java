@@ -1,0 +1,159 @@
+package com.revy.example.fx.command.impl;
+
+import com.revy.example.account.command.AccountCommand;
+import com.revy.example.account.command.dto.DepositCommand;
+import com.revy.example.account.command.dto.WithdrawCommand;
+import com.revy.example.account.reader.AccountReader;
+import com.revy.example.account.reader.dto.AccountResult;
+import com.revy.example.core.error.BusinessException;
+import com.revy.example.core.error.ErrorCode;
+import com.revy.example.domain.account.exception.AccountNotFoundException;
+import com.revy.example.domain.fx.Currency;
+import com.revy.example.domain.fx.ExchangeRate;
+import com.revy.example.domain.fx.FxConversion;
+import com.revy.example.domain.fx.exception.CurrencyNotActiveException;
+import com.revy.example.domain.fx.exception.CurrencyNotFoundException;
+import com.revy.example.domain.fx.exception.ExchangeRateNotFoundException;
+import com.revy.example.domain.fx.exception.InvalidFxPairException;
+import com.revy.example.fx.command.FxCommand;
+import com.revy.example.fx.command.dto.ConvertCurrencyCommand;
+import com.revy.example.fx.command.dto.QuoteExchangeRateCommand;
+import com.revy.example.fx.command.dto.RegisterCurrencyCommand;
+import com.revy.example.fx.reader.FxReader;
+import com.revy.example.fx.reader.dto.CurrencyResult;
+import com.revy.example.fx.reader.dto.ExchangeRateResult;
+import jakarta.persistence.EntityManager;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.Instant;
+import java.util.UUID;
+
+@Slf4j
+@Component
+@Transactional
+@RequiredArgsConstructor
+public class FxCommandImpl implements FxCommand {
+
+    private final EntityManager   entityManager;
+    private final FxReader        fxReader;
+    private final AccountReader   accountReader;
+    private final AccountCommand  accountCommand;
+
+    @Override
+    public Long registerCurrency(RegisterCurrencyCommand command) {
+        if (fxReader.existsCurrencyByCode(command.code())) {
+            throw new BusinessException(ErrorCode.CURRENCY_DUPLICATED, "code=" + command.code());
+        }
+        Currency c = Currency.register(command.code(), command.name(), command.symbol(), command.decimalPlaces());
+        entityManager.persist(c);
+        return c.getId();
+    }
+
+    @Override
+    public void deactivateCurrency(String code) {
+        loadCurrency(code).deactivate();
+    }
+
+    @Override
+    public void activateCurrency(String code) {
+        loadCurrency(code).activate();
+    }
+
+    @Override
+    public Long quoteRate(QuoteExchangeRateCommand command) {
+        // base/quote 통화 존재 검증
+        if (!fxReader.existsCurrencyByCode(command.baseCurrencyCode()))  throw new CurrencyNotFoundException(command.baseCurrencyCode());
+        if (!fxReader.existsCurrencyByCode(command.quoteCurrencyCode())) throw new CurrencyNotFoundException(command.quoteCurrencyCode());
+
+        ExchangeRate rate = ExchangeRate.quote(
+            command.baseCurrencyCode(), command.quoteCurrencyCode(),
+            command.rateType(), command.rate(), command.quotedAt(), command.source()
+        );
+        entityManager.persist(rate);
+        return rate.getId();
+    }
+
+    @Override
+    public Long convertCurrency(ConvertCurrencyCommand command) {
+        // 1. 멱등성 체크
+        if (fxReader.existsConversionByReferenceId(command.referenceId())) {
+            log.info("Duplicate FX conversion ignored. referenceId={}", command.referenceId());
+            return fxReader.findConversionByNumber(command.referenceId()).map(c -> c.id()).orElse(null);
+        }
+
+        // 2. 통화 활성 검증
+        CurrencyResult fromCur = loadCurrencyDto(command.fromCurrencyCode());
+        CurrencyResult toCur   = loadCurrencyDto(command.toCurrencyCode());
+        if (!fromCur.isActive() || !toCur.isActive()) throw new CurrencyNotActiveException();
+        if (fromCur.code().equals(toCur.code())) throw new InvalidFxPairException("same currency");
+
+        // 3. 계좌 검증 (통화 일치)
+        AccountResult fromAccount = accountReader.getAccountById(command.fromAccountId())
+            .orElseThrow(AccountNotFoundException::new);
+        AccountResult toAccount = accountReader.getAccountById(command.toAccountId())
+            .orElseThrow(AccountNotFoundException::new);
+
+        if (!fromAccount.currency().equals(command.fromCurrencyCode())) {
+            throw new InvalidFxPairException("fromAccount currency mismatch: " + fromAccount.currency());
+        }
+        if (!toAccount.currency().equals(command.toCurrencyCode())) {
+            throw new InvalidFxPairException("toAccount currency mismatch: " + toAccount.currency());
+        }
+
+        // 4. 환율 조회
+        ExchangeRateResult rate = fxReader.findLatestRate(
+                command.fromCurrencyCode(), command.toCurrencyCode(), command.rateType())
+            .orElseThrow(() -> new ExchangeRateNotFoundException(command.fromCurrencyCode(), command.toCurrencyCode()));
+
+        // 5. 환산 금액 계산
+        BigDecimal grossToAmount = command.fromAmount().multiply(rate.rate())
+            .setScale(toCur.decimalPlaces(), RoundingMode.HALF_UP);
+        BigDecimal netToAmount   = grossToAmount.subtract(command.fee())
+            .setScale(toCur.decimalPlaces(), RoundingMode.HALF_UP);
+
+        // 6. FxConversion 생성
+        String conversionNumber = "FX-" + UUID.randomUUID().toString().substring(0, 12).toUpperCase();
+        FxConversion conversion = FxConversion.request(
+            conversionNumber, command.fromAccountId(), command.toAccountId(),
+            command.fromCurrencyCode(), command.toCurrencyCode(),
+            command.fromAmount(), netToAmount,
+            rate.rate(), command.rateType(),
+            command.fee(), command.referenceId()
+        );
+        entityManager.persist(conversion);
+
+        // 7. 출금 — fromAccount
+        String debitRef  = command.referenceId() + "-DEBIT";
+        accountCommand.withdraw(new WithdrawCommand(command.fromAccountId(), command.fromAmount(), debitRef));
+
+        // 8. 입금 — toAccount (net 금액)
+        String creditRef = command.referenceId() + "-CREDIT";
+        accountCommand.deposit(new DepositCommand(command.toAccountId(), netToAmount, creditRef));
+
+        // 9. FxConversion complete — debit/credit AccountTx ID 연결 (단순화: refId로 추후 조회)
+        // 실제 운영에서는 AccountCommand가 반환하는 txId를 받도록 시그니처 확장 필요
+        conversion.complete(null, null, Instant.now());
+
+        return conversion.getId();
+    }
+
+    // ── 내부 ─────────────────────────────────────────────────────
+
+    private Currency loadCurrency(String code) {
+        return entityManager.createQuery(
+                "SELECT c FROM Currency c WHERE c.code = :code", Currency.class)
+            .setParameter("code", code)
+            .getResultStream().findFirst()
+            .orElseThrow(() -> new CurrencyNotFoundException(code));
+    }
+
+    private CurrencyResult loadCurrencyDto(String code) {
+        return fxReader.findCurrencyByCode(code)
+            .orElseThrow(() -> new CurrencyNotFoundException(code));
+    }
+}

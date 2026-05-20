@@ -1,0 +1,140 @@
+package com.revy.example.admin.api.fx.usecase.impl;
+
+import com.revy.example.admin.api.fx.payload.FxPayload;
+import com.revy.example.admin.api.fx.usecase.FxUseCase;
+import com.revy.example.core.common.ApiPageResponse;
+import com.revy.example.core.error.BusinessException;
+import com.revy.example.core.error.ErrorCode;
+import com.revy.example.fx.command.FxCommand;
+import com.revy.example.fx.command.dto.ConvertCurrencyCommand;
+import com.revy.example.fx.command.dto.QuoteExchangeRateCommand;
+import com.revy.example.fx.command.dto.RegisterCurrencyCommand;
+import com.revy.example.fx.reader.FxReader;
+import com.revy.example.fx.reader.dto.CurrencyResult;
+import com.revy.example.fx.reader.dto.ExchangeRateResult;
+import com.revy.example.fx.reader.dto.ExchangeRateSearchCondition;
+import com.revy.example.fx.reader.dto.FxConversionResult;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+
+@Slf4j
+@Component
+@RequiredArgsConstructor
+public class FxUseCaseImpl implements FxUseCase {
+
+    private final FxReader  fxReader;
+    private final FxCommand fxCommand;
+
+    // ── Currency ─────────────────────────────────────────────────
+
+    @Override
+    public FxPayload.CurrencyResponse registerCurrency(FxPayload.RegisterCurrencyRequest request) {
+        fxCommand.registerCurrency(new RegisterCurrencyCommand(
+            request.code(), request.name(), request.symbol(), request.decimalPlaces()
+        ));
+        return getCurrency(request.code());
+    }
+
+    @Override
+    public FxPayload.CurrencyResponse getCurrency(String code) {
+        return fxReader.findCurrencyByCode(code)
+            .map(this::toCurrencyResponse)
+            .orElseThrow(() -> new BusinessException(ErrorCode.ENTITY_NOT_FOUND, "Currency code=" + code));
+    }
+
+    @Override
+    public List<FxPayload.CurrencyResponse> listActiveCurrencies() {
+        return fxReader.findAllActiveCurrencies().stream().map(this::toCurrencyResponse).toList();
+    }
+
+    @Override
+    public void activateCurrency(String code) {
+        fxCommand.activateCurrency(code);
+    }
+
+    @Override
+    public void deactivateCurrency(String code) {
+        fxCommand.deactivateCurrency(code);
+    }
+
+    // ── ExchangeRate ─────────────────────────────────────────────
+
+    @Override
+    public FxPayload.ExchangeRateResponse quoteRate(FxPayload.QuoteRateRequest request) {
+        Long id = fxCommand.quoteRate(new QuoteExchangeRateCommand(
+            request.baseCurrencyCode(), request.quoteCurrencyCode(),
+            request.rateType(), request.rate(), request.quotedAt(), request.source()
+        ));
+        // 방금 저장한 rate 조회
+        return fxReader.findLatestRate(request.baseCurrencyCode(), request.quoteCurrencyCode(), request.rateType())
+            .map(this::toRateResponse)
+            .orElseThrow(() -> new BusinessException(ErrorCode.ENTITY_NOT_FOUND, "ExchangeRate id=" + id));
+    }
+
+    @Override
+    public ApiPageResponse<FxPayload.ExchangeRateResponse> searchRates(Pageable pageable,
+                                                                        FxPayload.RateSearchRequest request) {
+        ExchangeRateSearchCondition condition = ExchangeRateSearchCondition.builder()
+            .baseCurrencyCode(request.baseCurrencyCode())
+            .quoteCurrencyCode(request.quoteCurrencyCode())
+            .rateType(request.rateType())
+            .source(request.source())
+            .quotedFrom(request.quotedFrom())
+            .quotedTo(request.quotedTo())
+            .build();
+        Page<ExchangeRateResult> page = fxReader.searchRates(pageable, condition);
+        return ApiPageResponse.of(
+            page.getContent().stream().map(this::toRateResponse).toList(),
+            page.getTotalElements(), page.getNumber(), page.getSize()
+        );
+    }
+
+    // ── FxConversion ─────────────────────────────────────────────
+
+    @Override
+    public FxPayload.ConversionResponse convert(FxPayload.ConvertRequest request) {
+        Long id = fxCommand.convertCurrency(new ConvertCurrencyCommand(
+            request.fromAccountId(), request.toAccountId(),
+            request.fromCurrencyCode(), request.toCurrencyCode(),
+            request.fromAmount(), request.rateType(), request.fee(), request.referenceId()
+        ));
+        return getConversion(id);
+    }
+
+    @Override
+    public FxPayload.ConversionResponse getConversion(Long id) {
+        return fxReader.findConversionById(id)
+            .map(this::toConversionResponse)
+            .orElseThrow(() -> new BusinessException(ErrorCode.ENTITY_NOT_FOUND, "FxConversion id=" + id));
+    }
+
+    // ── Mapper ────────────────────────────────────────────────────
+
+    private FxPayload.CurrencyResponse toCurrencyResponse(CurrencyResult r) {
+        return new FxPayload.CurrencyResponse(
+            r.id(), r.code(), r.name(), r.symbol(), r.decimalPlaces(), r.isActive()
+        );
+    }
+
+    private FxPayload.ExchangeRateResponse toRateResponse(ExchangeRateResult r) {
+        return new FxPayload.ExchangeRateResponse(
+            r.id(), r.baseCurrencyCode(), r.quoteCurrencyCode(),
+            r.rateType(), r.rate(), r.quotedAt(), r.source()
+        );
+    }
+
+    private FxPayload.ConversionResponse toConversionResponse(FxConversionResult r) {
+        return new FxPayload.ConversionResponse(
+            r.id(), r.conversionNumber(), r.fromAccountId(), r.toAccountId(),
+            r.fromCurrencyCode(), r.toCurrencyCode(),
+            r.fromAmount(), r.toAmount(), r.appliedRate(), r.appliedRateType(),
+            r.fee(), r.status(), r.debitTxId(), r.creditTxId(),
+            r.executedAt(), r.referenceId()
+        );
+    }
+}

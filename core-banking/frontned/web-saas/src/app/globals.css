@@ -143,6 +143,20 @@
   --bank-steel: #31423a;
 }
 
+.dark {
+  --bank-ink: #e8e4da;
+  --bank-paper: #0e1512;
+  --bank-surface: #151f1a;
+  --bank-line: rgba(232, 228, 218, 0.1);
+  --bank-muted: #7a8a7f;
+  --bank-accent: #34d399;
+  --bank-accent-strong: #6ee7b7;
+  --bank-warn: #fbbf24;
+  --bank-loss: #f87171;
+  --bank-gain: #4ade80;
+  --bank-steel: #a5b4ab;
+}
+
 body {
   color: var(--bank-ink);
 }
@@ -785,10 +799,38 @@ body {
   gap: 1rem;
 }
 
-.bank-form.trade {
+/* ─── Trade form layout ─── */
+
+.bank-trade-fields {
   display: grid;
-  grid-template-columns: 1.4fr 1.6fr repeat(4, minmax(7rem, 1fr)) auto;
-  align-items: end;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.bank-trade-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.bank-trade-field--full {
+  grid-column: 1 / -1;
+}
+
+.bank-trade-field--full .bank-select {
+  width: 100%;
+}
+
+.bank-trade-label {
+  font-size: 0.78rem;
+  font-weight: 520;
+  color: var(--bank-muted);
+  letter-spacing: 0.01em;
+}
+
+.bank-trade-submit {
+  width: 100%;
+  margin-top: 0.25rem;
 }
 
 .bank-app-shell {
@@ -981,8 +1023,8 @@ body {
 
 .bank-content-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.55fr) minmax(320px, 0.85fr);
-  gap: 1rem;
+  grid-template-columns: minmax(0, 1.4fr) minmax(300px, 0.9fr);
+  gap: 1.25rem;
   align-items: start;
 }
 
@@ -1151,23 +1193,24 @@ body {
 
 .saas-shell {
   min-height: 100svh;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
   background: var(--bank-paper);
 }
 
-.saas-topnav {
+/* ─── Left sidebar ─── */
+
+.saas-sidebar {
   position: sticky;
   top: 0;
-  z-index: 20;
+  height: 100svh;
   display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  height: 4rem;
-  padding: 0 clamp(1rem, 3vw, 3rem);
-  border-bottom: 1px solid var(--bank-line);
-  background: rgba(255, 253, 247, 0.95);
-  backdrop-filter: blur(16px);
+  flex-direction: column;
+  padding: 1.25rem 1rem;
+  border-right: 1px solid var(--bank-line);
+  background: var(--bank-surface);
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .saas-brand {
@@ -1179,6 +1222,7 @@ body {
   text-decoration: none;
   color: var(--bank-ink);
   flex-shrink: 0;
+  padding: 0.25rem 0.5rem;
 }
 
 .saas-brand-mark {
@@ -1191,54 +1235,113 @@ body {
   font-weight: 760;
   color: var(--bank-ink);
   background: #f7c66a;
+  flex-shrink: 0;
 }
 
-.saas-nav {
+.saas-brand-name {
+  font-size: 0.92rem;
+}
+
+.saas-sidebar-nav {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 0.2rem;
+  margin-top: 1.75rem;
   flex: 1;
 }
 
-.saas-nav a {
+.saas-sidebar-nav a {
   display: flex;
   align-items: center;
-  height: 2rem;
+  gap: 0.7rem;
+  min-height: 2.7rem;
   padding: 0 0.75rem;
-  border-radius: 0.55rem;
+  border-radius: 0.75rem;
   font-size: 0.9rem;
   color: var(--bank-muted);
   text-decoration: none;
   transition: color 150ms ease, background 150ms ease;
 }
 
-.saas-nav a:hover {
+.saas-sidebar-nav a:hover {
   color: var(--bank-ink);
   background: rgba(23, 32, 28, 0.06);
 }
 
-.saas-nav a[data-active="true"] {
+.saas-sidebar-nav a[data-active="true"] {
   color: var(--bank-accent);
   background: rgba(15, 118, 110, 0.09);
-  font-weight: 580;
+  font-weight: 600;
 }
 
-.saas-topnav-right {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-left: auto;
+.saas-sidebar-nav svg {
+  width: 1.1rem;
+  height: 1.1rem;
   flex-shrink: 0;
 }
 
+/* ─── Sidebar footer ─── */
+
+.saas-sidebar-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: auto;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--bank-line);
+}
+
+.saas-sidebar-micro-label {
+  display: block;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--bank-muted);
+  margin-bottom: 0.35rem;
+}
+
+.saas-account-select-wrap {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0.25rem;
+}
+
+.saas-sidebar-select {
+  width: 100%;
+  min-width: 0;
+}
+
+.saas-sidebar-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.saas-sidebar-btn {
+  width: 100% !important;
+  justify-content: flex-start !important;
+  gap: 0.6rem !important;
+  color: var(--bank-muted) !important;
+  font-size: 0.875rem !important;
+}
+
+.saas-sidebar-btn:hover {
+  color: var(--bank-ink) !important;
+}
+
+.saas-sidebar-btn svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* ─── Content area ─── */
+
 .saas-page {
-  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  padding: clamp(1.5rem, 3vw, 2.5rem) clamp(1rem, 3vw, 3rem);
-  max-width: 1320px;
-  margin: 0 auto;
+  padding: clamp(1.5rem, 3vw, 2.5rem) clamp(1rem, 3vw, 2.5rem);
+  max-width: 1160px;
   width: 100%;
 }
 
@@ -1487,30 +1590,78 @@ body {
   .bank-content-grid {
     grid-template-columns: 1fr;
   }
+}
 
-  .bank-form.trade {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+@media (max-width: 900px) {
+  .saas-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .saas-sidebar {
+    position: sticky;
+    top: 0;
+    height: auto;
+    min-height: 0;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0 1rem;
+    height: 3.5rem;
+    border-right: none;
+    border-bottom: 1px solid var(--bank-line);
+    overflow: visible;
+    z-index: 20;
+  }
+
+  .saas-brand-name {
+    display: none;
+  }
+
+  .saas-sidebar-nav {
+    flex-direction: row;
+    gap: 0.15rem;
+    margin-top: 0;
+    flex: 1;
+  }
+
+  .saas-sidebar-nav a {
+    min-height: 2rem;
+    padding: 0 0.55rem;
+    gap: 0;
+  }
+
+  .saas-sidebar-nav a span {
+    display: none;
+  }
+
+  .saas-sidebar-footer {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+    gap: 0.25rem;
+  }
+
+  .saas-account-select-wrap {
+    display: none;
+  }
+
+  .saas-sidebar-actions {
+    flex-direction: row;
+  }
+
+  .saas-sidebar-btn {
+    width: auto !important;
+    padding: 0 0.5rem !important;
+  }
+
+  .saas-sidebar-btn span {
+    display: none;
   }
 }
 
 @media (max-width: 760px) {
-  .saas-topnav {
-    flex-wrap: wrap;
-    height: auto;
-    padding-block: 0.75rem;
-    gap: 0.5rem;
-  }
-
-  .saas-nav {
-    order: 3;
-    width: 100%;
-    flex: none;
-  }
-
-  .saas-topnav-right {
-    margin-left: auto;
-  }
-
   .saas-hero {
     flex-direction: column;
   }
@@ -1616,5 +1767,479 @@ body {
 
   .bank-form.trade {
     grid-template-columns: 1fr;
+  }
+}
+
+/* ========= User Profile ========= */
+
+.saas-user-profile {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.6rem 0.5rem;
+  border-radius: 0.75rem;
+  margin-bottom: 0.25rem;
+  background: rgba(23, 32, 28, 0.04);
+}
+
+.dark .saas-user-profile {
+  background: rgba(232, 228, 218, 0.06);
+}
+
+.saas-user-avatar {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  aspect-ratio: 1;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #fffdf7;
+  background: var(--bank-accent);
+  flex-shrink: 0;
+}
+
+.saas-user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.saas-user-info strong {
+  font-size: 0.85rem;
+  font-weight: 620;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.saas-user-info span {
+  font-size: 0.72rem;
+  color: var(--bank-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ========= AccountPanel CRUD ========= */
+
+.bank-panel-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.bank-account-row-wrap {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+}
+
+.bank-account-row-wrap .bank-account-row {
+  flex: 1;
+  border-radius: 0.85rem 0 0 0.85rem;
+}
+
+.bank-account-row-menu {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.1rem;
+  padding: 0.25rem 0.25rem;
+  border: 1px solid var(--bank-line);
+  border-left: none;
+  border-radius: 0 0.85rem 0.85rem 0;
+  background: var(--bank-surface);
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
+.bank-account-row-wrap:hover .bank-account-row-menu {
+  opacity: 1;
+}
+
+.bank-account-action-btn {
+  width: 1.8rem !important;
+  height: 1.8rem !important;
+  padding: 0 !important;
+  color: var(--bank-muted) !important;
+}
+
+.bank-account-action-btn:hover {
+  color: var(--bank-ink) !important;
+}
+
+.bank-account-action-btn--danger:hover {
+  color: var(--bank-loss) !important;
+}
+
+.bank-account-edit {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--bank-accent);
+  border-radius: 0.85rem;
+  background: rgba(15, 118, 110, 0.05);
+}
+
+.bank-account-edit-actions {
+  display: flex;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.bank-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.5rem;
+}
+
+.account-create-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  padding-top: 0.5rem;
+}
+
+/* ========= LedgerPanel Filter ========= */
+
+.ledger-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.ledger-filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  flex: 1;
+}
+
+.ledger-chip {
+  height: 1.75rem;
+  padding: 0 0.7rem;
+  border: 1px solid var(--bank-line);
+  border-radius: 999px;
+  font-size: 0.78rem;
+  color: var(--bank-muted);
+  background: transparent;
+  transition: all 150ms ease;
+  cursor: pointer;
+}
+
+.ledger-chip:hover {
+  border-color: var(--bank-accent);
+  color: var(--bank-ink);
+}
+
+.ledger-chip[data-active="true"] {
+  border-color: var(--bank-accent);
+  background: rgba(15, 118, 110, 0.09);
+  color: var(--bank-accent);
+  font-weight: 600;
+}
+
+.ledger-filter-dates {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.ledger-date-input {
+  width: 8.5rem;
+  min-width: 0;
+  padding: 0 0.5rem;
+  font-size: 0.8rem;
+}
+
+.ledger-date-sep {
+  color: var(--bank-muted);
+  font-size: 0.8rem;
+}
+
+.ledger-row:hover {
+  background: rgba(15, 118, 110, 0.04);
+}
+
+.ledger-ref {
+  font-size: 0.78rem;
+  color: var(--bank-muted);
+  font-family: var(--font-mono);
+}
+
+/* ========= PositionTable ========= */
+
+.position-table-wrap {
+  overflow-x: auto;
+}
+
+.position-name {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--bank-muted);
+  margin-top: 0.1rem;
+}
+
+.position-pnl {
+  font-weight: 640;
+}
+
+.position-pnl[data-tone="positive"] {
+  color: var(--bank-gain);
+}
+
+.position-pnl[data-tone="negative"] {
+  color: var(--bank-loss);
+}
+
+.position-pnl em {
+  display: block;
+  font-style: normal;
+  font-size: 0.72rem;
+  font-weight: 400;
+  margin-top: 0.1rem;
+}
+
+/* ========= StockDetailPanel ========= */
+
+.stock-detail-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.stock-detail-head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.stock-detail-ticker {
+  font-size: 0.8rem;
+  font-weight: 640;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--bank-accent);
+}
+
+.stock-detail-name {
+  font-size: 1.25rem !important;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.stock-detail-price {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 1rem;
+  border-radius: 0.85rem;
+  background: rgba(15, 118, 110, 0.07);
+}
+
+.stock-detail-price-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--bank-muted);
+}
+
+.stock-detail-price-value {
+  font-size: 1.8rem;
+  font-weight: 740;
+  letter-spacing: -0.02em;
+  color: var(--bank-ink);
+}
+
+.stock-detail-list {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--bank-line);
+  border-radius: 0.85rem;
+  overflow: hidden;
+}
+
+.stock-detail-list div {
+  display: grid;
+  grid-template-columns: 6rem 1fr;
+  gap: 0.75rem;
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid var(--bank-line);
+}
+
+.stock-detail-list div:last-child {
+  border-bottom: 0;
+}
+
+.stock-detail-list dt {
+  font-size: 0.78rem;
+  color: var(--bank-muted);
+}
+
+.stock-detail-list dd {
+  font-size: 0.88rem;
+  font-weight: 540;
+}
+
+.stock-detail-action {
+  width: 100%;
+}
+
+/* ========= TransactionDetailDialog ========= */
+
+.tx-detail-dialog {
+  max-width: 26rem;
+}
+
+.tx-detail-list {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--bank-line);
+  border-radius: 0.85rem;
+  overflow: hidden;
+  margin-top: 0.5rem;
+}
+
+.tx-detail-list div {
+  display: grid;
+  grid-template-columns: 5.5rem 1fr;
+  gap: 0.75rem;
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid var(--bank-line);
+}
+
+.tx-detail-list div:last-child {
+  border-bottom: 0;
+}
+
+.tx-detail-list dt {
+  font-size: 0.78rem;
+  color: var(--bank-muted);
+}
+
+.tx-detail-list dd {
+  font-size: 0.88rem;
+  font-weight: 540;
+}
+
+.tx-detail-ref {
+  font-family: var(--font-mono);
+  font-size: 0.78rem !important;
+}
+
+.tx-detail-amount {
+  font-weight: 720 !important;
+}
+
+/* ========= AllocationChart ========= */
+
+.alloc-chart-wrap {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  align-items: center;
+}
+
+.alloc-chart-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.alloc-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+}
+
+.alloc-legend-dot {
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.alloc-legend-name {
+  flex: 1;
+  font-weight: 520;
+}
+
+.alloc-legend-pct {
+  color: var(--bank-muted);
+  font-size: 0.78rem;
+}
+
+/* ========= Dashboard bottom grid ========= */
+
+.dashboard-bottom-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.3fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+/* ========= Workspace empty state ========= */
+
+.workspace-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  min-height: 60svh;
+  text-align: center;
+  padding: 2rem;
+  animation: bank-rise 480ms ease-out both;
+}
+
+.workspace-empty-icon {
+  font-size: 4rem;
+  line-height: 1;
+}
+
+.workspace-empty-title {
+  font-size: 1.75rem;
+  font-weight: 720;
+  letter-spacing: -0.01em;
+}
+
+.workspace-empty-desc {
+  max-width: 380px;
+  color: var(--bank-muted);
+  line-height: 1.7;
+}
+
+@media (max-width: 760px) {
+  .alloc-chart-wrap,
+  .dashboard-bottom-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ledger-filter {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .ledger-filter-dates {
+    width: 100%;
+  }
+
+  .ledger-date-input {
+    flex: 1;
+    width: auto;
+  }
+
+  .bank-account-row-menu {
+    opacity: 1;
   }
 }
