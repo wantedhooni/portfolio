@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+    <!-- 1) 플래그: 미정의면 false -->
+    <springProperty name="LOGSTASH_ENABLE" scope="context"  source="logstash.enabled" defaultValue="false"/>
+    <springProperty name="LOGSTASH_HOST" scope="context"  source="logstash.host" defaultValue="127.0.0.1:4560"/>
+    <springProperty name="APP_NAME" scope="context"  source="spring.application.name" defaultValue="default-app"/>
+    <springProperty name="ENV" scope="context"  source="spring.profiles.active" defaultValue="local"/>
+    <define name="HOST_NAME" class="ch.qos.logback.core.property.CanonicalHostNamePropertyDefiner"/>
+
+    <!-- LOGSTASH_HOST가 정의된 경우에만 LOGSTASH appender 생성/부착 -->
+    <if condition='property("LOGSTASH_ENABLE").equalsIgnoreCase("true")'>
+        <then>
+            <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+                <destination>${LOGSTASH_HOST}</destination>
+
+                <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                    <!-- MDC 전부 포함은 기본 동작이지만, 명시 가능 -->
+                    <includeMdc>true</includeMdc>
+
+                    <!-- 예외 + 스택트레이스 -->
+                    <stackTrace>
+                        <!-- 원하면 단축/필터 가능 -->
+                        <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
+                            <maxDepthPerThrowable>200</maxDepthPerThrowable>
+                            <maxLength>20000</maxLength>
+                            <rootCauseFirst>true</rootCauseFirst>
+                        </throwableConverter>
+                    </stackTrace>
+                </encoder>
+
+                <ringBufferSize>8192</ringBufferSize>
+                <appendTimeout>0</appendTimeout>
+            </appender>
+        </then>
+    </if>
+
+    <!-- TRACE > DEBUG > INFO > WARN > ERROR > OFF -->
+    <!-- Root Logger -->
+    <if condition='property("LOGSTASH_ENABLE").equalsIgnoreCase("true")'>
+        <then>
+            <root level="INFO">
+                <appender-ref ref="CONSOLE"/>
+                <appender-ref ref="LOGSTASH"/>
+            </root>
+        </then>
+        <else>
+            <root level="INFO">
+                <appender-ref ref="CONSOLE"/>
+            </root>
+        </else>
+    </if>
+
+</configuration>

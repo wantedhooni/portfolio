@@ -1,17 +1,11 @@
 #!/bin/bash
 set -e
 
-here=$(pwd)
 #redis
-cd ./infra/redis
-docker compose up -d
-
-cd "$here"
-# pg
-cd ./infra/pgpool
-docker compose up -d
-
-cd "$here"
-# metrics
-cd ./infra/metrics
-docker compose up -d
+docker compose -f ./infra/redis/docker-compose.yml  up -d
+#pggool
+docker compose -f ./infra/pgpool/docker-compose.yml up -d
+# metrics()
+docker compose -f ./infra/metrics/docker-compose.yml up -d
+#ELK
+docker compose -f ./infra/elk/docker-compose.yml up -d

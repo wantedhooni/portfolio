@@ -48,3 +48,7 @@ app:
 logging:
   level:
     org.hibernate.SQL: debug
+
+logstash:
+  enabled: true
+  host: ${LOGSTASH_HOST:127.0.0.1:4560}

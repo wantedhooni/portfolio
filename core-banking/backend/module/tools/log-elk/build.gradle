@@ -1,3 +1,7 @@
 dependencies {
-
+// log
+    // Source: https://mvnrepository.com/artifact/org.codehaus.janino/janino
+    implementation("org.codehaus.janino:janino:${janinoVersion}")
+    // Source: https://mvnrepository.com/artifact/net.logstash.logback/logstash-logback-encoder
+    implementation("net.logstash.logback:logstash-logback-encoder:${logstashLogbackEncoderVersion}")
 }

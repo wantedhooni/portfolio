@@ -7,6 +7,8 @@ buildscript {
         querydslVersion = '5.1.0'
         springDocVersion  = '3.0.0'
         jjwtVersion = '0.12.6'
+        janinoVersion = '3.1.12'
+        logstashLogbackEncoderVersion = '9.0'
     }
 }
 

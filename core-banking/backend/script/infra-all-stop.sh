@@ -1,17 +1,10 @@
 #!/bin/bash
 set -e
 
-here=$(pwd)
-#redis
-cd ./infra/redis
-docker compose down -v
-
-cd "$here"
-# pg
-cd ./infra/pgpool
-docker compose down -v
-
-cd "$here"
-# pg
-cd ./infra/metrics
-docker compose down -v
+docker compose -f ./infra/redis/docker-compose.yml down -v
+#pggool
+docker compose -f ./infra/pgpool/docker-compose.yml down -v
+# metrics()
+docker compose -f ./infra/metrics/docker-compose.yml down -v
+#ELK
+docker compose -f ./infra/elk/docker-compose.yml down -v
