@@ -2,7 +2,9 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
-    allowedDevOrigins: ['*']
+    allowedDevOrigins: [
+        '*.revy-won.dev',
+        'localhost']
 };
 
 export default nextConfig;
