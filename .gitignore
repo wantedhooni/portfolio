@@ -75,4 +75,4 @@ gradle-app.setting
 .idea
 bin
 **/bin/
-
+.playwright-mcp
