@@ -78,4 +78,5 @@ bin
 
 # Node
 .env
+.env.local
 .playwright-mcp
