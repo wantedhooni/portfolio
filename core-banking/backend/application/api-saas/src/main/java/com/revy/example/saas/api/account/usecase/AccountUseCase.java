@@ -25,6 +25,9 @@ public interface AccountUseCase {
 
     void withdraw(Long userId, Long accountId, AccountPayload.WithdrawRequest request);
 
+    /** 계좌이체 — 출금 계좌(accountId)는 본인 소유여야 함, 입금 계좌는 누구든 가능 */
+    void transfer(Long userId, Long accountId, AccountPayload.TransferRequest request);
+
     ApiPageResponse<AccountTxPayload.ModelResponse> searchTransactions(Long userId, Long accountId,
                                                                        Pageable pageable,
                                                                        AccountTxPayload.SearchRequest request);

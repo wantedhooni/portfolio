@@ -21,4 +21,6 @@ public interface AccountUseCase {
     void deposit(Long id, AccountPayload.DepositRequest request);
 
     void withdraw(Long id, AccountPayload.WithdrawRequest request);
+
+    void transfer(Long id, AccountPayload.TransferRequest request);
 }

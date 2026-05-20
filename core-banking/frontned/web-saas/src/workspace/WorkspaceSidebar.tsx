@@ -6,11 +6,14 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   ArrowLeftRight,
   CreditCard,
+  HeartHandshake,
   LayoutDashboard,
   LogOut,
   Moon,
   RefreshCw,
+  Repeat,
   Search,
+  Send,
   Sun,
 } from "lucide-react";
 import { useTheme } from "next-themes";
@@ -23,6 +26,9 @@ import { Button } from "@/components/ui/button";
 const NAV = [
   { href: "/workspace", label: "대시보드", icon: LayoutDashboard },
   { href: "/workspace/accounts", label: "계좌 관리", icon: CreditCard },
+  { href: "/workspace/transfer", label: "계좌이체", icon: Send },
+  { href: "/workspace/fx", label: "환전", icon: Repeat },
+  { href: "/workspace/insurance", label: "보험", icon: HeartHandshake },
   { href: "/workspace/trades", label: "거래 처리", icon: ArrowLeftRight },
   { href: "/workspace/stocks", label: "종목 조회", icon: Search },
 ] as const;

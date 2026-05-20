@@ -27,6 +27,10 @@ public class SecurityConfig {
         "/v3/api-docs/**",
         "/api/v1/auth/signup",
         "/api/v1/auth/login",
+        "/api/v1/fx/currencies",
+        "/api/v1/fx/rate/latest",
+        "/api/v1/insurance/products",
+        "/api/v1/insurance/products/**",
         "/actuator/health"};
 
     public SecurityConfig(CorsConfigurationSource corsConfigurationSource) {

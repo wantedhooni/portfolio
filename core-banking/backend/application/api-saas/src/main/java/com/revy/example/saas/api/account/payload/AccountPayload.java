@@ -57,4 +57,12 @@ public class AccountPayload {
             @NotNull @DecimalMin(value = "0.0", inclusive = false) BigDecimal amount,
             @NotBlank String referenceId
     ) {}
+
+    @Schema(name = "SaasAccountPayload.TransferRequest")
+    public record TransferRequest(
+            @NotNull Long toAccountId,
+            @NotNull @DecimalMin(value = "0.0", inclusive = false) BigDecimal amount,
+            @DecimalMin(value = "0.0") BigDecimal fee,
+            @NotBlank String referenceId
+    ) {}
 }

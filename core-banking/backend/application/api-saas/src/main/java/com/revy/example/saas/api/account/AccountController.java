@@ -98,6 +98,16 @@ public class AccountController {
         return ApiResponse.ok();
     }
 
+    @PostMapping("/{accountId}/transfer")
+    public ApiResponse<Void> transfer(
+            @AuthenticationPrincipal JwtPrincipal principal,
+            @PathVariable Long accountId,
+            @Valid @RequestBody AccountPayload.TransferRequest request
+    ) {
+        useCase.transfer(principal.id(), accountId, request);
+        return ApiResponse.ok();
+    }
+
     @GetMapping("/{accountId}/transactions")
     public ApiResponse<ApiPageResponse<AccountTxPayload.ModelResponse>> searchTransactions(
             @AuthenticationPrincipal JwtPrincipal principal,

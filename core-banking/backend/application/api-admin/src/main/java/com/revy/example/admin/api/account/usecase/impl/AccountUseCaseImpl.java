@@ -3,7 +3,10 @@ package com.revy.example.admin.api.account.usecase.impl;
 import com.revy.example.account.command.AccountCommand;
 import com.revy.example.account.command.dto.DepositCommand;
 import com.revy.example.account.command.dto.OpenAccountCommand;
+import com.revy.example.account.command.dto.TransferCommand;
 import com.revy.example.account.command.dto.WithdrawCommand;
+
+import java.math.BigDecimal;
 import com.revy.example.account.reader.AccountReader;
 import com.revy.example.account.reader.dto.AccountResult;
 import com.revy.example.account.reader.dto.AccountSearchCondition;
@@ -87,6 +90,17 @@ public class AccountUseCaseImpl implements AccountUseCase {
     @Override
     public void withdraw(Long id, AccountPayload.WithdrawRequest request) {
         accountCommand.withdraw(new WithdrawCommand(id, request.amount(), request.referenceId()));
+    }
+
+    @Override
+    public void transfer(Long id, AccountPayload.TransferRequest request) {
+        accountCommand.transfer(new TransferCommand(
+            id,
+            request.toAccountId(),
+            request.amount(),
+            request.fee() == null ? BigDecimal.ZERO : request.fee(),
+            request.referenceId()
+        ));
     }
 
     private AccountPayload.ModelResponse toModelResponse(AccountResult account) {

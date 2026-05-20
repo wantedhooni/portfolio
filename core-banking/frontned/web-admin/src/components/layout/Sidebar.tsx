@@ -4,36 +4,101 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { logout } from '@/features/auth/service';
 import {
+  ArrowLeftRightIcon,
+  BookOpenIcon,
   BriefcaseIcon,
+  CalendarRangeIcon,
+  CoinsIcon,
+  FileTextIcon,
+  HeartHandshakeIcon,
+  LandmarkIcon,
   LayoutDashboardIcon,
   LineChartIcon,
   LogOutIcon,
+  PackageIcon,
   ReceiptIcon,
+  RepeatIcon,
+  ScaleIcon,
+  ShieldCheckIcon,
   ShieldIcon,
+  ShieldPlusIcon,
   TrendingUpIcon,
-  UserRoundIcon
-
+  UserRoundIcon,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 
-const NAV_ITEMS = [
-  { href: '/dashboard',                     label: '대시보드',    icon: LayoutDashboardIcon },
-  { href: '/dashboard/user',                label: '사용자 관리', icon: UserRoundIcon },
-  { href: '/dashboard/account',             label: '계좌 관리',   icon: BriefcaseIcon },
-  { href: '/dashboard/account-transaction', label: '거래 내역',   icon: ReceiptIcon },
-  { href: '/dashboard/stock',               label: '종목 관리',   icon: TrendingUpIcon },
-  { href: '/dashboard/portfolio',           label: '포트폴리오',  icon: LineChartIcon },
-  { href: '/dashboard/admin',               label: '어드민 관리', icon: ShieldIcon },
+interface NavItem {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+}
+
+interface NavGroup {
+  label: string;
+  items: NavItem[];
+}
+
+const NAV_GROUPS: NavGroup[] = [
+  {
+    label: '일반',
+    items: [
+      { href: '/dashboard',                     label: '대시보드',    icon: LayoutDashboardIcon },
+      { href: '/dashboard/user',                label: '사용자 관리', icon: UserRoundIcon },
+      { href: '/dashboard/admin',               label: '어드민 관리', icon: ShieldIcon },
+    ],
+  },
+  {
+    label: '계좌 · 거래',
+    items: [
+      { href: '/dashboard/account',             label: '계좌 관리',   icon: BriefcaseIcon },
+      { href: '/dashboard/account/transfer',    label: '계좌이체',    icon: ArrowLeftRightIcon },
+      { href: '/dashboard/account-transaction', label: '거래 내역',   icon: ReceiptIcon },
+    ],
+  },
+  {
+    label: '주식',
+    items: [
+      { href: '/dashboard/stock',               label: '종목 관리',   icon: TrendingUpIcon },
+      { href: '/dashboard/portfolio',           label: '포트폴리오',  icon: LineChartIcon },
+    ],
+  },
+  {
+    label: '외환',
+    items: [
+      { href: '/dashboard/fx/currency',         label: '통화',        icon: CoinsIcon },
+      { href: '/dashboard/fx/rate',             label: '환율',        icon: TrendingUpIcon },
+      { href: '/dashboard/fx/conversion',       label: '환전',        icon: RepeatIcon },
+    ],
+  },
+  {
+    label: '보험',
+    items: [
+      { href: '/dashboard/insurance/product',   label: '보험 상품',   icon: PackageIcon },
+      { href: '/dashboard/insurance/policy',    label: '보험 증권',   icon: ShieldCheckIcon },
+      { href: '/dashboard/insurance/claim',     label: '보험금 청구', icon: HeartHandshakeIcon },
+    ],
+  },
+  {
+    label: '원장',
+    items: [
+      { href: '/dashboard/ledger/account',       label: '계정과목',   icon: BookOpenIcon },
+      { href: '/dashboard/ledger/period',        label: '회계기간',   icon: CalendarRangeIcon },
+      { href: '/dashboard/ledger/journal',       label: '분개',       icon: FileTextIcon },
+      { href: '/dashboard/ledger/trial-balance', label: '시산표',     icon: ScaleIcon },
+    ],
+  },
 ];
 
 export default function AppSidebar() {
@@ -50,42 +115,44 @@ export default function AppSidebar() {
       <SidebarHeader>
         <div className="flex items-center gap-2.5 px-2 py-1">
           <div className="size-7 rounded-lg bg-primary flex items-center justify-center shrink-0">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <rect x="1" y="1" width="5" height="5" rx="1" fill="white" fillOpacity="0.9"/>
-              <rect x="8" y="1" width="5" height="5" rx="1" fill="white" fillOpacity="0.6"/>
-              <rect x="1" y="8" width="5" height="5" rx="1" fill="white" fillOpacity="0.6"/>
-              <rect x="8" y="8" width="5" height="5" rx="1" fill="white" fillOpacity="0.9"/>
-            </svg>
+            <LandmarkIcon className="size-4 text-primary-foreground" />
           </div>
-          <span className="text-sm font-semibold">Admin Panel</span>
+          <span className="text-sm font-semibold">Revy Bank Admin</span>
         </div>
       </SidebarHeader>
 
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {NAV_ITEMS.map(({ href, label, icon: Icon }) => (
-                <SidebarMenuItem key={href}>
-                  <SidebarMenuButton asChild isActive={pathname === href}>
-                    <Link href={href}>
-                      <Icon />
-                      {label}
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {NAV_GROUPS.map((group) => (
+          <SidebarGroup key={group.label}>
+            <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {group.items.map(({ href, label, icon: Icon }) => (
+                  <SidebarMenuItem key={href}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={pathname === href || pathname.startsWith(href + '/')}
+                      tooltip={label}
+                    >
+                      <Link href={href}>
+                        <Icon />
+                        <span>{label}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
 
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={handleLogout}>
+            <SidebarMenuButton onClick={handleLogout} tooltip="로그아웃">
               <LogOutIcon />
-              로그아웃
+              <span>로그아웃</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

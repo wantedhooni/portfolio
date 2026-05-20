@@ -79,4 +79,13 @@ public class AccountController extends
         useCase.withdraw(id, request);
         return ResponseEntity.ok(ApiResponse.ok());
     }
+
+    @PostMapping("/{id}/transfer")
+    public ResponseEntity<ApiResponse<Void>> transfer(
+            @PathVariable Long id,
+            @Valid @RequestBody AccountPayload.TransferRequest request
+    ) {
+        useCase.transfer(id, request);
+        return ResponseEntity.ok(ApiResponse.ok());
+    }
 }

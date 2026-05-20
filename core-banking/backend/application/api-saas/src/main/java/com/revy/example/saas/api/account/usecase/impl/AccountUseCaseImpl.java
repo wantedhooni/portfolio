@@ -3,7 +3,9 @@ package com.revy.example.saas.api.account.usecase.impl;
 import com.revy.example.account.command.AccountCommand;
 import com.revy.example.account.command.dto.DepositCommand;
 import com.revy.example.account.command.dto.OpenAccountCommand;
+import com.revy.example.account.command.dto.TransferCommand;
 import com.revy.example.account.command.dto.WithdrawCommand;
+import java.math.BigDecimal;
 import com.revy.example.account.reader.AccountReader;
 import com.revy.example.account.reader.dto.AccountResult;
 import com.revy.example.account.reader.dto.AccountSearchCondition;
@@ -95,6 +97,19 @@ public class AccountUseCaseImpl implements AccountUseCase {
     public void withdraw(Long userId, Long accountId, AccountPayload.WithdrawRequest request) {
         ownershipValidator.requireOwner(userId, accountId);
         accountCommand.withdraw(new WithdrawCommand(accountId, request.amount(), request.referenceId()));
+    }
+
+    @Override
+    public void transfer(Long userId, Long accountId, AccountPayload.TransferRequest request) {
+        // 출금 계좌는 본인 소유여야 한다. 입금 계좌는 누구의 계좌든 가능 (타인 송금 허용)
+        ownershipValidator.requireOwner(userId, accountId);
+        accountCommand.transfer(new TransferCommand(
+            accountId,
+            request.toAccountId(),
+            request.amount(),
+            request.fee() == null ? BigDecimal.ZERO : request.fee(),
+            request.referenceId()
+        ));
     }
 
     @Override

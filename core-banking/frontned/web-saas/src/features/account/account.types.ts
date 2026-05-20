@@ -37,3 +37,10 @@ export interface MoneyMoveRequest {
   amount: number;
   referenceId: string;
 }
+
+export interface TransferRequest {
+  toAccountId: number;
+  amount: number;
+  fee?: number;
+  referenceId: string;
+}

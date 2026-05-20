@@ -100,6 +100,42 @@ public class AccountTx extends BaseEntity {
         return tx;
     }
 
+    /**
+     * 계좌이체 — 출금측 거래 (TRANSFER_OUT).
+     * 출금측은 음수로 기록되고, referenceId로 입금측 거래와 연결된다.
+     */
+    public static AccountTx ofTransferOut(Long accountId, BigDecimal amount,
+                                          BigDecimal fee, String referenceId) {
+        AccountTx tx = new AccountTx();
+        tx.accountId   = accountId;
+        tx.txType      = TxType.TRANSFER_OUT;
+        tx.amount      = amount.add(fee).negate();  // 본인 출금 = (이체액 + 수수료)
+        tx.fee         = fee;
+        tx.tax         = BigDecimal.ZERO;
+        tx.status      = TxStatus.COMPLETED;
+        tx.referenceId = referenceId;
+        tx.tradedAt    = Instant.now();
+        return tx;
+    }
+
+    /**
+     * 계좌이체 — 입금측 거래 (TRANSFER_IN).
+     * 입금측은 양수로 기록되고, referenceId로 출금측 거래와 연결된다.
+     */
+    public static AccountTx ofTransferIn(Long accountId, BigDecimal amount,
+                                         String referenceId) {
+        AccountTx tx = new AccountTx();
+        tx.accountId   = accountId;
+        tx.txType      = TxType.TRANSFER_IN;
+        tx.amount      = amount;            // 입금은 양수 (수수료는 출금측에서만 차감)
+        tx.fee         = BigDecimal.ZERO;
+        tx.tax         = BigDecimal.ZERO;
+        tx.status      = TxStatus.COMPLETED;
+        tx.referenceId = referenceId;
+        tx.tradedAt    = Instant.now();
+        return tx;
+    }
+
     public static AccountTx ofBuy(Long accountId, Long stockId,
                                   BigDecimal quantity, BigDecimal price,
                                   BigDecimal fee, BigDecimal tax,

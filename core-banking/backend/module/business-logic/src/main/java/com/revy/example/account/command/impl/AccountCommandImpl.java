@@ -3,12 +3,17 @@ package com.revy.example.account.command.impl;
 import com.revy.example.account.command.AccountCommand;
 import com.revy.example.account.command.dto.DepositCommand;
 import com.revy.example.account.command.dto.OpenAccountCommand;
+import com.revy.example.account.command.dto.TransferCommand;
 import com.revy.example.account.command.dto.WithdrawCommand;
 import com.revy.example.account.reader.AccountReader;
 import com.revy.example.domain.account.Account;
 import com.revy.example.domain.account.AccountTx;
 import com.revy.example.domain.account.exception.AccountNotFoundException;
 import com.revy.example.domain.account.exception.AccountNumberDuplicatedException;
+import com.revy.example.domain.account.exception.CurrencyMismatchException;
+import com.revy.example.domain.account.exception.SameAccountTransferException;
+
+import java.math.BigDecimal;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -87,6 +92,45 @@ public class AccountCommandImpl implements AccountCommand {
         entityManager.persist(
             AccountTx.ofWithdrawal(command.accountId(), command.amount(), command.referenceId())
         );
+    }
+
+    @Override
+    public void transfer(TransferCommand command) {
+        // 1) 멱등성 — 동일 referenceId의 거래가 있으면 무시
+        if (accountReader.existsTxByReferenceId(command.referenceId())) {
+            log.info("Duplicate transfer ignored. referenceId={}", command.referenceId());
+            return;
+        }
+
+        // 2) 자기 자신 이체 금지
+        if (command.fromAccountId().equals(command.toAccountId())) {
+            throw new SameAccountTransferException();
+        }
+
+        // 3) 두 계좌 로딩 + 활성·통화 검증
+        Account from = loadAccount(command.fromAccountId());
+        Account to   = loadAccount(command.toAccountId());
+
+        if (!from.getCurrency().equals(to.getCurrency())) {
+            throw new CurrencyMismatchException(from.getCurrency(), to.getCurrency());
+        }
+
+        BigDecimal fee = command.fee() == null ? BigDecimal.ZERO : command.fee();
+        BigDecimal totalDebit = command.amount().add(fee);   // 출금측 차감액 (이체액 + 수수료)
+
+        // 4) 출금측 처리 — 잔고 검증·차감 + 거래 기록
+        from.withdraw(totalDebit);
+        entityManager.persist(
+            AccountTx.ofTransferOut(from.getId(), command.amount(), fee, command.referenceId())
+        );
+
+        // 5) 입금측 처리 — 입금 + 거래 기록
+        to.deposit(command.amount());
+        entityManager.persist(
+            AccountTx.ofTransferIn(to.getId(), command.amount(), command.referenceId())
+        );
+
+        // 6) 분개 — (차) 보통예금[입금측] / (대) 보통예금[출금측] + 수수료수익 (LedgerCommand 위임은 후속 작업)
     }
 
     // ── 내부 — 엔티티 로딩 (mutation용) ───────────────────────────

@@ -26,6 +26,8 @@ public enum ErrorCode {
     ACCOUNT_NOT_ACTIVE(403, "ACCOUNT-002", "계좌가 활성 상태가 아닙니다."),
     ACCOUNT_NOT_FOUND(404, "ACCOUNT-003", "계좌를 찾을 수 없습니다."),
     ACCOUNT_NUMBER_DUPLICATED(409, "ACCOUNT-004", "이미 사용 중인 계좌번호입니다."),
+    SAME_ACCOUNT_TRANSFER(422, "ACCOUNT-005", "출금 계좌와 입금 계좌가 동일합니다."),
+    CURRENCY_MISMATCH(422, "ACCOUNT-006", "두 계좌의 통화가 일치하지 않습니다. 환전을 이용하세요."),
 
     // ── Stock ─────────────────────────────────────────────────────
     STOCK_NOT_FOUND(404, "STOCK-001", "종목을 찾을 수 없습니다."),

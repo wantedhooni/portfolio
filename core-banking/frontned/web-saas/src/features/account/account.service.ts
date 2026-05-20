@@ -7,6 +7,7 @@ import type {
   AccountSearchRequest,
   AccountUpdateRequest,
   MoneyMoveRequest,
+  TransferRequest,
 } from "./account.types";
 
 type QueryValue = string | number | boolean | string[] | undefined;
@@ -98,6 +99,16 @@ export class AccountService {
         `/api/v1/accounts/${accountId}/withdraw`,
         payload,
       ),
+    );
+  }
+
+  /**
+   * 계좌이체 — 본인 계좌(accountId)에서 다른 계좌로 이체.
+   */
+  async transfer(accountId: number, payload: TransferRequest): Promise<void> {
+    await api.post<ApiResponse<void>>(
+      `/api/v1/accounts/${accountId}/transfer`,
+      payload,
     );
   }
 }
