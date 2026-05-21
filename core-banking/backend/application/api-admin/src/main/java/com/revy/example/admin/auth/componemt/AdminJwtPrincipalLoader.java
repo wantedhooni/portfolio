@@ -30,7 +30,7 @@ public class AdminJwtPrincipalLoader implements JwtPrincipalLoader {
 
     @Override
     public Optional<JwtPrincipal> load(Long id) {
-        return adminReader.findById(id).map(JwtPrincipalMapper::toJwtPrincipal);
+        return adminReader.findByIdWithRoles(id).map(JwtPrincipalMapper::toJwtPrincipal);
     }
 
 

@@ -19,4 +19,7 @@ public interface AdminReader {
     boolean existsByEmail(String email);
 
     Page<AdminResult> search(Pageable pageable, String name);
+
+    /** roles 포함하여 로드 (JWT 인증 흐름 전용). */
+    Optional<AdminResult> findByIdWithRoles(Long id);
 }

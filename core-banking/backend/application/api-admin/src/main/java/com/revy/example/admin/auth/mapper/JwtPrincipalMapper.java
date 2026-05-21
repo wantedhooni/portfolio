@@ -12,10 +12,10 @@ public final class JwtPrincipalMapper {
     }
 
     public static JwtPrincipal toJwtPrincipal(AdminResult admin) {
-        return new DefaultJwtPrincipal(admin.id(), admin.email(), admin.role(), PrincipalType.ADMIN);
+        return new DefaultJwtPrincipal(admin.id(), admin.email(), admin.role(), PrincipalType.ADMIN, admin.permissions());
     }
 
     public static JwtPrincipal toJwtPrincipal(AdminCredentialResult admin) {
-        return new DefaultJwtPrincipal(admin.id(), admin.email(), admin.role(), PrincipalType.ADMIN);
+        return new DefaultJwtPrincipal(admin.id(), admin.email(), admin.role(), PrincipalType.ADMIN, admin.permissions());
     }
 }

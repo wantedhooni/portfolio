@@ -70,7 +70,18 @@ public enum ErrorCode {
     JOURNAL_NOT_POSTED(422, "LEDGER-006", "전기되지 않은 분개입니다."),
     JOURNAL_LINE_INVALID(422, "LEDGER-007", "차변과 대변은 양수 한쪽만 허용됩니다."),
     PERIOD_CLOSED(422, "LEDGER-008", "마감된 회계기간입니다."),
-    PERIOD_NOT_FOUND(404, "LEDGER-009", "회계기간을 찾을 수 없습니다.");
+    PERIOD_NOT_FOUND(404, "LEDGER-009", "회계기간을 찾을 수 없습니다."),
+
+    // ── Order ─────────────────────────────────────────────────────
+    ORDER_NOT_FOUND(404,   "ORDER-001", "주문을 찾을 수 없습니다."),
+    ORDER_NOT_PENDING(422, "ORDER-002", "처리 가능한 상태의 주문이 아닙니다."),
+    ORDER_ALREADY_EXECUTED(409, "ORDER-003", "이미 체결된 주문입니다."),
+
+    // ── RBAC ──────────────────────────────────────────────────────
+    ROLE_NOT_FOUND(404,      "RBAC-001", "역할을 찾을 수 없습니다."),
+    ROLE_DUPLICATED(409,     "RBAC-002", "이미 등록된 역할입니다."),
+    ROLE_ALREADY_ASSIGNED(409, "RBAC-003", "이미 할당된 역할입니다."),
+    ROLE_NOT_ASSIGNED(404,   "RBAC-004", "할당되지 않은 역할입니다.");
 
     private final int status;
     private final String code;

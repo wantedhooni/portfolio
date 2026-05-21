@@ -8,9 +8,11 @@ import {
   BookOpenIcon,
   BriefcaseIcon,
   CalendarRangeIcon,
+  ClipboardListIcon,
   CoinsIcon,
   FileTextIcon,
   HeartHandshakeIcon,
+  KeyRoundIcon,
   LandmarkIcon,
   LayoutDashboardIcon,
   LineChartIcon,
@@ -70,8 +72,11 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: '주식',
     items: [
-      { href: '/dashboard/stock',               label: '종목 관리',   icon: TrendingUpIcon },
-      { href: '/dashboard/portfolio',           label: '포트폴리오',  icon: LineChartIcon },
+      { href: '/dashboard/stock',         label: '종목 관리',  icon: TrendingUpIcon },
+      { href: '/dashboard/order',         label: '주문 관리',  icon: ClipboardListIcon },
+      { href: '/dashboard/order/place',   label: '주문 접수',  icon: ShieldPlusIcon },
+      { href: '/dashboard/trade',         label: '체결 내역',  icon: ReceiptIcon },
+      { href: '/dashboard/portfolio',     label: '포트폴리오', icon: LineChartIcon },
     ],
   },
   {
@@ -97,6 +102,12 @@ const NAV_GROUPS: NavGroup[] = [
       { href: '/dashboard/ledger/period',        label: '회계기간',   icon: CalendarRangeIcon },
       { href: '/dashboard/ledger/journal',       label: '분개',       icon: FileTextIcon },
       { href: '/dashboard/ledger/trial-balance', label: '시산표',     icon: ScaleIcon },
+    ],
+  },
+  {
+    label: 'RBAC',
+    items: [
+      { href: '/dashboard/rbac/role', label: '역할 관리', icon: KeyRoundIcon },
     ],
   },
 ];

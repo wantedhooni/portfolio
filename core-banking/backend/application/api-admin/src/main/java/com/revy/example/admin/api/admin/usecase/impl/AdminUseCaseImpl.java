@@ -15,6 +15,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import java.util.List;
+
 @Component
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -24,7 +26,7 @@ public class AdminUseCaseImpl implements AdminUseCase {
 
     @Override
     public AdminPayload.ModelResponse getAdmin(Long id) {
-        AdminResult admin = adminReader.findById(id)
+        AdminResult admin = adminReader.findByIdWithRoles(id)
             .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
         return map(admin);
     }
@@ -32,14 +34,17 @@ public class AdminUseCaseImpl implements AdminUseCase {
     @Override
     public PageImpl<AdminPayload.ModelResponse> search(Pageable pageable, AdminPayload.SearchRequest searchRequest) {
         Page<AdminResult> result = adminReader.search(pageable, searchRequest.name());
-        return new PageImpl<>(map(result.getContent()), pageable, result.getTotalElements());
+        return new PageImpl<>(mapList(result.getContent()), pageable, result.getTotalElements());
     }
 
-    private List<AdminPayload.ModelResponse> map(List<AdminResult> content) {
+    private List<AdminPayload.ModelResponse> mapList(List<AdminResult> content) {
         return content.stream().map(this::map).toList();
     }
 
     private AdminPayload.ModelResponse map(AdminResult admin) {
-        return new AdminPayload.ModelResponse(admin.id(), admin.email(), admin.name());
+        List<AdminPayload.RoleSummary> roles = admin.roles().stream()
+                .map(r -> new AdminPayload.RoleSummary(r.id(), r.name(), r.permissions()))
+                .toList();
+        return new AdminPayload.ModelResponse(admin.id(), admin.email(), admin.name(), roles);
     }
 }

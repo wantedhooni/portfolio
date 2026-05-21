@@ -1,11 +1,18 @@
 import type { ColDef } from 'ag-grid-community';
-import type { PageConfig, DetailPageConfig } from '@/types/page-config';
+import type { PageConfig } from '@/types/page-config';
 import { createActionColumn } from '@/components/data-grid/action-column';
+
+export interface AdminRoleSummary {
+  id: number;
+  name: string;
+  permissions: string[];
+}
 
 export interface AdminItem {
   id: number;
   email: string;
   name: string;
+  roles: AdminRoleSummary[];
 }
 
 interface AdminSearch {
@@ -54,16 +61,5 @@ export const adminConfig: PageConfig<AdminItem, AdminSearch> = {
       placeholder: '6자 이상',
       validate: (v) => (v.length >= 6 ? undefined : '비밀번호는 6자 이상이어야 합니다.'),
     },
-  ],
-};
-
-export const adminDetailConfig: DetailPageConfig = {
-  endpoint: '/api/v1/admin',
-  title: '어드민 상세',
-  listPath: '/dashboard/admin',
-  fields: [
-    { key: 'id',    label: 'ID' },
-    { key: 'email', label: '이메일' },
-    { key: 'name',  label: '이름' },
   ],
 };
