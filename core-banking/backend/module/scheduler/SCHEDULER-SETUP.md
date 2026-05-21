@@ -230,6 +230,8 @@ public class BatchLaunchRequestPoller {
 
     private final JdbcTemplate jdbc;
     private final JobOperator jobOperator;
+    private final JobRegistry jobRegistry;
+    private final JobParametersConverter jobParametersConverter;
 
     @Scheduled(fixedDelay = 5000)
     @Transactional
@@ -240,12 +242,16 @@ public class BatchLaunchRequestPoller {
         for (var row : rows) {
             Long id = ((Number) row.get("id")).longValue();
             try {
-                Long execId = jobOperator.start(
-                    (String) row.get("job_name"),
+                // Spring Batch 6 모범 사례: Job 빈을 JobRegistry 에서 찾아
+                // start(Job, JobParameters) 사용 (start(String, Properties) 는 폐기됨)
+                Job job = jobRegistry.getJob((String) row.get("job_name"));
+                JobParameters params = jobParametersConverter.getJobParameters(
                     parseProperties((String) row.get("job_parameters")));
+                JobExecution exec = jobOperator.start(job, params);
+
                 jdbc.update("UPDATE batch_launch_request SET status='PICKED', picked_at=now(), " +
                             "picked_by=?, execution_id=? WHERE id=?",
-                            instanceName, execId, id);
+                            instanceName, exec.getId(), id);
             } catch (Exception e) {
                 jdbc.update("UPDATE batch_launch_request SET status='FAILED', error_message=? WHERE id=?",
                             e.getMessage(), id);

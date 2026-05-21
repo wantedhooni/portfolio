@@ -11,7 +11,7 @@ import org.springframework.batch.core.job.JobInstance;
 import org.springframework.batch.core.job.parameters.JobParameter;
 import org.springframework.batch.core.job.parameters.JobParameters;
 import org.springframework.batch.core.launch.NoSuchJobException;
-import org.springframework.batch.core.repository.explore.JobExplorer;
+import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.StepExecution;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -24,20 +24,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Spring Batch 6 부터 {@code JobRepository} 가 {@code JobExplorer} 를 상속하여
+ * 읽기·쓰기 통합 인터페이스가 되었다. 폐기 예정인 {@code JobExplorer} 대신 사용.
+ */
 @Component
 @RequiredArgsConstructor
 public class BatchReaderImpl implements BatchReader {
 
-    private final JobExplorer jobExplorer;
+    private final JobRepository jobRepository;
 
     @Override
     public List<BatchJobResult> listJobs() {
-        List<String> names = jobExplorer.getJobNames();
+        List<String> names = jobRepository.getJobNames();
         List<BatchJobResult> result = new ArrayList<>();
         for (String name : names) {
             int count = (int) Math.min(safeInstanceCount(name), Integer.MAX_VALUE);
-            JobInstance latest = jobExplorer.getLastJobInstance(name);
-            JobExecution lastExec = (latest == null) ? null : jobExplorer.getLastJobExecution(latest);
+            JobInstance latest = jobRepository.getLastJobInstance(name);
+            JobExecution lastExec = (latest == null) ? null : jobRepository.getLastJobExecution(latest);
             result.add(new BatchJobResult(
                     name,
                     count,
@@ -54,11 +58,11 @@ public class BatchReaderImpl implements BatchReader {
         long total = safeInstanceCount(jobName);
         if (total == 0L) return new PageImpl<>(List.of(), pageable, 0);
 
-        List<JobInstance> instances = jobExplorer.getJobInstances(
+        List<JobInstance> instances = jobRepository.getJobInstances(
                 jobName, (int) pageable.getOffset(), pageable.getPageSize());
         List<BatchInstanceResult> rows = new ArrayList<>();
         for (JobInstance inst : instances) {
-            JobExecution last = jobExplorer.getLastJobExecution(inst);
+            JobExecution last = jobRepository.getLastJobExecution(inst);
             rows.add(new BatchInstanceResult(
                     inst.getInstanceId(),
                     inst.getJobName(),
@@ -74,25 +78,25 @@ public class BatchReaderImpl implements BatchReader {
 
     @Override
     public Optional<BatchExecutionResult> findExecution(Long executionId) {
-        JobExecution exec = jobExplorer.getJobExecution(executionId);
+        JobExecution exec = jobRepository.getJobExecution(executionId);
         if (exec == null) return Optional.empty();
         return Optional.of(toResult(exec));
     }
 
     @Override
     public Page<BatchExecutionResult> searchExecutions(String jobName, String status, Pageable pageable) {
-        // JobExplorer 는 전 Job 페이징 검색을 직접 지원하지 않으므로 Job별로 순회.
+        // JobRepository 는 전 Job 페이징 검색을 직접 지원하지 않으므로 Job별로 순회.
         List<String> jobNames = (jobName == null || jobName.isBlank())
-                ? jobExplorer.getJobNames() : List.of(jobName);
+                ? jobRepository.getJobNames() : List.of(jobName);
 
         List<BatchExecutionResult> all = new ArrayList<>();
         for (String name : jobNames) {
             long count = safeInstanceCount(name);
             if (count == 0) continue;
-            List<JobInstance> instances = jobExplorer.getJobInstances(
+            List<JobInstance> instances = jobRepository.getJobInstances(
                     name, 0, (int) Math.min(count, 200));
             for (JobInstance inst : instances) {
-                for (JobExecution exec : jobExplorer.getJobExecutions(inst)) {
+                for (JobExecution exec : jobRepository.getJobExecutions(inst)) {
                     if (status != null && !status.isBlank()
                             && !exec.getStatus().name().equalsIgnoreCase(status)) continue;
                     all.add(toResult(exec));
@@ -108,10 +112,10 @@ public class BatchReaderImpl implements BatchReader {
     @Override
     public List<BatchExecutionResult> listRunning(String jobName) {
         List<String> jobNames = (jobName == null || jobName.isBlank())
-                ? jobExplorer.getJobNames() : List.of(jobName);
+                ? jobRepository.getJobNames() : List.of(jobName);
         List<BatchExecutionResult> result = new ArrayList<>();
         for (String name : jobNames) {
-            for (JobExecution exec : jobExplorer.findRunningJobExecutions(name)) {
+            for (JobExecution exec : jobRepository.findRunningJobExecutions(name)) {
                 result.add(toResult(exec));
             }
         }
@@ -122,7 +126,7 @@ public class BatchReaderImpl implements BatchReader {
 
     private long safeInstanceCount(String jobName) {
         try {
-            return jobExplorer.getJobInstanceCount(jobName);
+            return jobRepository.getJobInstanceCount(jobName);
         } catch (NoSuchJobException e) {
             return 0L;
         }
