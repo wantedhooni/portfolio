@@ -51,17 +51,20 @@ public class FxCommandImpl implements FxCommand {
         }
         Currency c = Currency.register(command.code(), command.name(), command.symbol(), command.decimalPlaces());
         entityManager.persist(c);
+        // TODO:REVY - EVENT 발행(CurrencyRegistered) - commit after
         return c.getId();
     }
 
     @Override
     public void deactivateCurrency(String code) {
         loadCurrency(code).deactivate();
+        // TODO:REVY - EVENT 발행(CurrencyDeactivated) - commit after
     }
 
     @Override
     public void activateCurrency(String code) {
         loadCurrency(code).activate();
+        // TODO:REVY - EVENT 발행(CurrencyActivated) - commit after
     }
 
     @Override
@@ -75,6 +78,7 @@ public class FxCommandImpl implements FxCommand {
             command.rateType(), command.rate(), command.quotedAt(), command.source()
         );
         entityManager.persist(rate);
+        // TODO:REVY - EVENT 발행(ExchangeRateQuoted) - commit after
         return rate.getId();
     }
 
@@ -139,6 +143,7 @@ public class FxCommandImpl implements FxCommand {
         // 실제 운영에서는 AccountCommand가 반환하는 txId를 받도록 시그니처 확장 필요
         conversion.complete(null, null, Instant.now());
 
+        // TODO:REVY - EVENT 발행(FxConversionCompleted) - commit after
         return conversion.getId();
     }
 

@@ -34,17 +34,20 @@ public class StockCommandImpl implements StockCommand {
             command.currency()
         );
         entityManager.persist(stock);
+        // TODO:REVY - EVENT 발행(StockCreated) - commit after
         return stock.getId();
     }
 
     @Override
     public void updateMarketData(UpdateMarketDataCommand command) {
         loadStock(command.stockId()).updateMarketData(command.lastPrice(), command.marketCap());
+        // TODO:REVY - EVENT 발행(StockMarketDataUpdated) - commit after
     }
 
     @Override
     public void delist(Long stockId) {
         loadStock(stockId).delist();
+        // TODO:REVY - EVENT 발행(StockDelisted) - commit after
     }
 
     private Stock loadStock(Long stockId) {

@@ -9,3 +9,4 @@
 - 프로젝트 루트 실행 스크립트 `script/all-start.sh`, `script/all-stop.sh`, `script/all-restart.sh`를 추가했다.
 - 루트 `README.md`에 포트폴리오 문서 링크와 실행 스크립트 안내를 추가했다.
 - `PORTFOLIO.md`에 백엔드/프론트엔드/데이터베이스/캐시/로그/메트릭을 포함한 인프라 구성도를 추가했다.
+- `business-logic`의 주요 상태 변경 Command 구현부에 commit 이후 이벤트 발행 필요 지점을 `TODO:REVY` 주석으로 표시했다.

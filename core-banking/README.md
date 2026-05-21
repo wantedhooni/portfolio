@@ -11,6 +11,7 @@
 - 전체 실행: `./script/all-start.sh`
 - 전체 중지: `./script/all-stop.sh`
 - 전체 재시작: `./script/all-restart.sh`
+- 개발 메모: `business-logic` 주요 상태 변경 Command에는 commit 이후 이벤트 발행 후보 지점을 `TODO:REVY` 주석으로 표시
 
 ---
 

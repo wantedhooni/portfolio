@@ -45,17 +45,20 @@ public class LedgerCommandImpl implements LedgerCommand {
             command.currency(), command.parentId(), command.description()
         );
         entityManager.persist(a);
+        // TODO:REVY - EVENT 발행(LedgerAccountCreated) - commit after
         return a.getId();
     }
 
     @Override
     public void discontinueAccount(Long accountId) {
         loadAccount(accountId).discontinue();
+        // TODO:REVY - EVENT 발행(LedgerAccountDiscontinued) - commit after
     }
 
     @Override
     public void renameAccount(Long accountId, String name, String description) {
         loadAccount(accountId).rename(name, description);
+        // TODO:REVY - EVENT 발행(LedgerAccountRenamed) - commit after
     }
 
     // ── Period ───────────────────────────────────────────────────
@@ -67,12 +70,14 @@ public class LedgerCommandImpl implements LedgerCommand {
             command.startDate(), command.endDate()
         );
         entityManager.persist(p);
+        // TODO:REVY - EVENT 발행(AccountingPeriodOpened) - commit after
         return p.getId();
     }
 
     @Override
     public void closePeriod(Long periodId, Long closedByAdminId) {
         loadPeriod(periodId).close(closedByAdminId, Instant.now());
+        // TODO:REVY - EVENT 발행(AccountingPeriodClosed) - commit after
     }
 
     // ── Journal Entry ────────────────────────────────────────────
@@ -109,6 +114,7 @@ public class LedgerCommandImpl implements LedgerCommand {
         // 5) post — 합계 검증 포함
         entry.post(Instant.now());
 
+        // TODO:REVY - EVENT 발행(JournalEntryPosted) - commit after
         return entry.getId();
     }
 
@@ -130,6 +136,7 @@ public class LedgerCommandImpl implements LedgerCommand {
         reversal.post(Instant.now());
 
         original.markReversedBy(reversal.getId());
+        // TODO:REVY - EVENT 발행(JournalEntryReversed) - commit after
         return reversal.getId();
     }
 

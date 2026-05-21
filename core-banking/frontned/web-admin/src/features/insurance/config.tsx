@@ -171,12 +171,15 @@ export const policyConfig: PageConfig<PolicyItem, PolicySearch> = {
       sortable: false,
       filter: false,
       cellRenderer: (params: { data?: PolicyItem }) => {
-        if (!params.data || !onDetail) return '';
-        const btn = document.createElement('button');
-        btn.textContent = '상세';
-        btn.className = 'px-2 py-0.5 text-xs rounded border hover:bg-accent';
-        btn.onclick = () => onDetail(params.data!);
-        return btn;
+        if (!params.data || !onDetail) return null;
+        return (
+          <button
+            className="px-2 py-0.5 text-xs rounded border hover:bg-accent"
+            onClick={() => onDetail(params.data!)}
+          >
+            상세
+          </button>
+        );
       },
     },
   ],
@@ -266,12 +269,15 @@ export const claimConfig: PageConfig<ClaimItem, ClaimSearch> = {
       sortable: false,
       filter: false,
       cellRenderer: (params: { data?: ClaimItem }) => {
-        if (!params.data || !onDetail) return '';
-        const btn = document.createElement('button');
-        btn.textContent = '상세';
-        btn.className = 'px-2 py-0.5 text-xs rounded border hover:bg-accent';
-        btn.onclick = () => onDetail(params.data!);
-        return btn;
+        if (!params.data || !onDetail) return null;
+        return (
+          <button
+            className="px-2 py-0.5 text-xs rounded border hover:bg-accent"
+            onClick={() => onDetail(params.data!)}
+          >
+            상세
+          </button>
+        );
       },
     },
   ],

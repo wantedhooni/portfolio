@@ -46,22 +46,26 @@ public class AccountCommandImpl implements AccountCommand {
             command.currency()
         );
         entityManager.persist(account);
+        // TODO:REVY - EVENT 발행(AccountOpened) - commit after
         return account.getId();
     }
 
     @Override
     public void updateAccountName(Long accountId, String accountName) {
         loadAccount(accountId).updateName(accountName);
+        // TODO:REVY - EVENT 발행(AccountNameUpdated) - commit after
     }
 
     @Override
     public void suspendAccount(Long accountId) {
         loadAccount(accountId).suspend();
+        // TODO:REVY - EVENT 발행(AccountSuspended) - commit after
     }
 
     @Override
     public void closeAccount(Long accountId) {
         loadAccount(accountId).close();
+        // TODO:REVY - EVENT 발행(AccountClosed) - commit after
     }
 
     @Override
@@ -77,6 +81,7 @@ public class AccountCommandImpl implements AccountCommand {
         entityManager.persist(
             AccountTx.ofDeposit(command.accountId(), command.amount(), command.referenceId())
         );
+        // TODO:REVY - EVENT 발행(AccountDeposited) - commit after
     }
 
     @Override
@@ -92,6 +97,7 @@ public class AccountCommandImpl implements AccountCommand {
         entityManager.persist(
             AccountTx.ofWithdrawal(command.accountId(), command.amount(), command.referenceId())
         );
+        // TODO:REVY - EVENT 발행(AccountWithdrawn) - commit after
     }
 
     @Override
@@ -131,6 +137,7 @@ public class AccountCommandImpl implements AccountCommand {
         );
 
         // 6) 분개 — (차) 보통예금[입금측] / (대) 보통예금[출금측] + 수수료수익 (LedgerCommand 위임은 후속 작업)
+        // TODO:REVY - EVENT 발행(AccountTransferred) - commit after
     }
 
     // ── 내부 — 엔티티 로딩 (mutation용) ───────────────────────────

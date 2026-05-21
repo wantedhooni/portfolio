@@ -446,6 +446,12 @@ flowchart LR
 
 ## 7. 스크린샷
 
+### 인프라스트럭처 다이어그램
+
+> draw.io 원본: [`docs/infrastructure.drawio`](docs/infrastructure.drawio)
+
+![Infrastructure Diagram](docs/images/infrastructure.png)
+
 ### 백엔드 API 문서
 
 관리자/사용자 API 스크린샷은 저장된 OpenAPI JSON과 컨트롤러 기준 API 목록을 문서용 이미지로 렌더링했다. 전체 API 목록은 아래 표에 컨트롤러 기준으로 보강했다.

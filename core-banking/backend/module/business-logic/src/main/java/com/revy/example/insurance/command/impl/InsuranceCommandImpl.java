@@ -54,17 +54,20 @@ public class InsuranceCommandImpl implements InsuranceCommand {
             command.coverageAmount(), command.durationMonths(), command.currency()
         );
         entityManager.persist(p);
+        // TODO:REVY - EVENT 발행(InsuranceProductCreated) - commit after
         return p.getId();
     }
 
     @Override
     public void updateProductPricing(Long productId, BigDecimal basePremium, BigDecimal coverageAmount) {
         loadProduct(productId).updatePricing(basePremium, coverageAmount);
+        // TODO:REVY - EVENT 발행(InsuranceProductPricingUpdated) - commit after
     }
 
     @Override
     public void discontinueProduct(Long productId) {
         loadProduct(productId).discontinue();
+        // TODO:REVY - EVENT 발행(InsuranceProductDiscontinued) - commit after
     }
 
     // ── Policy ───────────────────────────────────────────────────
@@ -95,32 +98,38 @@ public class InsuranceCommandImpl implements InsuranceCommand {
         }
 
         entityManager.persist(policy);
+        // TODO:REVY - EVENT 발행(InsurancePolicyEnrolled) - commit after
         return policy.getId();
     }
 
     @Override
     public void activatePolicy(Long policyId) {
         loadPolicy(policyId).activate(Instant.now());
+        // TODO:REVY - EVENT 발행(InsurancePolicyActivated) - commit after
     }
 
     @Override
     public void suspendPolicy(Long policyId) {
         loadPolicy(policyId).suspend();
+        // TODO:REVY - EVENT 발행(InsurancePolicySuspended) - commit after
     }
 
     @Override
     public void reactivatePolicy(Long policyId) {
         loadPolicy(policyId).reactivate();
+        // TODO:REVY - EVENT 발행(InsurancePolicyReactivated) - commit after
     }
 
     @Override
     public void terminatePolicy(Long policyId) {
         loadPolicy(policyId).terminate(Instant.now());
+        // TODO:REVY - EVENT 발행(InsurancePolicyTerminated) - commit after
     }
 
     @Override
     public void cancelPolicy(Long policyId) {
         loadPolicy(policyId).cancel();
+        // TODO:REVY - EVENT 발행(InsurancePolicyCanceled) - commit after
     }
 
     // ── Premium ──────────────────────────────────────────────────
@@ -154,11 +163,13 @@ public class InsuranceCommandImpl implements InsuranceCommand {
         payment.markPaid(null, Instant.now());  // 실제론 AccountTx ID 연결 필요 (Account.withdraw 시그니처 확장 시)
         policy.advanceNextPaymentDate();
         // 분개: (차) 보통예금 / (대) 보험료수익 — LedgerCommand 위임 (구현 생략, 후속 작업)
+        // TODO:REVY - EVENT 발행(InsurancePremiumPaid) - commit after
     }
 
     @Override
     public void markPremiumOverdue(Long paymentId) {
         loadPayment(paymentId).markOverdue();
+        // TODO:REVY - EVENT 발행(InsurancePremiumOverdueMarked) - commit after
     }
 
     // ── Claim ────────────────────────────────────────────────────
@@ -175,12 +186,14 @@ public class InsuranceCommandImpl implements InsuranceCommand {
             command.payoutAccountId(), Instant.now()
         );
         entityManager.persist(claim);
+        // TODO:REVY - EVENT 발행(InsuranceClaimSubmitted) - commit after
         return claim.getId();
     }
 
     @Override
     public void startClaimReview(Long claimId, Long reviewerAdminId) {
         loadClaim(claimId).startReview(reviewerAdminId);
+        // TODO:REVY - EVENT 발행(InsuranceClaimReviewStarted) - commit after
     }
 
     @Override
@@ -189,6 +202,7 @@ public class InsuranceCommandImpl implements InsuranceCommand {
         InsurancePolicy policy = loadPolicy(claim.getPolicyId());
         claim.approve(command.approvedAmount(), policy.getCoverageAmount(),
                       command.reviewNotes(), Instant.now());
+        // TODO:REVY - EVENT 발행(InsuranceClaimApproved) - commit after
     }
 
     @Override
@@ -197,6 +211,7 @@ public class InsuranceCommandImpl implements InsuranceCommand {
         // reviewer가 review를 시작 안 한 경우 자동 startReview
         if (claim.getReviewerAdminId() == null) claim.startReview(reviewerAdminId);
         claim.reject(reviewNotes, Instant.now());
+        // TODO:REVY - EVENT 발행(InsuranceClaimRejected) - commit after
     }
 
     @Override
@@ -213,6 +228,7 @@ public class InsuranceCommandImpl implements InsuranceCommand {
 
         claim.markPaid(null, Instant.now());
         // 분개: (차) 보험금지급(비용) / (대) 보통예금 — 후속 작업
+        // TODO:REVY - EVENT 발행(InsuranceClaimPaid) - commit after
     }
 
     // ── 내부 ─────────────────────────────────────────────────────

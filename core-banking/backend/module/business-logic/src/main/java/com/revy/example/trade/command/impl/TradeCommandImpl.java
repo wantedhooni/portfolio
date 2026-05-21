@@ -78,6 +78,7 @@ public class TradeCommandImpl implements TradeCommand {
 
         // 7. 실잔고 확정 차감
         account.confirmBuy(totalCost);
+        // TODO:REVY - EVENT 발행(StockBought) - commit after
     }
 
     @Override
@@ -112,6 +113,7 @@ public class TradeCommandImpl implements TradeCommand {
 
         // 5. 매도 대금 계좌 입금
         account.creditSaleProceeds(command.netProceeds());
+        // TODO:REVY - EVENT 발행(StockSold) - commit after
     }
 
     @Override
@@ -135,11 +137,13 @@ public class TradeCommandImpl implements TradeCommand {
         );
 
         account.creditDividend(command.netAmount());
+        // TODO:REVY - EVENT 발행(DividendReceived) - commit after
     }
 
     @Override
     public void releaseReservation(Long accountId, BigDecimal amount) {
         loadAccount(accountId).releaseReservation(amount);
+        // TODO:REVY - EVENT 발행(AccountReservationReleased) - commit after
     }
 
     // ── 내부 — 엔티티 로딩 ────────────────────────────────────────

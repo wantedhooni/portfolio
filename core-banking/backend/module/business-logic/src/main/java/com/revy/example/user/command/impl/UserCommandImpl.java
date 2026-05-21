@@ -27,22 +27,26 @@ public class UserCommandImpl implements UserCommand {
 
         User user = User.create(command.email(), command.encodedPassword(), command.name());
         entityManager.persist(user);
+        // TODO:REVY - EVENT 발행(UserRegistered) - commit after
         return user.getId();
     }
 
     @Override
     public void updateName(Long userId, String name) {
         loadUser(userId).updateName(name);
+        // TODO:REVY - EVENT 발행(UserNameUpdated) - commit after
     }
 
     @Override
     public void changePassword(Long userId, String encodedPassword) {
         loadUser(userId).updatePassword(encodedPassword);
+        // TODO:REVY - EVENT 발행(UserPasswordChanged) - commit after
     }
 
     @Override
     public void delete(Long userId) {
         entityManager.remove(loadUser(userId));
+        // TODO:REVY - EVENT 발행(UserDeleted) - commit after
     }
 
     private User loadUser(Long userId) {

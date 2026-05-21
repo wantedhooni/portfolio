@@ -27,22 +27,26 @@ public class AdminCommandImpl implements AdminCommand {
 
         Admin admin = Admin.create(command.email(), command.encodedPassword(), command.name());
         entityManager.persist(admin);
+        // TODO:REVY - EVENT 발행(AdminRegistered) - commit after
         return admin.getId();
     }
 
     @Override
     public void updateName(Long adminId, String name) {
         loadAdmin(adminId).updateName(name);
+        // TODO:REVY - EVENT 발행(AdminNameUpdated) - commit after
     }
 
     @Override
     public void changePassword(Long adminId, String encodedPassword) {
         loadAdmin(adminId).updatePassword(encodedPassword);
+        // TODO:REVY - EVENT 발행(AdminPasswordChanged) - commit after
     }
 
     @Override
     public void delete(Long adminId) {
         entityManager.remove(loadAdmin(adminId));
+        // TODO:REVY - EVENT 발행(AdminDeleted) - commit after
     }
 
     private Admin loadAdmin(Long adminId) {
