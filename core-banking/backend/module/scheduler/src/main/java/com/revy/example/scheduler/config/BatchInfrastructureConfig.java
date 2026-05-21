@@ -1,5 +1,7 @@
 package com.revy.example.scheduler.config;
 
+import org.springframework.batch.core.configuration.JobRegistry;
+import org.springframework.batch.core.configuration.support.MapJobRegistry;
 import org.springframework.batch.core.converter.DefaultJobParametersConverter;
 import org.springframework.batch.core.converter.JobParametersConverter;
 import org.springframework.context.annotation.Bean;
@@ -16,10 +18,15 @@ import org.springframework.context.annotation.Configuration;
  * api-admin(CONTROL)은 Job bean 이 없어도 read / stop / abandon API 를 정상 사용 가능.</p>
  */
 @Configuration
-public class BatchControlConfig {
+public class BatchInfrastructureConfig {
 
     @Bean
     public JobParametersConverter jobParametersConverter() {
         return new DefaultJobParametersConverter();
+    }
+
+    @Bean
+    public JobRegistry jobRegistry() {
+        return new MapJobRegistry();
     }
 }
