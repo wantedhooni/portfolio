@@ -10,6 +10,7 @@ include ':module:business-logic'
 include ':module:jwt-auth'
 include ':module:tools:log-elk'
 include ':module:tools:metrics'
+include ':module:scheduler'
 
 // application-server
 include ':application:api-admin'

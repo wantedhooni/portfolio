@@ -77,11 +77,31 @@ public enum ErrorCode {
     ORDER_NOT_PENDING(422, "ORDER-002", "처리 가능한 상태의 주문이 아닙니다."),
     ORDER_ALREADY_EXECUTED(409, "ORDER-003", "이미 체결된 주문입니다."),
 
+    // ── Settlement ────────────────────────────────────────────────
+    SETTLEMENT_NOT_FOUND(404,   "SETTLE-001", "정산 내역을 찾을 수 없습니다."),
+    SETTLEMENT_NOT_PENDING(422, "SETTLE-002", "PENDING 상태의 정산만 처리할 수 있습니다."),
+
+    // ── Billing ───────────────────────────────────────────────────
+    INVOICE_NOT_FOUND(404,     "BILL-001", "청구서를 찾을 수 없습니다."),
+    INVOICE_NOT_DRAFT(422,     "BILL-002", "DRAFT 상태의 청구서에서만 가능합니다."),
+    INVOICE_NOT_ISSUABLE(422,  "BILL-003", "발행할 수 없는 청구서입니다."),
+    INVOICE_ALREADY_PAID(409,  "BILL-004", "이미 납부된 청구서입니다."),
+    INVOICE_CANNOT_CANCEL(422, "BILL-005", "취소할 수 없는 청구서 상태입니다."),
+
     // ── RBAC ──────────────────────────────────────────────────────
     ROLE_NOT_FOUND(404,      "RBAC-001", "역할을 찾을 수 없습니다."),
     ROLE_DUPLICATED(409,     "RBAC-002", "이미 등록된 역할입니다."),
     ROLE_ALREADY_ASSIGNED(409, "RBAC-003", "이미 할당된 역할입니다."),
-    ROLE_NOT_ASSIGNED(404,   "RBAC-004", "할당되지 않은 역할입니다.");
+    ROLE_NOT_ASSIGNED(404,   "RBAC-004", "할당되지 않은 역할입니다."),
+
+    // ── Scheduler (Quartz / Batch) ───────────────────────────────
+    SCHEDULER_JOB_NOT_FOUND(404,      "SCH-001", "스케줄러 Job 을 찾을 수 없습니다."),
+    SCHEDULER_TRIGGER_NOT_FOUND(404,  "SCH-002", "스케줄러 Trigger 를 찾을 수 없습니다."),
+    SCHEDULER_OPERATION_FAILED(500,   "SCH-003", "스케줄러 명령 실행에 실패했습니다."),
+    BATCH_JOB_NOT_FOUND(404,          "SCH-101", "배치 Job 을 찾을 수 없습니다."),
+    BATCH_EXECUTION_NOT_FOUND(404,    "SCH-102", "배치 실행 이력을 찾을 수 없습니다."),
+    BATCH_EXECUTION_NOT_RUNNING(422,  "SCH-103", "실행 중인 배치가 아닙니다."),
+    BATCH_LAUNCH_NOT_SUPPORTED(422,   "SCH-104", "이 노드에서 배치 실행은 지원되지 않습니다.");
 
     private final int status;
     private final String code;

@@ -6,6 +6,7 @@ dependencies {
     implementation project(':module:core:core-web')
     implementation project(':module:jwt-auth')
     implementation project(':module:business-logic')
+    implementation project(':module:scheduler')
     implementation project(':module:tools:metrics')
     implementation project(':module:tools:log-elk')
 

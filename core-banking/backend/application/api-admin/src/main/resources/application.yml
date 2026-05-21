@@ -32,6 +32,16 @@ spring:
 
   flyway:
     enabled: true
+  quartz:
+    job-store-type: jdbc
+    jdbc:
+      initialize-schema: never   # Flyway 마이그레이션으로 관리
+  batch:
+    job:
+      enabled: false             # api-admin 은 launch 안 함 (워커 노드 전담)
+    jdbc:
+      initialize-schema: never
+
   #virtual thread
   threads:
     virtual:
@@ -47,6 +57,10 @@ app:
     secret: ${JWT_SECRET:a8cc92c8b53c71c7904a1266bd6d5dadb0033eab4c8e9ee3307dae77ffe26010c7cadfcde4c7e4ab1890a8301ebbf7714ffc7e545250d46a06aae9bff52d0d50}
     access-token-expiration-minutes: ${JWT_ACCESS_TOKEN_EXPIRATION_MINUTES:60}
     refresh-token-expiration-days: ${JWT_REFRESH_TOKEN_EXPIRATION_DAYS:14}
+  scheduler:
+    mode: CONTROL                # CONTROL: Quartz standby + Batch 읽기/중단만
+    scheduler-instance-name: RevyCoreScheduler
+    thread-pool-size: 5
 
 logging:
   level:
