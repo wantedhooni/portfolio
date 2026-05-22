@@ -5,6 +5,13 @@
 
 ---
 
+## DEMO 주소 정보
+- WEB-ADMIN : https://demo-admin.revy-won.dev/
+- WEB-SAAS : https://demo.revy-won.dev/
+- Github(소스)  : https://github.com/wantedhooni/portfolio/tree/develop/core-banking
+
+---
+
 ## 포트폴리오 문서
 
 - [PORTFOLIO.md](./PORTFOLIO.md): 백엔드 모듈/디자인 구조, 백엔드·프론트엔드 설계 플로우, 스크린샷, API 목록

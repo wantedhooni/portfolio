@@ -20,6 +20,71 @@
 | 캐시/세션 | Redis refresh token 저장 |
 | 앱 구성 | `api-admin`, `api-saas`, `web-admin`, `web-saas` |
 | 운영 스택 | Pgpool-II, PostgreSQL Primary/Secondary, Redis, ELK, Prometheus/Grafana |
+ㅈㅂ    
+
+### 프론트엔드 화면 - web-admin
+
+운영자 콘솔은 도메인별 백오피스 업무를 서버사이드 검색, 페이지네이션, 등록/수정/삭제 액션이 포함된 공통 CRUD 화면으로 구성했다.
+
+**관리자 로그인**
+
+![web-admin login](docs/images/web-admin-login.png)
+
+**운영자 대시보드**
+
+![web-admin dashboard](docs/images/web-admin-dashboard.png)
+
+**계좌 관리 - 대용량 계좌 데이터 그리드**
+
+![web-admin account management](docs/images/web-admin-accounts.png)
+
+**종목 관리 - 증권 마스터 데이터 그리드**
+
+![web-admin stock management](docs/images/web-admin-stocks.png)
+
+### 프론트엔드 화면 - web-saas
+
+사용자 워크스페이스는 계좌, 이체, 환전, 보험, 거래, 종목 조회를 하나의 금융 업무 셸에서 이동하도록 구성했다.
+
+**사용자 로그인**
+
+![web-saas login](docs/images/web-saas-login.png)
+
+**서비스 가입**
+
+![web-saas signup](docs/images/web-saas-signup.png)
+
+**워크스페이스 대시보드**
+
+![web-saas workspace](docs/images/web-saas-workspace.png)
+
+**계좌이체 업무 화면**
+
+![web-saas transfer](docs/images/web-saas-transfer.png)
+
+### INFRA
+
+**Grafana**
+![Grafana 모니터링](docs/images/infra-grafana.png)
+
+**ELK(KIBANA) 로그 모니터링**
+![KIBANA](docs/images/infra-elk-kibana.png)
+
+### 인프라스트럭처 다이어그램
+
+![Infrastructure Diagram](docs/images/infrastructure.png)
+
+### 백엔드 API 문서
+
+관리자/사용자 API 스크린샷은 저장된 OpenAPI JSON과 컨트롤러 기준 API 목록을 문서용 이미지로 렌더링했다. 전체 API 목록은 아래 표에 컨트롤러 기준으로 보강했다.
+
+![api-admin OpenAPI preview](docs/images/api-admin-swagger.png)
+
+![api-saas OpenAPI preview](docs/images/api-saas-swagger.png)
+
+---
+
+
 
 ## 2. 백엔드 모듈 구조
 
@@ -223,13 +288,13 @@ flowchart LR
 flowchart TD
     page["Page / Component"] --> service["feature service"]
     service --> axios["Axios API Client"]
-    axios --> token["Access Token 주입"]
-    axios --> api["Backend API"]
-    api --> response["ApiResponse<T>"]
+    axios -->|Access Token 주입| api["Backend API"]
+    api -->|성공| response["ApiResponse T"]
     response --> page
-    axios --> refresh{"401 발생?"}
-    refresh -->|예| refreshApi["/api/v1/auth/refresh"]
+    api -->|401 Unauthorized| refresh["토큰 갱신"]
+    refresh --> refreshApi["/api/v1/auth/refresh"]
     refreshApi --> retry["원 요청 재시도"]
+    retry --> api
 ```
 
 ### web-admin CRUD 흐름
@@ -500,72 +565,8 @@ flowchart LR
 - **통합 기동 스크립트**: `script/all-start.sh` 한 번으로 4개 인프라 스택 → 백엔드 2개 → 프론트엔드 2개 순차 기동. 종료는 `all-stop.sh`, 재시작은 `all-restart.sh`.
 - **헬스체크**: 모든 핵심 컨테이너(`pg_primary`, `pg_secondary`, `pgpool`, `redis`)에 `healthcheck` 정의 → `depends_on.condition: service_healthy`로 기동 순서 보장.
 
-## 7. 스크린샷
 
-### 인프라스트럭처 다이어그램
-
-> draw.io 원본: [`docs/infrastructure.drawio`](docs/infrastructure.drawio)
-
-![Infrastructure Diagram](docs/images/infrastructure.png)
-
-### 백엔드 API 문서
-
-관리자/사용자 API 스크린샷은 저장된 OpenAPI JSON과 컨트롤러 기준 API 목록을 문서용 이미지로 렌더링했다. 전체 API 목록은 아래 표에 컨트롤러 기준으로 보강했다.
-
-![api-admin OpenAPI preview](docs/images/api-admin-swagger.png)
-
-![api-saas OpenAPI preview](docs/images/api-saas-swagger.png)
-
-### 프론트엔드 화면 - web-admin
-
-운영자 콘솔은 도메인별 백오피스 업무를 서버사이드 검색, 페이지네이션, 등록/수정/삭제 액션이 포함된 공통 CRUD 화면으로 구성했다.
-
-**관리자 로그인**
-
-![web-admin login](docs/images/web-admin-login.png)
-
-**운영자 대시보드**
-
-![web-admin dashboard](docs/images/web-admin-dashboard.png)
-
-**계좌 관리 - 대용량 계좌 데이터 그리드**
-
-![web-admin account management](docs/images/web-admin-accounts.png)
-
-**종목 관리 - 증권 마스터 데이터 그리드**
-
-![web-admin stock management](docs/images/web-admin-stocks.png)
-
-### 프론트엔드 화면 - web-saas
-
-사용자 워크스페이스는 계좌, 이체, 환전, 보험, 거래, 종목 조회를 하나의 금융 업무 셸에서 이동하도록 구성했다.
-
-**사용자 로그인**
-
-![web-saas login](docs/images/web-saas-login.png)
-
-**서비스 가입**
-
-![web-saas signup](docs/images/web-saas-signup.png)
-
-**워크스페이스 대시보드**
-
-![web-saas workspace](docs/images/web-saas-workspace.png)
-
-**계좌이체 업무 화면**
-
-![web-saas transfer](docs/images/web-saas-transfer.png)
-
-### INFRA
-
-**Grafana**
-![Grafana 모니터링](docs/images/infra-grafana.png)
-
-**ELK(KIBANA) 로그 모니터링**
-![KIBANA](docs/images/infra-elk-kibana.png)
-
-
-## 8. 백엔드 API 목록
+## 7. 백엔드 API 목록
 
 ### api-admin
 
@@ -687,7 +688,7 @@ flowchart LR
 | POST | `/api/v1/insurance/claims` | 보험금 청구 접수 |
 | GET | `/api/v1/insurance/claims/{id}` | 본인 보험금 청구 단건 조회 |
 
-## 9. 실행 정보
+## 8. 실행 정보
 
 | 앱 | URL | 계정 |
 |---|---|---|
@@ -696,7 +697,7 @@ flowchart LR
 | web-admin | `http://localhost:18081` | `admin@example.com / Qwer1234!` |
 | web-saas | `http://localhost:18091` | `demo@example.com / Qwer1234!` |
 
-## 10. 포트폴리오 강조 포인트
+## 9. 포트폴리오 강조 포인트
 
 - 단순 CRUD가 아니라 계좌 잔고, 거래 내역, 주식 주문/포지션, 환전, 보험, 청구/정산, 복식부기 원장을 연결한 금융 도메인 프로젝트다.
 - Admin API와 SaaS API를 분리하여 운영자 권한과 사용자 권한 경계를 표현했다.
