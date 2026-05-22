@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   ArrowLeftRight,
   CreditCard,
+  FileText,
   HeartHandshake,
   LayoutDashboard,
   LogOut,
@@ -29,6 +30,7 @@ const NAV = [
   { href: "/workspace/transfer", label: "계좌이체", icon: Send },
   { href: "/workspace/fx", label: "환전", icon: Repeat },
   { href: "/workspace/insurance", label: "보험", icon: HeartHandshake },
+  { href: "/workspace/billing", label: "청구서", icon: FileText },
   { href: "/workspace/trades", label: "거래 처리", icon: ArrowLeftRight },
   { href: "/workspace/stocks", label: "종목 조회", icon: Search },
 ] as const;

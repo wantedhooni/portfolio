@@ -92,3 +92,18 @@
   - [P3] `globals.css`: `.dark` bank 변수 추가. 신규 컴포넌트 스타일(sidebar user profile, account CRUD, ledger filter, position table, stock detail, tx dialog, alloc chart, empty state).
   - [P3] `workspace/page.tsx`: 계좌 없음 Empty State + AllocationChart 대시보드 통합.
   - `npm run build` 통과 확인.
+
+## 2026-05-22 — 청구서(Billing) MVP
+
+- 백엔드(api-saas) 신규 엔드포인트
+  - `GET  /api/v1/billing/invoices` — 본인 소유 계좌 청구서 페이지 조회 (accountId/billingPeriod/status 필터)
+  - `GET  /api/v1/billing/invoices/{id}` — 본인 청구서 단건 (소유권 검증 + 항목 명세 포함)
+  - `POST /api/v1/billing/invoices/{id}/pay` — 본인 청구서 납부 (ISSUED/OVERDUE → PAID)
+  - `BillingReader.searchByAccountIds(...)` 추가 — 다중 accountId IN 조회
+- 프론트(web-saas)
+  - `src/features/billing/billing.types.ts`, `billing.service.ts` 신규
+  - `src/app/workspace/billing/page.tsx` — 요약 카드(전체/미납합계/납부완료) + 계좌·상태 필터 + 카드 리스트
+  - `src/app/workspace/billing/[id]/page.tsx` — 항목 명세표 + 결제정보(소계/세금/총액/일정) + 납부 버튼
+  - `WorkspaceSidebar.tsx` — `청구서` 메뉴 추가 (FileText 아이콘)
+- 권한
+  - api-saas 의 USER 는 RBAC 비대상, 본인 계좌 소유권만 `AccountOwnershipValidator` 로 검증
