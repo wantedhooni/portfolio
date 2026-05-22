@@ -28,6 +28,8 @@ cat <<'INFO'
 - api-saas Swagger:  http://localhost:8091/swagger-ui/index.html
 - web-admin:         http://localhost:18081
 - web-saas:          http://localhost:18091
+- Grafana:           http://localhost:33000 (admin/admin)
+- Prometheus:        http://localhost:39090
 
 [데모 계정]
 - 관리자: admin@example.com / Qwer1234!

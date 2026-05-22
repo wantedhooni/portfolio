@@ -2,7 +2,7 @@
 
 ## 1. 프로젝트 개요
 
-`Revy Core Banking`은 인터넷전문은행을 가정한 풀스택 코어뱅킹 포트폴리오 프로젝트다. 백엔드는 Spring Boot 멀티모듈 구조로 계좌, 거래, 주식, 포트폴리오, 외환, 보험, 원장을 분리했고, 프론트엔드는 관리자 콘솔과 사용자 SaaS 화면을 Next.js로 분리했다.
+`Revy Core Banking`은 인터넷전문은행을 가정한 풀스택 코어뱅킹 포트폴리오 프로젝트다. 백엔드는 Spring Boot 멀티모듈 구조로 계좌, 거래, 주식, 주문, 포트폴리오, 외환, 보험, 원장, 청구, 정산, 스케줄러를 분리했고, 프론트엔드는 관리자 콘솔과 사용자 SaaS 화면을 Next.js로 분리했다.
 
 | 구분 | 내용 |
 |---|---|
@@ -11,6 +11,7 @@
 | 데이터베이스 | PostgreSQL, Flyway migration |
 | 캐시/세션 | Redis refresh token 저장 |
 | 앱 구성 | `api-admin`, `api-saas`, `web-admin`, `web-saas` |
+| 운영 스택 | Pgpool-II, PostgreSQL Primary/Secondary, Redis, ELK, Prometheus/Grafana |
 
 ## 2. 백엔드 모듈 구조
 
@@ -18,44 +19,78 @@
 backend/
 ├── module/
 │   ├── core/
-│   │   ├── common          # ApiResponse, ApiPageResponse 등 공통 응답
+│   │   ├── common          # BigDecimalUtil, UuidUtil 등 공통 utils
 │   │   ├── core-domain     # BaseEntity
 │   │   ├── core-exception  # BusinessException, ErrorCode
 │   │   └── core-web        # 예외 처리, 웹 공통 설정
-│   ├── domain              # Account, User, Stock, FX, Insurance, Ledger 엔티티
+│   ├── domain              # Account, User, Stock, Order, FX, Insurance, Ledger, Billing 엔티티
 │   ├── business-logic      # Reader/Command 기반 도메인 유스케이스 구현
 │   ├── jwt-auth            # JWT 발급, 검증, principal 처리
+│   ├── scheduler           # Quartz / Spring Batch 조회·제어
 │   └── tools               # metrics, log-elk
 └── application/
     ├── api-admin           # 관리자 API, 기본 포트 8081
     └── api-saas            # 사용자 API, 기본 포트 8091
 ```
 
+아래 다이어그램의 화살표는 `의존 대상 -> 사용하는 모듈` 방향이다.
+
 ```mermaid
 flowchart TD
-    common["core-common<br/>공통 응답"]
-    exception["core-exception<br/>업무 예외"]
-    web["core-web<br/>웹 공통 처리"]
-    domainCore["core-domain<br/>BaseEntity"]
-    domain["domain<br/>도메인 엔티티"]
-    logic["business-logic<br/>Reader / Command"]
-    jwt["jwt-auth<br/>JWT 인증"]
-    admin["api-admin"]
-    saas["api-saas"]
+    common["module:core:common<br/>공통 utils<br/>BigDecimalUtil · UuidUtil"]
+    exception["module:core:core-exception<br/>BusinessException · ErrorCode"]
+    coreDomain["module:core:core-domain<br/>BaseEntity"]
+    web["module:core:core-web<br/>ApiResponse · ApiPageResponse<br/>ExceptionHandler · CORS"]
+    domain["module:domain<br/>JPA Entity · Rich Domain"]
+    logic["module:business-logic<br/>Reader / Command<br/>QueryDSL · Transaction"]
+    jwt["module:jwt-auth<br/>JWT · Redis · Security"]
+    scheduler["module:scheduler<br/>Quartz · Spring Batch control"]
+    metrics["module:tools:metrics<br/>Actuator · Prometheus"]
+    logelk["module:tools:log-elk<br/>Logstash encoder"]
+    admin["application:api-admin<br/>Admin API · Flyway<br/>scheduler 포함"]
+    saas["application:api-saas<br/>SaaS API<br/>사용자 업무"]
 
-    exception --> common
+    common --> web
     exception --> web
-    domainCore --> domain
+    exception --> coreDomain
+    exception --> domain
+    coreDomain --> domain
     domain --> logic
-    common --> admin
+    exception --> jwt
+    web --> jwt
+    common --> scheduler
+    exception --> scheduler
+
     web --> admin
-    logic --> admin
     jwt --> admin
-    common --> saas
+    logic --> admin
+    scheduler --> admin
+    metrics --> admin
+    logelk --> admin
+
     web --> saas
-    logic --> saas
     jwt --> saas
+    logic --> saas
+    metrics --> saas
+    logelk --> saas
 ```
+
+### 실제 Gradle 의존성
+
+| 모듈 | 직접 의존 모듈 | 역할 |
+|---|---|---|
+| `module:core:common` | 없음 | 공통 utils. `BigDecimalUtil`, `UuidUtil` |
+| `module:core:core-exception` | 없음 | 업무 예외와 에러 코드 |
+| `module:core:core-domain` | `core-exception` | `BaseEntity`와 엔티티 공통 기반 |
+| `module:core:core-web` | `core-common`, `core-exception` | 공통 응답, 전역 예외 처리, CORS/OpenAPI/Validation 공통 |
+| `module:domain` | `core-exception`, `core-domain` | JPA 엔티티, enum, 도메인 예외, Rich Domain 로직 |
+| `module:business-logic` | `domain` | QueryDSL Reader, 트랜잭션 Command, DTO 경계 |
+| `module:jwt-auth` | `core-exception`, `core-web` | JWT 발급/검증, Redis refresh token, Security 필터 지원 |
+| `module:scheduler` | `core-exception`, `core-common` | Quartz/Spring Batch 메타데이터 조회와 운영 제어 |
+| `module:tools:metrics` | 없음 | Actuator, Prometheus, Pushgateway 연동 |
+| `module:tools:log-elk` | 없음 | Logstash encoder 기반 로그 전송 |
+| `application:api-admin` | `core-web`, `jwt-auth`, `business-logic`, `scheduler`, `metrics`, `log-elk` | 운영자 API, Flyway, 운영/정산/스케줄러 기능 조립 |
+| `application:api-saas` | `core-web`, `jwt-auth`, `business-logic`, `metrics`, `log-elk` | 사용자 API와 본인 계좌 중심 업무 조립 |
 
 ### 백엔드 설계 포인트
 
@@ -66,6 +101,19 @@ flowchart TD
 | 인증 | Admin/SaaS 별도 JWT issuer와 Redis DB 사용 |
 | 데이터 정합성 | 계좌 입출금/이체, 주식 매매, 환전, 보험료 납부는 단일 트랜잭션에서 처리 |
 | 감사 추적 | `referenceId`, 거래 내역, 원장 분개로 업무 이벤트 추적 |
+| 운영 기능 | 청구/정산 상태 전이, RBAC, Quartz/Spring Batch 운영 API 제공 |
+
+### 도메인 분석 요약
+
+| 도메인 | 구현 관점 | 포트폴리오에서 보여줄 포인트 |
+|---|---|---|
+| 계좌/거래 | 잔고·가용잔고 분리, 입출금/이체 거래 기록, 낙관적 락 | 동시성, 멱등성, 소유권 검증 |
+| 주식/주문/포지션 | 주문 접수·체결, 매수 Lot, FIFO 매도, 실현손익 계산 | 단순 CRUD를 넘어선 상태 전이와 자산 평가 |
+| 외환 | 통화/환율 마스터, 환전 요청·완료, 계좌 출금/입금 연결 | 크로스 도메인 트랜잭션 |
+| 보험 | 상품, 증권, 수익자, 보험료, 청구 심사/지급 | 긴 생명주기의 업무 상태 모델링 |
+| 원장 | 계정과목, 회계기간, 분개, 역분개, 시산표 | 복식부기 균형 검증과 감사 추적 |
+| 청구/정산 | 청구서 발행·결제·연체, 정산 성공/실패 | 운영 백오피스 업무 흐름 |
+| RBAC/스케줄러 | 관리자 역할·권한, Quartz/Batch 조회·제어 | 운영자 콘솔의 실무 기능 |
 
 ## 3. 프론트엔드 디자인 구조
 
@@ -94,11 +142,11 @@ frontned/
 |---|---|---|
 | web-admin | Dashboard | 운영 지표와 관리 메뉴 진입 |
 | web-admin | 계좌/거래/사용자/관리자 | 서버사이드 페이지네이션 기반 CRUD 관리 |
-| web-admin | FX/보험/원장 | 환율, 보험 증권/청구, 계정과목/분개/시산표 운영 |
+| web-admin | FX/보험/원장/청구/정산/스케줄러 | 환율, 보험 증권/청구, 계정과목/분개/시산표, 청구서, 정산, 배치 운영 |
 | web-saas | Workspace | 사용자의 금융 활동 허브 |
 | web-saas | Accounts/Transfer | 계좌 개설, 잔고 확인, 입출금, 이체 |
 | web-saas | Stocks/Trades/Portfolio | 종목 조회, 매매, 포트폴리오 평가 |
-| web-saas | FX/Insurance | 환전, 보험 상품 조회, 가입, 청구 |
+| web-saas | FX/Insurance/Billing | 환전, 보험 상품 조회, 가입, 청구, 청구서 결제 |
 
 ## 4. 백엔드 플로우
 
@@ -460,11 +508,45 @@ flowchart LR
 
 ![api-saas OpenAPI preview](docs/images/api-saas-swagger.png)
 
-### 프론트엔드 화면
+### 프론트엔드 화면 - web-admin
+
+운영자 콘솔은 도메인별 백오피스 업무를 서버사이드 검색, 페이지네이션, 등록/수정/삭제 액션이 포함된 공통 CRUD 화면으로 구성했다.
+
+**관리자 로그인**
 
 ![web-admin login](docs/images/web-admin-login.png)
 
+**운영자 대시보드**
+
+![web-admin dashboard](docs/images/web-admin-dashboard.png)
+
+**계좌 관리 - 대용량 계좌 데이터 그리드**
+
+![web-admin account management](docs/images/web-admin-accounts.png)
+
+**종목 관리 - 증권 마스터 데이터 그리드**
+
+![web-admin stock management](docs/images/web-admin-stocks.png)
+
+### 프론트엔드 화면 - web-saas
+
+사용자 워크스페이스는 계좌, 이체, 환전, 보험, 거래, 종목 조회를 하나의 금융 업무 셸에서 이동하도록 구성했다.
+
+**사용자 로그인**
+
 ![web-saas login](docs/images/web-saas-login.png)
+
+**서비스 가입**
+
+![web-saas signup](docs/images/web-saas-signup.png)
+
+**워크스페이스 대시보드**
+
+![web-saas workspace](docs/images/web-saas-workspace.png)
+
+**계좌이체 업무 화면**
+
+![web-saas transfer](docs/images/web-saas-transfer.png)
 
 ## 8. 백엔드 API 목록
 
@@ -599,8 +681,14 @@ flowchart LR
 
 ## 10. 포트폴리오 강조 포인트
 
-- 단순 CRUD가 아니라 계좌 잔고, 거래 내역, 주식 포지션, 환전, 보험, 복식부기 원장을 연결한 금융 도메인 프로젝트다.
+- 단순 CRUD가 아니라 계좌 잔고, 거래 내역, 주식 주문/포지션, 환전, 보험, 청구/정산, 복식부기 원장을 연결한 금융 도메인 프로젝트다.
 - Admin API와 SaaS API를 분리하여 운영자 권한과 사용자 권한 경계를 표현했다.
 - 프론트엔드는 관리자 콘솔의 반복 CRUD 패턴과 사용자 워크스페이스의 금융 업무 흐름을 별도 UX로 설계했다.
-- JWT silent refresh, Redis refresh token, QueryDSL 조회, Flyway migration, Docker 기반 인프라 구성을 포함한다.
+- JWT silent refresh, Redis refresh token, QueryDSL 조회, Flyway migration, Quartz/Spring Batch 운영 API, Docker 기반 인프라 구성을 포함한다.
 - PostgreSQL primary/secondary, Pgpool-II, Redis, ELK, Prometheus/Grafana까지 포함해 단일 앱 구현을 넘어 운영 관점의 인프라 설계를 표현했다.
+
+## 11. 개선 로드맵
+
+- 핵심 도메인 테스트 추가: 계좌 이체, FIFO 매도, 환전, 보험금 지급, 분개 균형 검증을 우선순위로 둔다.
+- 상태 변경 이벤트 고도화: 현재 `TODO:REVY`로 표시된 발행 후보 지점을 Outbox 패턴과 연계한다.
+- 운영 안정성 강화: Pgpool watchdog, DB failover 리허설, 배치 워커 분리, 장애 알림 룰을 추가한다.
