@@ -1,4 +1,12 @@
-# Revy Core Banking 포트폴리오 문서
+# Revy(원량훈) 포트폴리오 - Core Banking
+
+## DEMO 주소 정보
+
+- WEB-ADMIN : https://demo-admin.revy-won.dev/
+- WEB-SAAS : https://demo.revy-won.dev/
+- Github(소스)  : https://github.com/wantedhooni/portfolio/tree/develop/core-banking
+
+---
 
 ## 1. 프로젝트 개요
 
@@ -548,6 +556,15 @@ flowchart LR
 
 ![web-saas transfer](docs/images/web-saas-transfer.png)
 
+### INFRA
+
+**Grafana**
+![Grafana 모니터링](docs/images/infra-grafana.png)
+
+**ELK(KIBANA) 로그 모니터링**
+![KIBANA](docs/images/infra-elk-kibana.png)
+
+
 ## 8. 백엔드 API 목록
 
 ### api-admin
@@ -687,8 +704,4 @@ flowchart LR
 - JWT silent refresh, Redis refresh token, QueryDSL 조회, Flyway migration, Quartz/Spring Batch 운영 API, Docker 기반 인프라 구성을 포함한다.
 - PostgreSQL primary/secondary, Pgpool-II, Redis, ELK, Prometheus/Grafana까지 포함해 단일 앱 구현을 넘어 운영 관점의 인프라 설계를 표현했다.
 
-## 11. 개선 로드맵
 
-- 핵심 도메인 테스트 추가: 계좌 이체, FIFO 매도, 환전, 보험금 지급, 분개 균형 검증을 우선순위로 둔다.
-- 상태 변경 이벤트 고도화: 현재 `TODO:REVY`로 표시된 발행 후보 지점을 Outbox 패턴과 연계한다.
-- 운영 안정성 강화: Pgpool watchdog, DB failover 리허설, 배치 워커 분리, 장애 알림 룰을 추가한다.

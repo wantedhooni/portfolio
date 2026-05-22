@@ -523,4 +523,10 @@ cd frontned/web-saas  && npm install && npm run dev    # 사용자 워크스페�
 
 ---
 
+## 개선 로드맵(TODO)
+
+- 핵심 도메인 테스트 추가: 계좌 이체, FIFO 매도, 환전, 보험금 지급, 분개 균형 검증을 우선순위로 둔다.
+- 상태 변경 이벤트 고도화: 현재 `TODO:REVY`로 표시된 발행 후보 지점을 Outbox 패턴과 연계한다.
+- 운영 안정성 강화: Pgpool watchdog, DB failover 리허설, 배치 워커 분리, 장애 알림 룰을 추가한다.
+
 *Java 25 / Spring Boot 4 / Next.js 16 풀스택 코어뱅킹 포트폴리오*
