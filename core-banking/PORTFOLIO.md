@@ -2,9 +2,11 @@
 
 ## DEMO 주소 정보
 
-- WEB-ADMIN : https://demo-admin.revy-won.dev/
-- WEB-SAAS : https://demo.revy-won.dev/
-- Github(소스)  : https://github.com/wantedhooni/portfolio/tree/develop/core-banking
+- WEB-ADMIN : [https://demo-admin.revy-won.dev/](https://demo-admin.revy-won.dev/)
+- WEB-SAAS : [https://demo.revy-won.dev/](https://demo.revy-won.dev/)
+- Github(포트폴리오 소스)  : [https://github.com/wantedhooni/portfolio/tree/develop/core-banking](https://github.com/wantedhooni/portfolio/tree/develop/core-banking)
+- Github  : [https://github.com/wantedhooni/](https://github.com/wantedhooni/)
+- blog : [https://revy.notion.site/Revy-Logs-or-audit-2cf8f9e43b5f8034a60ff8b40019c0ca](https://revy.notion.site/Revy-Logs-or-audit-2cf8f9e43b5f8034a60ff8b40019c0ca)
 
 ---
 
