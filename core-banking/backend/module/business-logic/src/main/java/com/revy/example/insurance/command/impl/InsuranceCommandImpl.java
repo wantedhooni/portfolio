@@ -135,35 +135,45 @@ public class InsuranceCommandImpl implements InsuranceCommand {
     // ── Premium ──────────────────────────────────────────────────
 
     @Override
-    public void payPremium(PayPremiumCommand command) {
-        if (insuranceReader.existsPaymentByReferenceId(command.referenceId())) {
-            log.info("Duplicate premium payment ignored. referenceId={}", command.referenceId());
-            return;
+    public Long schedulePremiumPayment(Long policyId, java.math.BigDecimal amount, String currency,
+                                       java.time.LocalDate dueDate, Long billingAccountId, String referenceId) {
+        if (insuranceReader.existsPaymentByReferenceId(referenceId)) {
+            throw new IllegalStateException("이미 예약된 납부 referenceId=" + referenceId);
         }
+        PremiumPayment payment = PremiumPayment.schedule(policyId, amount, currency, dueDate, billingAccountId, referenceId);
+        entityManager.persist(payment);
+        return payment.getId();
+    }
 
+    @Override
+    public void payPremium(PayPremiumCommand command) {
         PremiumPayment payment = loadPayment(command.paymentId());
+
+        // 멱등성: 이미 처리된 납부는 스킵
         if (payment.getStatus() == PaymentStatus.PAID) {
-            throw new BusinessException(ErrorCode.PREMIUM_ALREADY_PAID);
+            log.info("[payPremium] 이미 납부 완료. paymentId={}", command.paymentId());
+            return;
         }
 
         InsurancePolicy policy = loadPolicy(payment.getPolicyId());
         policy.validateActive();
 
-        // 출금 (자동이체)
+        // 출금 (자동이체) — 실패 시 예외를 markFailed로 변환, 예외 미전파
         try {
             accountCommand.withdraw(new WithdrawCommand(
                 policy.getBillingAccountId(), payment.getAmount(), command.referenceId()
             ));
         } catch (RuntimeException e) {
+            log.warn("[payPremium] 출금 실패 policyId={} reason={}", payment.getPolicyId(), e.getMessage());
             payment.markFailed(e.getMessage());
             return;
         }
 
         // 납부 처리 + 다음 납부일 진행
-        payment.markPaid(null, Instant.now());  // 실제론 AccountTx ID 연결 필요 (Account.withdraw 시그니처 확장 시)
+        payment.markPaid(null, Instant.now());
         policy.advanceNextPaymentDate();
-        // 분개: (차) 보통예금 / (대) 보험료수익 — LedgerCommand 위임 (구현 생략, 후속 작업)
-        // TODO:REVY - EVENT 발행(InsurancePremiumPaid) - commit after
+        // TODO:REVY - LedgerCommand: (차) 보통예금 / (대) 보험료수익
+        // TODO:REVY - EVENT 발행(InsurancePremiumPaid)
     }
 
     @Override

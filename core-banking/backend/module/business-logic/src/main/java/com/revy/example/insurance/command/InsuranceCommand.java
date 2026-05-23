@@ -8,6 +8,7 @@ import com.revy.example.insurance.command.dto.PayPremiumCommand;
 import com.revy.example.insurance.command.dto.SubmitClaimCommand;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 public interface InsuranceCommand {
 
@@ -25,7 +26,21 @@ public interface InsuranceCommand {
     void cancelPolicy(Long policyId);
 
     // ── Premium ──────────────────────────────────────────────────
-    /** 보험료 결제 (자동이체) — Account 차감 + Policy 다음 납부일 진행 + 분개 생성 */
+    /**
+     * 보험료 납부 예약 레코드(PremiumPayment) 생성 — 배치 자동이체 전 단계.
+     * referenceId 중복 시 IllegalStateException.
+     *
+     * @return 생성된 PremiumPayment ID
+     */
+    Long schedulePremiumPayment(Long policyId, BigDecimal amount, String currency,
+                                LocalDate dueDate, Long billingAccountId, String referenceId);
+
+    /**
+     * 보험료 결제 실행 (자동이체).
+     * — Account 차감 → PremiumPayment.markPaid + Policy.advanceNextPaymentDate
+     * — 출금 실패 시 PremiumPayment.markFailed (예외 미전파)
+     * — 이미 PAID 상태이면 멱등 처리(스킵)
+     */
     void payPremium(PayPremiumCommand command);
 
     /** 연체 처리 (배치) */
