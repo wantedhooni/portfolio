@@ -35,7 +35,16 @@ spring:
     enabled: true
 
   quartz:
+    # ───────────────────────────────────────────────────────────────────────
+    # api-admin 은 Quartz Control Plane 전용이다.
+    # Job 등록·조회·제어(pause/resume/trigger)만 수행하며 절대 실행하지 않는다.
+    # Job 실행(trigger fire)은 server-executor 가 전담한다.
+    #
+    # auto-startup=false : Scheduler 는 JDBC JobStore 에 연결돼
+    #   Job CRUD 는 수행하지만 Trigger 를 발화(fire)하지 않는 Standby 상태를 유지한다.
+    # ───────────────────────────────────────────────────────────────────────
     job-store-type: jdbc
+    auto-startup: false          # ★ Control Plane 필수 설정 — 변경 금지
     jdbc:
       initialize-schema: never
     properties:
