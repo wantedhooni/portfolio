@@ -3,6 +3,7 @@ package com.revy.example.quartz.listener;
 import com.revy.example.quartz.domain.QuartzJobExecutionHistory;
 import com.revy.example.quartz.handler.QuartzJobHistoryHandler;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.JobKey;
@@ -16,6 +17,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class QuartzJobHistoryListener extends JobListenerSupport {
@@ -34,6 +36,9 @@ public class QuartzJobHistoryListener extends JobListenerSupport {
             JobKey jobKey = context.getJobDetail().getKey();
             TriggerKey triggerKey = context.getTrigger().getKey();
 
+            log.info("[QuartzListener] 실행 시작 — job={}, fireInstanceId={}",
+                     jobKey, context.getFireInstanceId());
+
             QuartzJobExecutionHistory history = QuartzJobExecutionHistory.running(
                 context.getScheduler().getSchedulerName(),
                 context.getFireInstanceId(),
@@ -50,19 +55,22 @@ public class QuartzJobHistoryListener extends JobListenerSupport {
             handler.saveRunning(history);
         } catch (Exception e) {
             // Listener 실패가 Job 실행 자체에 영향을 주지 않도록 처리한다.
-            // log.error("Quartz Job 실행 이력 RUNNING 저장 실패", e);
+            log.error("[QuartzListener] RUNNING 이력 저장 실패 — fireInstanceId={}",
+                      context.getFireInstanceId(), e);
         }
     }
 
     @Override
     public void jobExecutionVetoed(JobExecutionContext context) {
         try {
+            log.warn("[QuartzListener] Job VETOED — fireInstanceId={}", context.getFireInstanceId());
             handler.markVetoed(
                 context.getFireInstanceId(),
                 LocalDateTime.now()
             );
         } catch (Exception e) {
-            // log.error("Quartz Job VETOED 이력 저장 실패", e);
+            log.error("[QuartzListener] VETOED 이력 저장 실패 — fireInstanceId={}",
+                      context.getFireInstanceId(), e);
         }
     }
 
@@ -76,6 +84,8 @@ public class QuartzJobHistoryListener extends JobListenerSupport {
             long durationMs = context.getJobRunTime();
 
             if (jobException == null) {
+                log.info("[QuartzListener] 실행 SUCCESS — job={}, durationMs={}",
+                         context.getJobDetail().getKey(), durationMs);
                 handler.markSuccess(
                     context.getFireInstanceId(),
                     endTime,
@@ -84,6 +94,8 @@ public class QuartzJobHistoryListener extends JobListenerSupport {
                 return;
             }
 
+            log.error("[QuartzListener] 실행 FAILED — job={}, durationMs={}, error={}",
+                      context.getJobDetail().getKey(), durationMs, jobException.getMessage(), jobException);
             handler.markFailed(
                 context.getFireInstanceId(),
                 endTime,
@@ -92,7 +104,8 @@ public class QuartzJobHistoryListener extends JobListenerSupport {
                 getStackTrace(jobException)
             );
         } catch (Exception e) {
-            // log.error("Quartz Job 완료 이력 저장 실패", e);
+            log.error("[QuartzListener] 완료 이력 저장 실패 — fireInstanceId={}",
+                      context.getFireInstanceId(), e);
         }
     }
 

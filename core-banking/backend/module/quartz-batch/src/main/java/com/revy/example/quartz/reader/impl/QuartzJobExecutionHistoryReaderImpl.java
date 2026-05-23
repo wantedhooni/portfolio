@@ -98,6 +98,36 @@ public class QuartzJobExecutionHistoryReaderImpl implements QuartzJobExecutionHi
             .orElse(0L));
     }
 
+    @Override
+    public Page<QuartzJobExecutionHistoryResult> findCompleted(String jobName, Pageable pageable) {
+        List<QuartzJobExecutionStatus> completedStatuses = List.of(
+            QuartzJobExecutionStatus.SUCCESS,
+            QuartzJobExecutionStatus.FAILED,
+            QuartzJobExecutionStatus.VETOED
+        );
+
+        BooleanBuilder where = new BooleanBuilder();
+        where.and(history.status.in(completedStatuses));
+        if (jobName != null && !jobName.isBlank()) {
+            where.and(history.jobName.containsIgnoreCase(jobName.trim()));
+        }
+
+        List<QuartzJobExecutionHistoryResult> content = jpaQueryFactory.select(historyProjection())
+            .from(history)
+            .where(where)
+            .orderBy(history.id.desc())
+            .offset(pageable.getOffset())
+            .limit(pageable.getPageSize())
+            .fetch();
+
+        JPAQuery<Long> countQuery = jpaQueryFactory.select(history.count())
+            .from(history)
+            .where(where);
+
+        return PageableExecutionUtils.getPage(content, pageable,
+            () -> Optional.ofNullable(countQuery.fetchOne()).orElse(0L));
+    }
+
     private ConstructorExpression<QuartzJobExecutionHistoryResult> historyProjection() {
         return Projections.constructor(QuartzJobExecutionHistoryResult.class, history.id, history.schedulerName,
                                        history.fireInstanceId, history.jobName, history.jobGroup, history.triggerName,

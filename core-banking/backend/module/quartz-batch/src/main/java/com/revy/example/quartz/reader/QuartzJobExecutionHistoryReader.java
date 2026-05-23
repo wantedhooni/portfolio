@@ -35,5 +35,9 @@ public interface QuartzJobExecutionHistoryReader {
         Pageable pageable
     );
 
-
+    /**
+     * 완료 이력(SUCCESS·FAILED·VETOED) 전체 페이지 조회.
+     * jobName 이 null 이 아니면 부분 일치(contains) 필터를 적용한다.
+     */
+    Page<QuartzJobExecutionHistoryResult> findCompleted(String jobName, Pageable pageable);
 }
