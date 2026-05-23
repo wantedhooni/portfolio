@@ -1,0 +1,58 @@
+spring:
+  application:
+    name: server-executor
+  profiles:
+    active: ${APP_PROFILE:local}
+    default: local
+  config:
+    import:
+      - "optional:classpath:/metrics.yml"
+      - "optional:classpath:/springdoc.yml"
+      - "optional:classpath:/scheduler-quartz.properties"
+  datasource:
+    url: ${ADMIN_DB_URL:jdbc:postgresql://localhost:5431/appdb}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          time_zone: UTC
+  quartz:
+    # ───────────────────────────────────────────────────────────────────────
+    # server-executor 는 Quartz Worker Node 전용이다.
+    # Trigger 를 발화(fire)해 Job 을 실행하는 역할만 담당한다.
+    # Job 등록·관리(CRUD)는 api-admin 이 전담한다.
+    #
+    # auto-startup=true : Scheduler 가 기동 시 자동으로 시작돼 Trigger 를 수신한다.
+    # ───────────────────────────────────────────────────────────────────────
+    job-store-type: jdbc
+    auto-startup: true           # ★ Worker Node 필수 설정
+    jdbc:
+      initialize-schema: never   # DDL 은 api-admin Flyway 가 관리
+  batch:
+    job:
+      enabled: false             # api-admin 은 launch 안 함 (워커 노드 전담)
+    jdbc:
+      initialize-schema: never
+
+  #virtual thread
+  threads:
+    virtual:
+      enabled: true
+
+
+server:
+  port: ${ADMIN_SERVER_PORT:8071}
+
+logging:
+  level:
+    org.hibernate.SQL: debug
+
+logstash:
+  enabled: true
+  host: ${LOGSTASH_HOST:127.0.0.1:4560}

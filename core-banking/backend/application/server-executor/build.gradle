@@ -1,0 +1,22 @@
+plugins {
+    id 'org.springframework.boot'
+}
+
+dependencies {
+    implementation project(':module:core:core-web')
+    implementation project(':module:business-logic')
+    implementation project(':module:tools:metrics')
+    implementation project(':module:tools:log-elk')
+    implementation project(':module:quartz-batch')
+
+    // quartz-batch 가 implementation 으로 quartz-starter 를 사용하므로
+    // server-executor 에서 SpringBeanJobFactory(Spring-DI-aware Job 인스턴스화)를
+    // 포함한 QuartzAutoConfiguration 이 확실히 동작하도록 명시 선언한다.
+    implementation 'org.springframework.boot:spring-boot-starter-quartz'
+
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    runtimeOnly 'org.postgresql:postgresql'
+}
