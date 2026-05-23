@@ -118,8 +118,8 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: '스케줄러',
     items: [
-      { href: '/dashboard/scheduler/quartz', label: 'Quartz Job', icon: ClockIcon },
-      { href: '/dashboard/scheduler/batch',  label: 'Spring Batch', icon: LayersIcon },
+      { href: '/dashboard/quartz',         label: 'Quartz Job',    icon: ClockIcon },
+      { href: '/dashboard/quartz-history', label: '실행 이력',     icon: LayersIcon },
     ],
   },
   {
