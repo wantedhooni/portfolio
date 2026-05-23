@@ -33,8 +33,5 @@ class AdminServerApplication {
         log.info("APP_PROFILE = {}", System.getenv("APP_PROFILE"));
         log.info("logstash.enabled = {}", System.getenv("logstash.enabled"));
         log.info("logstash.enabled = {}", env.getProperty("logstash.enabled"));
-        log.info("SPRING_PROFILES_ACTIVE = {}", (String[]) env.getActiveProfiles());
-
-
     }
 }
