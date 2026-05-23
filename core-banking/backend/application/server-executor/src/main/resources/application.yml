@@ -1,6 +1,6 @@
 spring:
   application:
-    name: api-admin
+    name: server-executor
   profiles:
     active: ${APP_PROFILE:local}
     default: local
@@ -13,14 +13,6 @@ spring:
     url: ${ADMIN_DB_URL:jdbc:postgresql://localhost:5431/appdb}
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:postgres}
-  data:
-    redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
-      database: 0
-#      password: ${REDIS_PASSWORD:mypassword}
-      repositories:
-        enabled: false
   jpa:
     hibernate:
       ddl-auto: validate
@@ -30,28 +22,18 @@ spring:
         format_sql: true
         jdbc:
           time_zone: UTC
-
-  flyway:
-    enabled: true
-
   quartz:
     # ───────────────────────────────────────────────────────────────────────
-    # api-admin 은 Quartz Control Plane 전용이다.
-    # Job 등록·조회·제어(pause/resume/trigger)만 수행하며 절대 실행하지 않는다.
-    # Job 실행(trigger fire)은 server-executor 가 전담한다.
+    # server-executor 는 Quartz Worker Node 전용이다.
+    # Trigger 를 발화(fire)해 Job 을 실행하는 역할만 담당한다.
+    # Job 등록·관리(CRUD)는 api-admin 이 전담한다.
     #
-    # auto-startup=false : Scheduler 는 JDBC JobStore 에 연결돼
-    #   Job CRUD 는 수행하지만 Trigger 를 발화(fire)하지 않는 Standby 상태를 유지한다.
+    # auto-startup=true : Scheduler 가 기동 시 자동으로 시작돼 Trigger 를 수신한다.
     # ───────────────────────────────────────────────────────────────────────
     job-store-type: jdbc
-    auto-startup: false          # ★ Control Plane 필수 설정 — 변경 금지
+    auto-startup: true           # ★ Worker Node 필수 설정
     jdbc:
-      initialize-schema: never
-    properties:
-      org:
-        quartz:
-          jobStore:
-            driverDelegateClass: org.quartz.impl.jdbcjobstore.PostgreSQLDelegate
+      initialize-schema: never   # DDL 은 api-admin Flyway 가 관리
   batch:
     job:
       enabled: false             # api-admin 은 launch 안 함 (워커 노드 전담)
@@ -65,14 +47,7 @@ spring:
 
 
 server:
-  port: ${ADMIN_SERVER_PORT:8081}
-
-app:
-  jwt:
-    issuer: ${JWT_ISSUER:api-admin}
-    secret: ${JWT_SECRET:a8cc92c8b53c71c7904a1266bd6d5dadb0033eab4c8e9ee3307dae77ffe26010c7cadfcde4c7e4ab1890a8301ebbf7714ffc7e545250d46a06aae9bff52d0d50}
-    access-token-expiration-minutes: ${JWT_ACCESS_TOKEN_EXPIRATION_MINUTES:60}
-    refresh-token-expiration-days: ${JWT_REFRESH_TOKEN_EXPIRATION_DAYS:14}
+  port: ${ADMIN_SERVER_PORT:8071}
 
 logging:
   level:
