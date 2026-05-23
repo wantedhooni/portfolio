@@ -8,10 +8,15 @@ include ':module:core:core-domain'
 include ':module:domain'
 include ':module:business-logic'
 include ':module:jwt-auth'
+include ':module:quartz-batch'
+
 include ':module:tools:log-elk'
 include ':module:tools:metrics'
-include ':module:scheduler'
+
+
+
 
 // application-server
 include ':application:api-admin'
 include ':application:api-saas'
+include ':application:server-executor'
