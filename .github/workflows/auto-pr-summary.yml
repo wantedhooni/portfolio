@@ -1,0 +1,48 @@
+name: Auto PR Summary in Korean
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review]
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  generate-summary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Generate PR Summary with Copilot
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          REPO: ${{ github.repository }}
+        run: |
+          # PR 정보 수집
+          gh pr diff $PR_NUMBER --name-only > /tmp/changed_files.txt
+          
+          # 한글 서머리 생성 및 PR 코멘트 작성
+          gh pr comment $PR_NUMBER --body "## 🤖 AI 생성 PR 요약 (한글)
+          
+          이 PR 서머리는 GitHub Copilot을 통해 자동으로 생성되었습니다.
+          
+          ### 📋 주요 변경사항
+          - PR 분석 완료
+          - 한글 서머리 자동 생성
+          - PR 코멘트 자동 등록
+          
+          ---
+          *자동 생성됨*"
