@@ -1,0 +1,16 @@
+kafka:
+  bootstrap-servers:
+    - localhost:9092
+
+  producer:
+    acks: all           # 리더 + 모든 ISR 기록 후 응답 (데이터 유실 최소화)
+    # retries 는 설정하지 않습니다.
+    # enable.idempotence=true 가 retries=Integer.MAX_VALUE 를 자동 보장합니다.
+    batch-size: 16384   # 배치 크기 (bytes, 기본 16KB)
+    linger-ms: 5        # 배치 대기 시간 (ms) — 처리량 vs 지연 트레이드오프
+
+  consumer:
+    group-id: core-banking
+    auto-offset-reset: earliest   # 최초 구독 시 가장 오래된 메시지부터
+    enable-auto-commit: false     # 수동 ACK (MANUAL_IMMEDIATE 모드)
+    concurrency: 3                # 동시 처리 스레드 수
