@@ -6,7 +6,6 @@ import com.revy.example.domain.ledger.AccountingPeriod;
 import com.revy.example.domain.ledger.JournalEntry;
 import com.revy.example.domain.ledger.LedgerAccount;
 import com.revy.example.domain.ledger.exception.AccountingPeriodNotFoundException;
-import com.revy.example.domain.ledger.exception.ClosedPeriodException;
 import com.revy.example.domain.ledger.exception.JournalEntryNotFoundException;
 import com.revy.example.domain.ledger.exception.LedgerAccountNotFoundException;
 import com.revy.example.ledger.command.LedgerCommand;
@@ -126,9 +125,7 @@ public class LedgerCommandImpl implements LedgerCommand {
         // 기간 OPEN 검증 (원본 기간 사용)
         AccountingPeriod period = entityManager.find(AccountingPeriod.class, original.getPeriodId());
         if (period == null) throw new AccountingPeriodNotFoundException();
-        if (period.getStatus() == com.revy.example.domain.ledger.enums.PeriodStatus.CLOSED) {
-            throw new ClosedPeriodException();
-        }
+        period.validateOpen();
 
         JournalEntry reversal = original.createReversal(
             reversalJournalNumber, original.getEntryDate(), original.getPeriodId(), reason);
