@@ -1,4 +1,4 @@
-package com.revy.example.saas.auth.compoenet;
+package com.revy.example.saas.auth.component;
 
 import com.revy.example.jwt.JwtPrincipalLoader;
 import com.revy.example.jwt.enums.PrincipalType;
