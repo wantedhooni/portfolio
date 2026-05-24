@@ -74,6 +74,7 @@ public class AccountTx extends BaseEntity {
     // ── 팩토리 메서드 ─────────────────────────────────────────────
     public static AccountTx ofDeposit(Long accountId, BigDecimal amount,
                                       String referenceId) {
+        requirePositive(amount, "amount");
         AccountTx tx = new AccountTx();
         tx.accountId   = accountId;
         tx.txType      = TxType.DEPOSIT;
@@ -88,6 +89,7 @@ public class AccountTx extends BaseEntity {
 
     public static AccountTx ofWithdrawal(Long accountId, BigDecimal amount,
                                          String referenceId) {
+        requirePositive(amount, "amount");
         AccountTx tx = new AccountTx();
         tx.accountId   = accountId;
         tx.txType      = TxType.WITHDRAWAL;
@@ -106,6 +108,8 @@ public class AccountTx extends BaseEntity {
      */
     public static AccountTx ofTransferOut(Long accountId, BigDecimal amount,
                                           BigDecimal fee, String referenceId) {
+        requirePositive(amount, "amount");
+        requireNonNegative(fee, "fee");
         AccountTx tx = new AccountTx();
         tx.accountId   = accountId;
         tx.txType      = TxType.TRANSFER_OUT;
@@ -124,6 +128,7 @@ public class AccountTx extends BaseEntity {
      */
     public static AccountTx ofTransferIn(Long accountId, BigDecimal amount,
                                          String referenceId) {
+        requirePositive(amount, "amount");
         AccountTx tx = new AccountTx();
         tx.accountId   = accountId;
         tx.txType      = TxType.TRANSFER_IN;
@@ -140,6 +145,10 @@ public class AccountTx extends BaseEntity {
                                   BigDecimal quantity, BigDecimal price,
                                   BigDecimal fee, BigDecimal tax,
                                   String referenceId, Instant tradedAt) {
+        requirePositive(quantity, "quantity");
+        requirePositive(price, "price");
+        requireNonNegative(fee, "fee");
+        requireNonNegative(tax, "tax");
         AccountTx tx = new AccountTx();
         tx.accountId   = accountId;
         tx.stockId     = stockId;
@@ -159,6 +168,10 @@ public class AccountTx extends BaseEntity {
                                    BigDecimal quantity, BigDecimal price,
                                    BigDecimal fee, BigDecimal tax,
                                    String referenceId, Instant tradedAt) {
+        requirePositive(quantity, "quantity");
+        requirePositive(price, "price");
+        requireNonNegative(fee, "fee");
+        requireNonNegative(tax, "tax");
         AccountTx tx = new AccountTx();
         tx.accountId   = accountId;
         tx.stockId     = stockId;
@@ -177,6 +190,8 @@ public class AccountTx extends BaseEntity {
     public static AccountTx ofDividend(Long accountId, Long stockId,
                                        BigDecimal amount, BigDecimal tax,
                                        String referenceId, Instant tradedAt) {
+        requirePositive(amount, "amount");
+        requireNonNegative(tax, "tax");
         AccountTx tx = new AccountTx();
         tx.accountId   = accountId;
         tx.stockId     = stockId;
@@ -188,5 +203,19 @@ public class AccountTx extends BaseEntity {
         tx.referenceId = referenceId;
         tx.tradedAt    = tradedAt;
         return tx;
+    }
+
+    // ── 내부 검증 ─────────────────────────────────────────────────
+
+    private static void requirePositive(BigDecimal value, String field) {
+        if (value == null || value.signum() <= 0) {
+            throw new IllegalArgumentException(field + " must be positive, got: " + value);
+        }
+    }
+
+    private static void requireNonNegative(BigDecimal value, String field) {
+        if (value == null || value.signum() < 0) {
+            throw new IllegalArgumentException(field + " must be non-negative, got: " + value);
+        }
     }
 }
