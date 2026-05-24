@@ -1,5 +1,15 @@
 # 작업 내역
 
+## 2026-05-24
+
+- `frankfurter-client` 모듈 테스트 실행 시 SLF4J 로그가 콘솔에 보이도록 Gradle `testLogging.showStandardStreams`를 활성화했다.
+- `FrankfurterRestClientLiveTest`의 Lombok 로그 애노테이션을 제거하고 SLF4J `LoggerFactory`로 logger를 명시 생성하도록 변경했다.
+- `FrankfurterRestClientTest`에 `MockRestServiceServer` 기반 테스트를 작성했다.
+- 단건 환율, 최신 환율 목록, 지원 통화 목록 응답 매핑을 검증했다.
+- Frankfurter API 4xx 오류 응답이 `FrankfurterApiException`으로 변환되는 경로를 검증했다.
+- `FrankfurterRestClientLiveTest`를 추가해 실제 `https://api.frankfurter.dev` 서버의 단건 환율, 최신 환율 목록, 지원 통화 목록을 호출하도록 했다.
+- Frankfurter v2 실서버 응답이 배열 형태로 내려오는 `rates`, `currencies` 계약에 맞춰 클라이언트 반환 타입을 보정했다.
+
 ## 2026-05-23
 
 - `QuartzJobExecutionHistoryReaderImpl`의 작업별/상태별 실행 이력 조회를 QueryDSL constructor projection으로 구현했다.

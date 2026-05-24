@@ -10,6 +10,11 @@ include ':module:business-logic'
 include ':module:jwt-auth'
 include ':module:quartz-batch'
 
+
+include ':module:external-api:frankfurter-client'
+include ':module:external-api:kafka-client'
+
+
 include ':module:tools:log-elk'
 include ':module:tools:metrics'
 
