@@ -1,4 +1,4 @@
-package com.revy.example.core.hendler;
+package com.revy.example.core.handler;
 
 
 import com.revy.example.core.common.ApiResponse;

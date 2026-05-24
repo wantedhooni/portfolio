@@ -41,6 +41,7 @@ public enum ErrorCode {
     // ── Insurance ─────────────────────────────────────────────────
     INSURANCE_PRODUCT_NOT_FOUND(404, "INSURANCE-001", "보험 상품을 찾을 수 없습니다."),
     INSURANCE_PRODUCT_DISCONTINUED(422, "INSURANCE-002", "판매 중단된 보험 상품입니다."),
+    INSURANCE_PRODUCT_DUPLICATED(409, "INSURANCE-003", "이미 등록된 보험 상품 코드입니다."),
     POLICY_NOT_FOUND(404, "POLICY-001", "보험 계약을 찾을 수 없습니다."),
     POLICY_NOT_ACTIVE(422, "POLICY-002", "활성 상태의 보험 계약이 아닙니다."),
     POLICY_EXPIRED(422, "POLICY-003", "보험 계약이 만료되었습니다."),
@@ -52,6 +53,7 @@ public enum ErrorCode {
     CLAIM_NOT_PENDING(422, "CLAIM-002", "심사 가능한 상태가 아닙니다."),
     CLAIM_ALREADY_PAID(409, "CLAIM-003", "이미 지급된 청구입니다."),
     CLAIM_AMOUNT_EXCEEDS_COVERAGE(422, "CLAIM-004", "청구금액이 보장한도를 초과합니다."),
+    CLAIM_NOT_APPROVED(422, "CLAIM-005", "승인되지 않은 청구입니다. 지급 전 승인이 필요합니다."),
 
     // ── FX ────────────────────────────────────────────────────────
     CURRENCY_NOT_FOUND(404, "FX-001", "통화를 찾을 수 없습니다."),
