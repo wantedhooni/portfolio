@@ -1,0 +1,4 @@
+frankfurter:
+  base-url: https://api.frankfurter.dev
+  connect-timeout: 2s
+  read-timeout: 3s

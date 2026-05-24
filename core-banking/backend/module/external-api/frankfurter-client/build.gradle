@@ -1,0 +1,19 @@
+ext {
+}
+dependencies {
+    implementation("org.springframework.boot:spring-boot-starter-restclient")
+}
+
+tasks.named('test') {
+    // @Tag("live") 테스트는 실서버를 호출하므로 일반 빌드에서는 제외합니다.
+    // 실서버 테스트 실행: ./gradlew :module:external-api:frankfurter-client:test -Plive
+    useJUnitPlatform {
+        if (!project.hasProperty('live')) {
+            excludeTags 'live'
+        }
+    }
+    testLogging {
+        events "passed", "skipped", "failed"
+        showStandardStreams = true
+    }
+}
