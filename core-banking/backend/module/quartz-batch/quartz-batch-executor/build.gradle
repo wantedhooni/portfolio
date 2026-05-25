@@ -1,0 +1,8 @@
+dependencies {
+    api project(':module:quartz-batch:quartz-batch-common')
+    api project(':module:business-logic')
+
+    implementation project(':module:external-api:frankfurter-client')
+    implementation("org.springframework.boot:spring-boot-starter-batch")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
+}

@@ -8,7 +8,9 @@ include ':module:core:core-domain'
 include ':module:domain'
 include ':module:business-logic'
 include ':module:jwt-auth'
-include ':module:quartz-batch'
+include ':module:quartz-batch:quartz-batch-common'
+include ':module:quartz-batch:quartz-batch-management'
+include ':module:quartz-batch:quartz-batch-executor'
 
 
 include ':module:external-api:frankfurter-client'
