@@ -1,9 +1,10 @@
 package com.revy.example.quartz.job;
 
+import com.revy.example.quartz.TypedJob;
+import com.revy.example.quartz.enums.JobType;
 import com.revy.example.quartz.service.ExchangeRateRefreshResult;
 import com.revy.example.quartz.service.ExchangeRateRefreshService;
 import lombok.extern.slf4j.Slf4j;
-import org.quartz.Job;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -27,13 +28,18 @@ import java.util.Optional;
  */
 @Slf4j
 @Component
-public class ExchangeRateRefreshJob implements Job {
+public class ExchangeRateRefreshJob implements TypedJob {
 
     private static final String       DEFAULT_BASE   = "USD";
     private static final List<String> DEFAULT_QUOTES = List.of("KRW", "EUR", "JPY", "GBP", "CNY");
 
     @Autowired
     private ExchangeRateRefreshService refreshService;
+
+    @Override
+    public JobType getType() {
+        return JobType.EXCHANGE_RATE_REFRESH;
+    }
 
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {

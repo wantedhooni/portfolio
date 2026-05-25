@@ -9,6 +9,7 @@ import com.revy.example.quartz.enums.QuartzJobExecutionStatus;
 import com.revy.example.quartz.exception.QuartzSchedulerException;
 import com.revy.example.quartz.handler.QuartzJobHandler;
 import com.revy.example.quartz.reader.QuartzJobExecutionHistoryReader;
+import com.revy.example.quartz.registry.JobClassRegistry;
 import lombok.RequiredArgsConstructor;
 import org.quartz.CronTrigger;
 import org.quartz.Job;
@@ -34,6 +35,7 @@ public class QuartzJobHandlerImpl implements QuartzJobHandler {
 
     private final Scheduler                      scheduler;
     private final QuartzJobExecutionHistoryReader reader;
+    private final JobClassRegistry               jobClassRegistry;
 
     @Override
     public void createJob(QuartzJobUpsertCommand command) {
@@ -44,7 +46,7 @@ public class QuartzJobHandlerImpl implements QuartzJobHandler {
                 throw new IllegalArgumentException("이미 존재하는 Job입니다. jobKey=" + jobKey);
             }
 
-            Class<? extends Job> jobClass = command.jobType().toJobClass();
+            Class<? extends Job> jobClass = jobClassRegistry.resolve(command.jobType());
             JobDataMap jobDataMap = buildJobDataMap(command);
 
             JobDetail jobDetail = JobBuilder.newJob(jobClass)

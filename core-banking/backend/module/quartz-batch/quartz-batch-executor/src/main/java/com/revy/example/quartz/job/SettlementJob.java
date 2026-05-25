@@ -1,9 +1,10 @@
 package com.revy.example.quartz.job;
 
+import com.revy.example.quartz.TypedJob;
+import com.revy.example.quartz.enums.JobType;
 import com.revy.example.quartz.service.InsurancePremiumSettlementResult;
 import com.revy.example.quartz.service.InsurancePremiumSettlementService;
 import lombok.extern.slf4j.Slf4j;
-import org.quartz.Job;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -27,10 +28,15 @@ import java.time.format.DateTimeParseException;
  */
 @Slf4j
 @Component
-public class SettlementJob implements Job {
+public class SettlementJob implements TypedJob {
 
     @Autowired
     private InsurancePremiumSettlementService settlementService;
+
+    @Override
+    public JobType getType() {
+        return JobType.SETTLEMENT;
+    }
 
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
