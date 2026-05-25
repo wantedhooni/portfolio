@@ -46,7 +46,7 @@ public class InsuranceCommandImpl implements InsuranceCommand {
     @Override
     public Long createProduct(CreateInsuranceProductCommand command) {
         if (insuranceReader.findProductByCode(command.productCode()).isPresent()) {
-            throw new BusinessException(ErrorCode.INSURANCE_PRODUCT_DISCONTINUED, "duplicate code");
+            throw new BusinessException(ErrorCode.INSURANCE_PRODUCT_DUPLICATED, "code=" + command.productCode());
         }
         InsuranceProduct p = InsuranceProduct.create(
             command.productCode(), command.name(), command.description(),
@@ -138,7 +138,7 @@ public class InsuranceCommandImpl implements InsuranceCommand {
     public Long schedulePremiumPayment(Long policyId, java.math.BigDecimal amount, String currency,
                                        java.time.LocalDate dueDate, Long billingAccountId, String referenceId) {
         if (insuranceReader.existsPaymentByReferenceId(referenceId)) {
-            throw new IllegalStateException("이미 예약된 납부 referenceId=" + referenceId);
+            throw new BusinessException(ErrorCode.PREMIUM_ALREADY_PAID, "referenceId=" + referenceId);
         }
         PremiumPayment payment = PremiumPayment.schedule(policyId, amount, currency, dueDate, billingAccountId, referenceId);
         entityManager.persist(payment);
@@ -218,8 +218,11 @@ public class InsuranceCommandImpl implements InsuranceCommand {
     @Override
     public void rejectClaim(Long claimId, Long reviewerAdminId, String reviewNotes) {
         InsuranceClaim claim = loadClaim(claimId);
-        // reviewer가 review를 시작 안 한 경우 자동 startReview
-        if (claim.getReviewerAdminId() == null) claim.startReview(reviewerAdminId);
+        // 심사 시작 없이 즉시 거부 방지 — 반드시 startClaimReview 후 reject 호출해야 함
+        if (claim.getReviewerAdminId() == null) {
+            throw new BusinessException(ErrorCode.CLAIM_NOT_PENDING,
+                "심사를 시작하지 않은 청구는 거부할 수 없습니다. startClaimReview 를 먼저 호출하세요.");
+        }
         claim.reject(reviewNotes, Instant.now());
         // TODO:REVY - EVENT 발행(InsuranceClaimRejected) - commit after
     }
@@ -227,8 +230,9 @@ public class InsuranceCommandImpl implements InsuranceCommand {
     @Override
     public void payClaim(PayClaimCommand command) {
         InsuranceClaim claim = loadClaim(command.claimId());
+        // 승인금액이 없거나 0 이하이면 아직 승인되지 않은 청구 — 지급 불가
         if (claim.getApprovedAmount() == null || claim.getApprovedAmount().signum() <= 0) {
-            throw new BusinessException(ErrorCode.CLAIM_NOT_PENDING);
+            throw new BusinessException(ErrorCode.CLAIM_NOT_APPROVED);
         }
 
         // payout 계좌 입금

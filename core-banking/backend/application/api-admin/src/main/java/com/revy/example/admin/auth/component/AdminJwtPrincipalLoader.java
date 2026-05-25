@@ -1,4 +1,4 @@
-package com.revy.example.admin.auth.componemt;
+package com.revy.example.admin.auth.component;
 
 
 import com.revy.example.admin.auth.mapper.JwtPrincipalMapper;

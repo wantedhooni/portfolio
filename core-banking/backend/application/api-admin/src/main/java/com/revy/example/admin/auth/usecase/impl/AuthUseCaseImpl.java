@@ -1,7 +1,7 @@
 package com.revy.example.admin.auth.usecase.impl;
 
 import com.revy.example.admin.AdminReader;
-import com.revy.example.admin.auth.componemt.AdminJwtPrincipal;
+import com.revy.example.admin.auth.component.AdminJwtPrincipal;
 import com.revy.example.admin.auth.mapper.JwtPrincipalMapper;
 import com.revy.example.admin.auth.payload.AdminAuthResponse;
 import com.revy.example.admin.auth.usecase.AuthUseCase;

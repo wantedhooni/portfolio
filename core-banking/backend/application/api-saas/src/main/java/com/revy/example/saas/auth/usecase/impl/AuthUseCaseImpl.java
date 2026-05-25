@@ -8,7 +8,7 @@ import com.revy.example.jwt.payload.JwtTokenPair;
 import com.revy.example.jwt.payload.LoginRequest;
 import com.revy.example.jwt.payload.LogoutRequest;
 import com.revy.example.jwt.payload.RefreshTokenRequest;
-import com.revy.example.saas.auth.compoenet.UserJwtPrincipal;
+import com.revy.example.saas.auth.component.UserJwtPrincipal;
 import com.revy.example.saas.auth.mapper.JwtPrincipalMapper;
 import com.revy.example.saas.auth.payload.UserAuthResponse;
 import com.revy.example.saas.auth.payload.SignupRequest;

@@ -114,10 +114,11 @@ public class FxCommandImpl implements FxCommand {
                 command.fromCurrencyCode(), command.toCurrencyCode(), command.rateType())
             .orElseThrow(() -> new ExchangeRateNotFoundException(command.fromCurrencyCode(), command.toCurrencyCode()));
 
-        // 5. 환산 금액 계산
+        // 5. 환산 금액 계산 — fee 가 null 이면 0으로 처리 (수수료 없는 내부 환전 허용)
+        BigDecimal fee = (command.fee() != null) ? command.fee() : BigDecimal.ZERO;
         BigDecimal grossToAmount = command.fromAmount().multiply(rate.rate())
             .setScale(toCur.decimalPlaces(), RoundingMode.HALF_UP);
-        BigDecimal netToAmount   = grossToAmount.subtract(command.fee())
+        BigDecimal netToAmount   = grossToAmount.subtract(fee)
             .setScale(toCur.decimalPlaces(), RoundingMode.HALF_UP);
 
         // 6. FxConversion 생성
@@ -127,7 +128,7 @@ public class FxCommandImpl implements FxCommand {
             command.fromCurrencyCode(), command.toCurrencyCode(),
             command.fromAmount(), netToAmount,
             rate.rate(), command.rateType(),
-            command.fee(), command.referenceId()
+            fee, command.referenceId()
         );
         entityManager.persist(conversion);
 
