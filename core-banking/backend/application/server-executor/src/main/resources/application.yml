@@ -9,6 +9,7 @@ spring:
       - "optional:classpath:/metrics.yml"
       - "optional:classpath:/springdoc.yml"
       - "optional:classpath:/scheduler-quartz.properties"
+      - "optional:classpath:/frankfurter.yml"
   datasource:
     url: ${ADMIN_DB_URL:jdbc:postgresql://localhost:5431/appdb}
     username: ${DB_USERNAME:postgres}
