@@ -20,9 +20,12 @@
 | 프론트엔드 | Next.js 16, React 19, TypeScript, Tailwind CSS, shadcn/ui, Axios |
 | 데이터베이스 | PostgreSQL, Flyway migration |
 | 캐시/세션 | Redis refresh token 저장 |
-| 앱 구성 | `api-admin`, `api-saas`, `web-admin`, `web-saas` |
+| 앱 구성 | `api-admin`, `api-saas`, `server-executor`, `web-admin`, `web-saas` |
 | 운영 스택 | Pgpool-II, PostgreSQL Primary/Secondary, Redis, ELK, Prometheus/Grafana |
-ㅈㅂ    
+
+### 최근 작업에서 중점적으로 본 부분
+
+이번 업데이트에서는 “기능이 많다”보다 “운영 가능한 금융 시스템처럼 책임이 나뉘어 있는가”를 기준으로 다시 정리했다. 외환은 현재 환율만 저장하는 구조에서 환율 이력과 통화 회랑까지 분리했고, 스케줄러는 관리자 API가 직접 실행까지 맡지 않도록 `server-executor`를 별도 워커로 뺐다. 이 두 지점은 포트폴리오에서 단순 CRUD를 넘어 운영 통제, 감사 추적, 실행 책임 분리를 보여주는 부분이다.
 
 ### 프론트엔드 화면 - web-admin
 
@@ -101,11 +104,13 @@ backend/
 │   ├── domain              # Account, User, Stock, Order, FX, Insurance, Ledger, Billing 엔티티
 │   ├── business-logic      # Reader/Command 기반 도메인 유스케이스 구현
 │   ├── jwt-auth            # JWT 발급, 검증, principal 처리
-│   ├── scheduler           # Quartz / Spring Batch 조회·제어
+│   ├── quartz-batch        # Quartz / Spring Batch 공통·관리·실행 모듈
+│   ├── external-api        # Frankfurter 환율 API, Kafka client
 │   └── tools               # metrics, log-elk
 └── application/
     ├── api-admin           # 관리자 API, 기본 포트 8081
-    └── api-saas            # 사용자 API, 기본 포트 8091
+    ├── api-saas            # 사용자 API, 기본 포트 8091
+    └── server-executor     # Quartz Trigger 실행 워커, 기본 포트 8071
 ```
 
 아래 다이어그램의 화살표는 `의존 대상 -> 사용하는 모듈` 방향이다.
@@ -119,11 +124,15 @@ flowchart TD
     domain["module:domain<br/>JPA Entity · Rich Domain"]
     logic["module:business-logic<br/>Reader / Command<br/>QueryDSL · Transaction"]
     jwt["module:jwt-auth<br/>JWT · Redis · Security"]
-    scheduler["module:scheduler<br/>Quartz · Spring Batch control"]
+    quartzCommon["module:quartz-batch:common<br/>Quartz 공통 모델"]
+    quartzMgmt["module:quartz-batch:management<br/>Job 등록·조회·제어"]
+    quartzExec["module:quartz-batch:executor<br/>Trigger 실행 · Batch Job"]
+    external["module:external-api<br/>Frankfurter · Kafka client"]
     metrics["module:tools:metrics<br/>Actuator · Prometheus"]
     logelk["module:tools:log-elk<br/>Logstash encoder"]
-    admin["application:api-admin<br/>Admin API · Flyway<br/>scheduler 포함"]
+    admin["application:api-admin<br/>Admin API · Flyway<br/>Quartz control plane"]
     saas["application:api-saas<br/>SaaS API<br/>사용자 업무"]
+    executor["application:server-executor<br/>Quartz worker<br/>batch execution"]
 
     common --> web
     exception --> web
@@ -133,13 +142,15 @@ flowchart TD
     domain --> logic
     exception --> jwt
     web --> jwt
-    common --> scheduler
-    exception --> scheduler
+    quartzCommon --> quartzMgmt
+    quartzCommon --> quartzExec
+    logic --> quartzExec
+    external --> quartzExec
 
     web --> admin
     jwt --> admin
     logic --> admin
-    scheduler --> admin
+    quartzMgmt --> admin
     metrics --> admin
     logelk --> admin
 
@@ -148,6 +159,12 @@ flowchart TD
     logic --> saas
     metrics --> saas
     logelk --> saas
+
+    web --> executor
+    logic --> executor
+    quartzExec --> executor
+    metrics --> executor
+    logelk --> executor
 ```
 
 ### 실제 Gradle 의존성
@@ -161,11 +178,16 @@ flowchart TD
 | `module:domain` | `core-exception`, `core-domain` | JPA 엔티티, enum, 도메인 예외, Rich Domain 로직 |
 | `module:business-logic` | `domain` | QueryDSL Reader, 트랜잭션 Command, DTO 경계 |
 | `module:jwt-auth` | `core-exception`, `core-web` | JWT 발급/검증, Redis refresh token, Security 필터 지원 |
-| `module:scheduler` | `core-exception`, `core-common` | Quartz/Spring Batch 메타데이터 조회와 운영 제어 |
+| `module:quartz-batch:quartz-batch-common` | 없음 | Quartz Job/Trigger 공통 모델과 상태 코드 |
+| `module:quartz-batch:quartz-batch-management` | `quartz-batch-common` | Job 등록·수정·삭제, 실행 이력 조회, pause/resume/runNow 제어 |
+| `module:quartz-batch:quartz-batch-executor` | `quartz-batch-common`, `business-logic`, `external-api:frankfurter-client` | Trigger 발화, Batch Job 실행, 외부 환율 수집 작업 |
+| `module:external-api:frankfurter-client` | 없음 | Frankfurter 환율 API RestClient |
+| `module:external-api:kafka-client` | 없음 | Kafka producer/consumer 공통 설정 후보 모듈 |
 | `module:tools:metrics` | 없음 | Actuator, Prometheus, Pushgateway 연동 |
 | `module:tools:log-elk` | 없음 | Logstash encoder 기반 로그 전송 |
-| `application:api-admin` | `core-web`, `jwt-auth`, `business-logic`, `scheduler`, `metrics`, `log-elk` | 운영자 API, Flyway, 운영/정산/스케줄러 기능 조립 |
+| `application:api-admin` | `core-web`, `jwt-auth`, `business-logic`, `quartz-batch-management`, `metrics`, `log-elk` | 운영자 API, Flyway, 운영/정산/Quartz 제어 조립 |
 | `application:api-saas` | `core-web`, `jwt-auth`, `business-logic`, `metrics`, `log-elk` | 사용자 API와 본인 계좌 중심 업무 조립 |
+| `application:server-executor` | `core-web`, `business-logic`, `quartz-batch-executor`, `metrics`, `log-elk` | Quartz Trigger 실행과 Batch Job 처리를 담당하는 워커 |
 
 ### 백엔드 설계 포인트
 
@@ -323,7 +345,7 @@ flowchart LR
 
 ## 6. 인프라 구성도
 
-이 프로젝트는 로컬 **Docker Compose 기반으로 운영 환경을 재현**한다. 프론트엔드(Next.js 2개) → 백엔드(Spring Boot 2개) → 데이터 계층(pgpool+PostgreSQL HA, Redis) → 관측성 스택(ELK, Prometheus+Grafana)으로 구성된다. 4개의 Docker Compose 스택이 독립적으로 기동되어 필요한 영역만 선택적으로 실행할 수 있다.
+이 프로젝트는 로컬 **Docker Compose 기반으로 운영 환경을 재현**한다. 프론트엔드(Next.js 2개) → 백엔드(Spring Boot API 2개 + Executor 1개) → 데이터 계층(pgpool+PostgreSQL HA, Redis) → 관측성 스택(ELK, Prometheus+Grafana)으로 구성된다. 4개의 Docker Compose 스택이 독립적으로 기동되어 필요한 영역만 선택적으로 실행할 수 있다.
 
 ### 6.1 전체 시스템 아키텍처 (논리 계층)
 
@@ -340,6 +362,7 @@ flowchart TB
     subgraph Backend["⚙ Backend Layer (Spring Boot 4)"]
         apiSaas["api-saas<br/>:8091<br/>JWT issuer=api-saas"]
         apiAdmin["api-admin<br/>:8081<br/>JWT issuer=api-admin"]
+        executor["server-executor<br/>:8071<br/>Quartz worker"]
     end
 
     subgraph Data["💾 Data Layer"]
@@ -369,6 +392,7 @@ flowchart TB
 
     apiSaas -->|JDBC| pgpool
     apiAdmin -->|JDBC| pgpool
+    executor -->|JDBC| pgpool
     pgpool -->|write/sync read| primary
     pgpool -->|async read| secondary
     primary -.->|streaming replication| secondary
@@ -379,18 +403,20 @@ flowchart TB
 
     apiSaas -->|JSON log TCP| logstash
     apiAdmin -->|JSON log TCP| logstash
+    executor -->|JSON log TCP| logstash
     logstash --> elastic
     kibana --> elastic
 
     apiSaas -->|metrics push| pushgateway
     apiAdmin -->|metrics push| pushgateway
+    executor -->|metrics push| pushgateway
     prometheus -->|scrape| pushgateway
     grafana -->|datasource| prometheus
 ```
 
 ### 6.2 Docker Compose 스택 구성
 
-4개의 독립적인 Docker Compose 파일이 인프라를 구성한다. 애플리케이션 코드(`api-admin`, `api-saas`, `web-admin`, `web-saas`)는 호스트(또는 별도 컨테이너)에서 실행되어 도커 네트워크 외부에서 접근한다.
+4개의 독립적인 Docker Compose 파일이 인프라를 구성한다. 애플리케이션 코드(`api-admin`, `api-saas`, `server-executor`, `web-admin`, `web-saas`)는 호스트(또는 별도 컨테이너)에서 실행되어 도커 네트워크 외부에서 접근한다.
 
 ```mermaid
 flowchart TB
@@ -399,6 +425,7 @@ flowchart TB
         webSaasApp["web-saas :18091"]
         apiAdminApp["api-admin :8081"]
         apiSaasApp["api-saas :8091"]
+        executorApp["server-executor :8071"]
     end
 
     subgraph Compose1["📦 backend/infra/pgpool/docker-compose.yml"]
@@ -442,18 +469,21 @@ flowchart TB
 
     apiAdminApp -->|JDBC localhost:5431| pgpoolSvc
     apiSaasApp  -->|JDBC localhost:5431| pgpoolSvc
+    executorApp -->|JDBC localhost:5431| pgpoolSvc
     apiAdminApp -->|Redis DB 0| redisSvc
     apiSaasApp  -->|Redis DB 1| redisSvc
     apiAdminApp -->|TCP :4560| logSvc
     apiSaasApp  -->|TCP :4560| logSvc
+    executorApp -->|TCP :4560| logSvc
     apiAdminApp -->|HTTP push| pushGw
     apiSaasApp  -->|HTTP push| pushGw
+    executorApp -->|HTTP push| pushGw
 
     webAdminApp -->|HTTP :8081| apiAdminApp
     webSaasApp  -->|HTTP :8091| apiSaasApp
 ```
 
-> **기동/중지 통합 스크립트** — `script/all-start.sh` → 4개 인프라 compose 기동 → 백엔드 2개 부팅 → 프론트엔드 2개 빌드·서빙
+> **기동/중지 통합 스크립트** — `script/all-start.sh` → 4개 인프라 compose 기동 → 백엔드 API 2개와 Executor 1개 부팅 → 프론트엔드 2개 빌드·서빙
 
 ### 6.3 데이터 영속화 토폴로지 (Pgpool-II HA)
 
@@ -461,7 +491,7 @@ flowchart TB
 
 ```mermaid
 flowchart LR
-    appA["api-admin / api-saas<br/>JDBC: jdbc:postgresql://<br/>localhost:5431/appdb"]
+    appA["api-admin / api-saas / server-executor<br/>JDBC: jdbc:postgresql://<br/>localhost:5431/appdb"]
 
     appA -->|"모든 SQL은<br/>pgpool로만"| pool
 
@@ -533,6 +563,7 @@ flowchart LR
 | | web-saas (Next.js) | **18091** | — | 사용자 워크스페이스 |
 | **Backend** | api-admin (Spring Boot) | **8081** | — | 운영자 API, Swagger `/swagger-ui/index.html` |
 | | api-saas (Spring Boot) | **8091** | — | 사용자 API, Swagger `/swagger-ui/index.html` |
+| | server-executor (Spring Boot) | **8071** | — | Quartz Trigger 실행 워커 |
 | **Database** | pgpool | **5431** | 5432 | 앱 단일 진입점 |
 | | pg_primary | 5432 | 5432 | 쓰기 노드 |
 | | pg_secondary | 5433 | 5432 | 읽기 복제 |
@@ -564,7 +595,7 @@ flowchart LR
 - **인증 격리**: Admin/SaaS는 단일 Redis 인스턴스를 공유하되 DB index를 `0`, `1`로 분리. JWT issuer claim도 다르게 설정해 cross-app token 사용을 차단.
 - **로그 일관성**: Spring `logback-spring.xml`이 JSON encoder로 직렬화하여 Logstash TCP input(`4560`)으로 전송. 인덱스 패턴은 `logs-{APP_NAME}-{ENV}-yyyy.MM.dd`로 앱·환경·일자 단위 검색 가능.
 - **메트릭 수집 방식**: Spring Actuator + Prometheus simpleclient가 Pushgateway에 push → Prometheus가 Pushgateway를 scrape. 배치성 작업도 메트릭 누락 없음.
-- **통합 기동 스크립트**: `script/all-start.sh` 한 번으로 4개 인프라 스택 → 백엔드 2개 → 프론트엔드 2개 순차 기동. 종료는 `all-stop.sh`, 재시작은 `all-restart.sh`.
+- **통합 기동 스크립트**: `script/all-start.sh` 한 번으로 4개 인프라 스택 → 백엔드 API 2개와 Executor 1개 → 프론트엔드 2개 순차 기동. 종료는 `all-stop.sh`, 재시작은 `all-restart.sh`.
 - **헬스체크**: 모든 핵심 컨테이너(`pg_primary`, `pg_secondary`, `pgpool`, `redis`)에 `healthcheck` 정의 → `depends_on.condition: service_healthy`로 기동 순서 보장.
 
 
@@ -610,6 +641,15 @@ flowchart LR
 | POST | `/api/v1/fx/currency/{code}/deactivate` | 통화 비활성화 |
 | POST | `/api/v1/fx/rate` | 환율 등록 |
 | GET | `/api/v1/fx/rate` | 환율 목록 조회 |
+| GET | `/api/v1/fx/rate/current` | 통화쌍별 현재 환율 조회 |
+| GET | `/api/v1/fx/rate/history` | 환율 변경 이력 조회 |
+| GET | `/api/v1/fx/corridor` | 통화 회랑 목록 조회 |
+| POST | `/api/v1/fx/corridor` | 통화 회랑 등록 |
+| PATCH | `/api/v1/fx/corridor/{id}` | 통화 회랑 한도·스프레드 수정 |
+| DELETE | `/api/v1/fx/corridor/{id}` | 통화 회랑 삭제 |
+| POST | `/api/v1/fx/corridor/{id}/activate` | 통화 회랑 활성화 |
+| POST | `/api/v1/fx/corridor/{id}/deactivate` | 통화 회랑 비활성화 |
+| POST | `/api/v1/fx/corridor/{id}/suspend` | 통화 회랑 정지 |
 | POST | `/api/v1/fx/conversion` | 환전 실행 |
 | GET | `/api/v1/fx/conversion/{id}` | 환전 내역 단건 조회 |
 | GET | `/api/v1/insurance/product` | 보험 상품 목록 조회 |
@@ -706,5 +746,3 @@ flowchart LR
 - 프론트엔드는 관리자 콘솔의 반복 CRUD 패턴과 사용자 워크스페이스의 금융 업무 흐름을 별도 UX로 설계했다.
 - JWT silent refresh, Redis refresh token, QueryDSL 조회, Flyway migration, Quartz/Spring Batch 운영 API, Docker 기반 인프라 구성을 포함한다.
 - PostgreSQL primary/secondary, Pgpool-II, Redis, ELK, Prometheus/Grafana까지 포함해 단일 앱 구현을 넘어 운영 관점의 인프라 설계를 표현했다.
-
-

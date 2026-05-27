@@ -33,3 +33,6 @@
 - 루트 `README.md`에 FX 도메인, Flyway 마이그레이션, 관리자 API/화면 범위를 갱신했다.
 - 검증: `./gradlew :application:api-admin:compileJava`, `npx eslint`(변경 FX 파일), `npm run build`를 실행해 통과를 확인했다.
 - 참고: `npm run lint` 전체 실행은 기존 관리자 상세/스케줄러/공통 UI 파일의 `react-hooks/set-state-in-effect` 등 기존 lint 오류로 실패했다.
+- 루트 `README.md`와 `PORTFOLIO.md`를 현재 코드 기준으로 다시 점검해 `quartz-batch`, `server-executor`, `external-api`, FX 환율 이력/통화 회랑, 실제 Quartz API 경로(`/api/v1/quartz`)를 반영했다.
+- `PORTFOLIO.md`에 남아 있던 오타 문구를 제거하고, 최근 구조 변경의 설계 의도가 드러나도록 문장을 정리했다.
+- `backend/script/app-all-start.sh`의 잘못된 Gradle 모듈명(`:application:api-executor`)을 실제 모듈명인 `:application:server-executor`로 수정했다.

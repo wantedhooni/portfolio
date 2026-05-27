@@ -45,10 +45,16 @@
 | 항목 | 내용 |
 |---|---|
 | **목표** | 실무 코어뱅킹에서 다루는 자금 이동, 상품 운용, 거래 기록, 운영 통제 흐름을 CQRS-Lite·Rich Domain·복식부기 원장 패턴으로 구현 |
-| **구성** | 백엔드 멀티모듈(Java 25 / Spring Boot 4) + 프론트엔드 2개(Next.js 16 - Admin / SaaS) |
+| **구성** | 백엔드 멀티모듈(Java 25 / Spring Boot 4, API 2개 + Executor 1개) + 프론트엔드 2개(Next.js 16 - Admin / SaaS) |
 | **운영자 콘솔** | api-admin + web-admin (관리자가 계좌·사용자·상품·주문·환율·증권·분개·정산·배치 운영) |
 | **사용자 앱** | api-saas + web-saas (일반 사용자가 본인 계좌·이체·매매·환전·보험 가입/청구·청구서 결제) |
 | **인프라** | PostgreSQL Primary/Secondary + Pgpool-II, Redis, ELK, Prometheus/Grafana |
+
+### 최근 반영 사항
+
+- 외환 도메인은 단순 환율 테이블에서 `현재 환율`, `환율 이력`, `통화 회랑(FxCorridor)` 구조로 확장했다. 운영자는 통화쌍별 최소/최대 금액, 일 한도, 스프레드, 상태를 관리하고 환율 변경 이력을 별도로 추적한다.
+- Quartz/Spring Batch는 `api-admin`이 Job 등록·조회·제어를 담당하고, `server-executor`가 Trigger 발화와 배치 실행을 담당하도록 분리했다. 운영 제어면과 실행 노드를 분리해 실제 운영 구조에 가깝게 만들었다.
+- 외부 환율 수집을 위해 `external-api:frankfurter-client`를 별도 모듈로 두었고, Kafka 연동 후보 코드는 `external-api:kafka-client`로 분리했다.
 
 ---
 
@@ -87,7 +93,7 @@ core-banking/
 │   │   ├── domain/                        JPA 엔티티 + 도메인 로직 + 도메인 예외
 │   │   │   ├── account/                   Account, AccountTx, Stock, StockOrder, StockPosition, PositionLot, LotDisposal
 │   │   │   ├── user/, admin/, billing/, post/
-│   │   │   ├── fx/                        Currency, ExchangeRate, FxConversion
+│   │   │   ├── fx/                        Currency, ExchangeRate, ExchangeRateHistory, FxCorridor, FxConversion
 │   │   │   ├── insurance/                 InsuranceProduct, InsurancePolicy, Beneficiary,
 │   │   │   │                              PremiumPayment, InsuranceClaim
 │   │   │   └── ledger/                    LedgerAccount, AccountingPeriod, JournalEntry, JournalLine
@@ -100,12 +106,14 @@ core-banking/
 │   │   │   ├── ledger/                    LedgerReader, LedgerCommand (분개·전기·역분개·시산표)
 │   │   │   └── billing/, settlement/       청구서·청구 항목·정산 상태 관리
 │   │   ├── jwt-auth/                      JWT 인증 모듈 (domain 미의존, 독립 사용 가능)
-│   │   ├── scheduler/                     Quartz / Spring Batch 조회·제어
+│   │   ├── quartz-batch/                  Quartz / Spring Batch 공통·관리·실행 모듈
+│   │   ├── external-api/                  Frankfurter 환율 API, Kafka client
 │   │   └── tools/                         log-elk, metrics (선택적 의존)
 │   └── application/
 │       ├── api-admin/                     관리자 Spring Boot 앱 (8081)
-│       │   └── src/main/resources/db/migration/   Flyway DDL (V20260520...)
-│       └── api-saas/                      사용자 Spring Boot 앱 (8091)
+│       │   └── src/main/resources/db/migration/   Flyway DDL
+│       ├── api-saas/                      사용자 Spring Boot 앱 (8091)
+│       └── server-executor/               Quartz Trigger 실행 전용 워커 (8071)
 └── frontned/
     ├── web-admin/                         관리자 콘솔 (Next.js)
     │   └── src/
@@ -136,11 +144,15 @@ flowchart TD
     domain["module:domain<br/>JPA Entity · Rich Domain"]
     logic["module:business-logic<br/>Reader / Command<br/>QueryDSL · Transaction"]
     jwt["module:jwt-auth<br/>JWT · Redis · Security"]
-    scheduler["module:scheduler<br/>Quartz · Spring Batch control"]
+    quartzCommon["module:quartz-batch:common<br/>Quartz 공통 모델"]
+    quartzMgmt["module:quartz-batch:management<br/>Job 등록·조회·제어"]
+    quartzExec["module:quartz-batch:executor<br/>Trigger 실행 · Batch Job"]
+    external["module:external-api<br/>Frankfurter · Kafka client"]
     metrics["module:tools:metrics<br/>Actuator · Prometheus"]
     logelk["module:tools:log-elk<br/>Logstash encoder"]
-    admin["application:api-admin<br/>Admin API · Flyway<br/>scheduler 포함"]
+    admin["application:api-admin<br/>Admin API · Flyway<br/>Quartz control plane"]
     saas["application:api-saas<br/>SaaS API<br/>사용자 업무"]
+    executor["application:server-executor<br/>Quartz worker<br/>batch execution"]
 
     common --> web
     exception --> web
@@ -150,15 +162,23 @@ flowchart TD
     domain --> logic
     exception --> jwt
     web --> jwt
-    common --> scheduler
-    exception --> scheduler
+    quartzCommon --> quartzMgmt
+    quartzCommon --> quartzExec
+    logic --> quartzExec
+    external --> quartzExec
 
     web --> admin
     jwt --> admin
     logic --> admin
-    scheduler --> admin
+    quartzMgmt --> admin
     metrics --> admin
     logelk --> admin
+
+    web --> executor
+    logic --> executor
+    quartzExec --> executor
+    metrics --> executor
+    logelk --> executor
 
     web --> saas
     jwt --> saas
@@ -178,18 +198,23 @@ flowchart TD
 | `module:domain` | `core-exception`, `core-domain` | JPA 엔티티, enum, 도메인 예외, Rich Domain 로직 |
 | `module:business-logic` | `domain` | QueryDSL Reader, 트랜잭션 Command, Command/Result DTO |
 | `module:jwt-auth` | `core-exception`, `core-web` | JWT 발급/검증, Redis refresh token, Security filter 지원 |
-| `module:scheduler` | `core-exception`, `core-common` | Quartz/Spring Batch 메타데이터 조회와 실행 제어 |
+| `module:quartz-batch:quartz-batch-common` | 없음 | Quartz Job/Trigger 공통 모델과 상태 코드 |
+| `module:quartz-batch:quartz-batch-management` | `quartz-batch-common` | Job 등록·수정·삭제, 실행 이력 조회, pause/resume/runNow 제어 |
+| `module:quartz-batch:quartz-batch-executor` | `quartz-batch-common`, `business-logic`, `external-api:frankfurter-client` | Trigger 발화, Batch Job 실행, 외부 환율 수집 작업 |
+| `module:external-api:frankfurter-client` | 없음 | Frankfurter 환율 API RestClient |
+| `module:external-api:kafka-client` | 없음 | Kafka producer/consumer 공통 설정 후보 모듈 |
 | `module:tools:metrics` | 없음 | Actuator, Prometheus, Pushgateway 연동 |
 | `module:tools:log-elk` | 없음 | Logstash encoder, Janino 기반 로그 전송 |
-| `application:api-admin` | `core-web`, `jwt-auth`, `business-logic`, `scheduler`, `metrics`, `log-elk` | 관리자 API, Flyway, 운영/정산/스케줄러 제어 |
+| `application:api-admin` | `core-web`, `jwt-auth`, `business-logic`, `quartz-batch-management`, `metrics`, `log-elk` | 관리자 API, Flyway, 운영/정산/Quartz 제어 |
 | `application:api-saas` | `core-web`, `jwt-auth`, `business-logic`, `metrics`, `log-elk` | 사용자 API, 본인 계좌 기반 금융 업무 |
+| `application:server-executor` | `core-web`, `business-logic`, `quartz-batch-executor`, `metrics`, `log-elk` | Quartz Trigger 실행과 Batch Job 처리를 담당하는 워커 |
 
 **핵심 원칙:**
 - `core-common`은 응답 모델이 아니라 utils 모듈이고, `ApiResponse`/`ApiPageResponse`는 `core-web`에 둔다.
 - `domain`은 웹/인증 모듈에 의존하지 않고, 엔티티와 도메인 규칙만 가진다.
 - `business-logic`은 `domain` 위에서 Reader/Command를 구현하며 application 계층으로 JPA 엔티티를 직접 노출하지 않는다.
 - `jwt-auth`는 `domain`에 의존하지 않아 관리자/사용자 principal 전략을 application에서 조립할 수 있다.
-- `scheduler`는 현재 `api-admin`에만 연결되어 사용자 API와 운영 제어 책임을 분리한다.
+- Quartz는 관리와 실행을 분리한다. `api-admin`은 Job CRUD/제어만 담당하고 `server-executor`가 Trigger 발화와 Batch 실행을 담당한다.
 
 ---
 
@@ -393,7 +418,9 @@ shared/api/client.ts → axios api (silent refresh) → 백엔드
 | `V20260520100000__create_table_fx.sql` | currency, exchange_rate, fx_conversion |
 | `V20260520100100__create_table_insurance.sql` | insurance_product, insurance_policy, beneficiary, premium_payment, insurance_claim |
 | `V20260520100200__create_table_ledger.sql` | ledger_account, accounting_period, journal_entry, journal_line |
-| `V20260521120000__create_scheduler_tables.sql` | Quartz / Spring Batch 메타 테이블 |
+| `V20260523011042__create_table_quartz.sql` | Quartz Job/Trigger 메타 테이블 |
+| `V20260523011045__create_table_spring_batch.sql` | Spring Batch 메타 테이블 |
+| `V20260523011047__create_table_custom_quartz_history_v1.sql` | Quartz 실행 이력 |
 | `V20260522120000__create_table_admin_role.sql` | 관리자 역할·권한·매핑 |
 | `V20260522130000__create_table_stock_order.sql` | 주식 주문 |
 | `V20260522130100__create_table_billing_invoice.sql` | 청구서 |
@@ -411,7 +438,7 @@ JPA는 `ddl-auto: validate` 모드 — 스키마 변경은 Flyway만으로 관�
 - Java 25
 - Node.js 20+
 - Docker / Docker Compose
-- 로컬 포트 `5431`, `6379`, `8081`, `8091`, `18081`, `18091`, `33000`, `39090`, `39091` 사용 가능
+- 로컬 포트 `5431`, `6379`, `8071`, `8081`, `8091`, `18081`, `18091`, `33000`, `39090`, `39091` 사용 가능
 
 ### 전체 실행
 ```bash
@@ -424,13 +451,14 @@ JPA는 `ddl-auto: validate` 모드 — 스키마 변경은 Flyway만으로 관�
 ./script/all-restart.sh
 ```
 
-통합 시작 스크립트는 PostgreSQL Primary/Secondary + Pgpool-II, Redis, ELK, Prometheus/Grafana를 먼저 기동한 뒤 백엔드 2개와 프론트엔드 2개를 실행한다.
+통합 시작 스크립트는 PostgreSQL Primary/Secondary + Pgpool-II, Redis, ELK, Prometheus/Grafana를 먼저 기동한 뒤 `api-admin`, `api-saas`, `server-executor`, `web-admin`, `web-saas`를 실행한다.
 
 ### 백엔드
 ```bash
 cd backend
 ./gradlew :application:api-admin:bootRun    # 관리자 API (기본 8081)
 ./gradlew :application:api-saas:bootRun     # 사용자 API (기본 8091)
+./gradlew :application:server-executor:bootRun # Quartz/Batch 실행 워커 (기본 8071)
 ```
 
 환경변수:
@@ -492,7 +520,7 @@ cd frontned/web-saas  && npm install && npm run dev    # 사용자 워크스페�
 | **원장 기간** | `/api/v1/ledger/period` | — |
 | **원장 분개** | `/api/v1/ledger/journal` (+ `/trial-balance`) | — |
 | **청구/정산** | `/api/v1/billing/invoice`, `/api/v1/settlement` | `/api/v1/billing/invoices` |
-| **운영 스케줄러** | `/api/v1/scheduler/quartz`, `/api/v1/scheduler/batch` | — |
+| **운영 스케줄러** | `/api/v1/quartz/jobs`, `/api/v1/quartz/history` | — |
 | **RBAC** | `/api/v1/role`, `/api/v1/admin/{adminId}/roles/{roleId}` | — |
 | **사용자/관리자** | `/api/v1/user`, `/api/v1/admin` | `/api/v1/auth/signup`, `/api/v1/auth/login` |
 
