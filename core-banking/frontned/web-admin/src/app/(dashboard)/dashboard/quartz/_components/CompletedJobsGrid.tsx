@@ -5,8 +5,10 @@ import { RefreshCwIcon, RotateCcwIcon, SearchIcon, XIcon } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { quartzService } from '@/features/quartz/service';
+import { getExecutionStatusVariant } from '@/features/quartz/badge';
 import type { ExecutionStatus, JobHistory } from '@/features/quartz/types';
 import { getApiError } from '@/services/crud';
+import { useCodeOptions } from '@/hooks/useCode';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,27 +22,22 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-const STATUS_VARIANT: Record<ExecutionStatus, 'default' | 'outline' | 'destructive' | 'secondary'> = {
-  RUNNING: 'outline',
-  SUCCESS: 'default',
-  FAILED:  'destructive',
-  VETOED:  'secondary',
-};
-
-const STATUS_OPTIONS: Array<{ label: string; value: ExecutionStatus | 'ALL' }> = [
-  { label: '전체',    value: 'ALL' },
-  { label: 'SUCCESS', value: 'SUCCESS' },
-  { label: 'FAILED',  value: 'FAILED' },
-  { label: 'VETOED',  value: 'VETOED' },
-];
-
 const PAGE_SIZE = 20;
+// 완료 이력 필터는 종료 상태만 노출 (RUNNING 제외)
+const COMPLETED_STATUSES = new Set(['SUCCESS', 'FAILED', 'VETOED']);
 
 interface Props {
   onReregister: (jobName: string, jobGroup: string) => void;
 }
 
 export default function CompletedJobsGrid({ onReregister }: Props) {
+  // codeStore 옵션 + 'ALL' 가상 옵션. RUNNING은 완료 이력에 어울리지 않아 제외.
+  const allStatusOptions = useCodeOptions('QuartzJobExecutionStatus');
+  const statusOptions = [
+    { code: 'ALL', label: '전체' },
+    ...allStatusOptions.filter((o) => COMPLETED_STATUSES.has(o.code)),
+  ];
+
   const [items, setItems]       = useState<JobHistory[]>([]);
   const [total, setTotal]       = useState(0);
   const [page, setPage]         = useState(0);
@@ -129,8 +126,8 @@ export default function CompletedJobsGrid({ onReregister }: Props) {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {STATUS_OPTIONS.map((o) => (
-                  <SelectItem key={o.value} value={o.value} className="text-xs">
+                {statusOptions.map((o) => (
+                  <SelectItem key={o.code} value={o.code} className="text-xs">
                     {o.label}
                   </SelectItem>
                 ))}
@@ -184,7 +181,7 @@ export default function CompletedJobsGrid({ onReregister }: Props) {
                     <td className="px-4 py-2.5 whitespace-nowrap">{fmt(h.endTime)}</td>
                     <td className="px-4 py-2.5 text-right tabular-nums">{h.durationMs ?? '-'}</td>
                     <td className="px-4 py-2.5">
-                      <Badge variant={STATUS_VARIANT[h.status]}>{h.status}</Badge>
+                      <Badge variant={getExecutionStatusVariant(h.status)}>{h.status}</Badge>
                     </td>
                     <td className="px-4 py-2.5 max-w-[160px] truncate text-destructive"
                         title={h.errorMessage ?? ''}>

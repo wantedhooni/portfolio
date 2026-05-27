@@ -87,7 +87,9 @@ const NAV_GROUPS: NavGroup[] = [
     label: '외환',
     items: [
       { href: '/dashboard/fx/currency',         label: '통화',        icon: CoinsIcon },
-      { href: '/dashboard/fx/rate',             label: '환율',        icon: TrendingUpIcon },
+      { href: '/dashboard/fx/rate',             label: '현재 환율',   icon: TrendingUpIcon },
+      { href: '/dashboard/fx/rate/history',     label: '환율 이력',   icon: ReceiptIcon },
+      { href: '/dashboard/fx/corridor',         label: '통화 회랑',   icon: LayersIcon },
       { href: '/dashboard/fx/conversion',       label: '환전',        icon: RepeatIcon },
     ],
   },

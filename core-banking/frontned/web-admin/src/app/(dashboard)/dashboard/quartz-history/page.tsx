@@ -6,8 +6,10 @@ import { ArrowLeftIcon, RefreshCwIcon } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { quartzService } from '@/features/quartz/service';
+import { getExecutionStatusVariant } from '@/features/quartz/badge';
 import type { ExecutionStatus, JobHistory } from '@/features/quartz/types';
 import { getApiError } from '@/services/crud';
+import { CodeSelect } from '@/components/CodeSelect';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,13 +24,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-const STATUS_VARIANT: Record<ExecutionStatus, 'default' | 'outline' | 'destructive' | 'secondary'> = {
-  RUNNING: 'outline',
-  SUCCESS: 'default',
-  FAILED:  'destructive',
-  VETOED:  'secondary',
-};
-const STATUSES: ExecutionStatus[] = ['RUNNING', 'SUCCESS', 'FAILED', 'VETOED'];
 const PAGE_SIZE = 30;
 
 type Mode = 'by-status' | 'by-job';
@@ -37,6 +32,7 @@ export default function QuartzHistoryPage() {
   const router = useRouter();
 
   const [mode, setMode] = useState<Mode>('by-status');
+  // 초기 기본값은 'FAILED' (가장 자주 보는 상태). 백엔드 enum에 항상 존재.
   const [status, setStatus] = useState<ExecutionStatus>('FAILED');
   const [jobGroup, setJobGroup] = useState('');
   const [jobName, setJobName]   = useState('');
@@ -97,12 +93,11 @@ export default function QuartzHistoryPage() {
           {mode === 'by-status' ? (
             <Field>
               <FieldLabel htmlFor="status">상태</FieldLabel>
-              <Select value={status} onValueChange={(v) => { setStatus(v as ExecutionStatus); setPage(0); }}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <CodeSelect
+                codeKey="QuartzJobExecutionStatus"
+                value={status}
+                onChange={(v) => { setStatus(v); setPage(0); }}
+              />
             </Field>
           ) : (
             <>
@@ -163,7 +158,7 @@ export default function QuartzHistoryPage() {
                       <td className="py-1.5 pr-3">{fmt(h.endTime)}</td>
                       <td className="py-1.5 pr-3 text-right">{h.durationMs ?? '-'}</td>
                       <td className="py-1.5 pr-3">
-                        <Badge variant={STATUS_VARIANT[h.status]}>{h.status}</Badge>
+                        <Badge variant={getExecutionStatusVariant(h.status)}>{h.status}</Badge>
                       </td>
                       <td className="py-1.5 max-w-xs truncate text-destructive"
                           title={h.errorMessage ?? ''}>{h.errorMessage ?? ''}</td>

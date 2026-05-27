@@ -1,8 +1,10 @@
 package com.revy.example.admin.api.fx.payload;
 
+import com.revy.example.domain.fx.enums.CorridorStatus;
 import com.revy.example.domain.fx.enums.FxStatus;
 import com.revy.example.domain.fx.enums.RateType;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -99,5 +101,44 @@ public class FxPayload {
             Long creditTxId,
             Instant executedAt,
             String referenceId
+    ) {}
+
+    // ── FxCorridor ───────────────────────────────────────────────
+
+    @Schema(name = "FxPayload.CorridorCreateRequest")
+    public record CorridorCreateRequest(
+            @NotBlank @Size(min = 3, max = 3) String baseCurrencyCode,
+            @NotBlank @Size(min = 3, max = 3) String quoteCurrencyCode,
+            @NotNull @DecimalMin("0.0") BigDecimal minAmount,
+            BigDecimal maxAmount,
+            BigDecimal dailyLimit,
+            @NotNull @DecimalMin("0.0") @DecimalMax("1.0") BigDecimal spreadRate
+    ) {}
+
+    @Schema(name = "FxPayload.CorridorUpdateRequest")
+    public record CorridorUpdateRequest(
+            @NotNull @DecimalMin("0.0") BigDecimal minAmount,
+            BigDecimal maxAmount,
+            BigDecimal dailyLimit,
+            @NotNull @DecimalMin("0.0") @DecimalMax("1.0") BigDecimal spreadRate
+    ) {}
+
+    @Schema(name = "FxPayload.CorridorSearchRequest")
+    public record CorridorSearchRequest(
+            String baseCurrencyCode,
+            String quoteCurrencyCode,
+            CorridorStatus status
+    ) {}
+
+    @Schema(name = "FxPayload.CorridorResponse")
+    public record CorridorResponse(
+            Long id,
+            String baseCurrencyCode,
+            String quoteCurrencyCode,
+            BigDecimal minAmount,
+            BigDecimal maxAmount,
+            BigDecimal dailyLimit,
+            BigDecimal spreadRate,
+            CorridorStatus status
     ) {}
 }

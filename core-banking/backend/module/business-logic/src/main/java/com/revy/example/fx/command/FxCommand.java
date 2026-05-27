@@ -1,8 +1,10 @@
 package com.revy.example.fx.command;
 
 import com.revy.example.fx.command.dto.ConvertCurrencyCommand;
+import com.revy.example.fx.command.dto.CreateFxCorridorCommand;
 import com.revy.example.fx.command.dto.QuoteExchangeRateCommand;
 import com.revy.example.fx.command.dto.RegisterCurrencyCommand;
+import com.revy.example.fx.command.dto.UpdateFxCorridorCommand;
 
 public interface FxCommand {
 
@@ -18,4 +20,12 @@ public interface FxCommand {
     // ── FxConversion (cross-domain: Account + Ledger) ────────────
     /** 환전 실행 — 출금/입금/분개 모두 단일 트랜잭션 */
     Long convertCurrency(ConvertCurrencyCommand command);
+
+    // ── FxCorridor ───────────────────────────────────────────────
+    Long createCorridor(CreateFxCorridorCommand command);
+    void updateCorridor(Long id, UpdateFxCorridorCommand command);
+    void activateCorridor(Long id);
+    void deactivateCorridor(Long id);
+    void suspendCorridor(Long id);
+    void deleteCorridor(Long id);
 }

@@ -34,8 +34,7 @@ public class InsuranceClaimController {
     @Operation(summary = "보험금 청구 접수")
     @PostMapping
     public ResponseEntity<ApiResponse<InsurancePayload.ClaimResponse>> submit(
-            @Valid @RequestBody InsurancePayload.SubmitClaimRequest request
-    ) {
+        @Valid @RequestBody InsurancePayload.SubmitClaimRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(ApiResponse.ok(useCase.submitClaim(request)));
     }
@@ -48,49 +47,38 @@ public class InsuranceClaimController {
 
     @Operation(summary = "청구 목록 조회")
     @GetMapping
-    public ResponseEntity<ApiResponse<ApiPageResponse<InsurancePayload.ClaimResponse>>> search(
-            Pageable pageable,
-            @Valid @ModelAttribute InsurancePayload.ClaimSearchRequest request
-    ) {
+    public ResponseEntity<ApiResponse<ApiPageResponse<InsurancePayload.ClaimResponse>>> search(Pageable pageable,
+                                                                                               @Valid @ModelAttribute InsurancePayload.ClaimSearchRequest request) {
         return ResponseEntity.ok(ApiResponse.ok(useCase.searchClaims(pageable, request)));
     }
 
     @Operation(summary = "심사 시작")
     @PostMapping("/{id}/start-review")
-    public ResponseEntity<ApiResponse<Void>> startReview(
-            @PathVariable Long id,
-            @RequestParam Long reviewerAdminId
-    ) {
+    public ResponseEntity<ApiResponse<Void>> startReview(@PathVariable Long id, @RequestParam Long reviewerAdminId) {
         useCase.startClaimReview(id, reviewerAdminId);
         return ResponseEntity.ok(ApiResponse.ok());
     }
 
     @Operation(summary = "청구 승인")
     @PostMapping("/{id}/approve")
-    public ResponseEntity<ApiResponse<Void>> approve(
-            @PathVariable Long id,
-            @Valid @RequestBody InsurancePayload.ApproveClaimRequest request
-    ) {
+    public ResponseEntity<ApiResponse<Void>> approve(@PathVariable Long id,
+                                                     @Valid @RequestBody InsurancePayload.ApproveClaimRequest request) {
         useCase.approveClaim(id, request);
         return ResponseEntity.ok(ApiResponse.ok());
     }
 
     @Operation(summary = "청구 거절")
     @PostMapping("/{id}/reject")
-    public ResponseEntity<ApiResponse<Void>> reject(
-            @PathVariable Long id,
-            @Valid @RequestBody InsurancePayload.RejectClaimRequest request
-    ) {
+    public ResponseEntity<ApiResponse<Void>> reject(@PathVariable Long id,
+                                                    @Valid @RequestBody InsurancePayload.RejectClaimRequest request) {
         useCase.rejectClaim(id, request);
         return ResponseEntity.ok(ApiResponse.ok());
     }
 
     @Operation(summary = "보험금 지급 실행")
     @PostMapping("/{id}/pay")
-    public ResponseEntity<ApiResponse<Void>> pay(
-            @PathVariable Long id,
-            @Valid @RequestBody InsurancePayload.PayClaimRequest request
-    ) {
+    public ResponseEntity<ApiResponse<Void>> pay(@PathVariable Long id,
+                                                 @Valid @RequestBody InsurancePayload.PayClaimRequest request) {
         useCase.payClaim(id, request);
         return ResponseEntity.ok(ApiResponse.ok());
     }

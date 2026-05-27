@@ -1,5 +1,12 @@
 # 작업 계획
 
+## 2026-05-26 메타 enum 조회 컨트롤러 생성자 정리
+
+- `MetaController`의 `@Value` import를 Spring 설정값 주입 애노테이션으로 수정한다.
+- 명시 생성자와 충돌 가능성이 있는 Lombok 생성자 애노테이션 및 미사용 import를 제거한다.
+- 메타 enum 조회 컨트롤러에 한글 doc 주석을 보강하고 컴파일을 확인한다.
+- 작업 내역을 `TASK.md`와 `README.md`에 반영한다.
+
 ## 2026-05-24 Frankfurter 테스트 로그 출력 설정
 
 - `frankfurter-client` 모듈 테스트 실행 시 SLF4J 로그가 콘솔에 출력되도록 Gradle `testLogging`을 설정한다.

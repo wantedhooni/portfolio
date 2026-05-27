@@ -1,6 +1,7 @@
 package com.revy.example.domain.insurance.enums;
 
-public enum PaymentStatus {
+import com.revy.example.common.enums.ExposedEnum;
+public enum PaymentStatus implements ExposedEnum {
     PENDING,      // 납부 예정
     PAID,         // 납부 완료
     OVERDUE,      // 연체

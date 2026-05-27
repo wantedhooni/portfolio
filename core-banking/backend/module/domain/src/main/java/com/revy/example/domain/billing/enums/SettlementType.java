@@ -1,6 +1,8 @@
 package com.revy.example.domain.billing.enums;
 
-public enum SettlementType {
+import com.revy.example.common.enums.ExposedEnum;
+
+public enum SettlementType implements ExposedEnum {
     /** 주식 체결 정산 */
     TRADE,
     /** 외환 거래 정산 */

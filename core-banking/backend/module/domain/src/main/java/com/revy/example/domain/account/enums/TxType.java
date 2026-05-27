@@ -1,6 +1,8 @@
 package com.revy.example.domain.account.enums;
 
-public enum TxType {
+import com.revy.example.common.enums.ExposedEnum;
+
+public enum TxType implements ExposedEnum {
     DEPOSIT,        // 현금 입금
     WITHDRAWAL,     // 현금 출금
     TRANSFER_OUT,   // 계좌이체 (출금측)

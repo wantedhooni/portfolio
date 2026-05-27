@@ -10,15 +10,21 @@ import com.revy.example.core.error.ErrorCode;
 import com.revy.example.domain.account.exception.AccountNotFoundException;
 import com.revy.example.domain.fx.Currency;
 import com.revy.example.domain.fx.ExchangeRate;
+import com.revy.example.domain.fx.ExchangeRateHistory;
 import com.revy.example.domain.fx.FxConversion;
+import com.revy.example.domain.fx.FxCorridor;
 import com.revy.example.domain.fx.exception.CurrencyNotActiveException;
 import com.revy.example.domain.fx.exception.CurrencyNotFoundException;
 import com.revy.example.domain.fx.exception.ExchangeRateNotFoundException;
+import com.revy.example.domain.fx.exception.FxCorridorDuplicatedException;
+import com.revy.example.domain.fx.exception.FxCorridorNotFoundException;
 import com.revy.example.domain.fx.exception.InvalidFxPairException;
 import com.revy.example.fx.command.FxCommand;
 import com.revy.example.fx.command.dto.ConvertCurrencyCommand;
+import com.revy.example.fx.command.dto.CreateFxCorridorCommand;
 import com.revy.example.fx.command.dto.QuoteExchangeRateCommand;
 import com.revy.example.fx.command.dto.RegisterCurrencyCommand;
+import com.revy.example.fx.command.dto.UpdateFxCorridorCommand;
 import com.revy.example.fx.reader.FxReader;
 import com.revy.example.fx.reader.dto.CurrencyResult;
 import com.revy.example.fx.reader.dto.ExchangeRateResult;
@@ -69,17 +75,40 @@ public class FxCommandImpl implements FxCommand {
 
     @Override
     public Long quoteRate(QuoteExchangeRateCommand command) {
-        // base/quote 통화 존재 검증
+        // 통화 존재 검증
         if (!fxReader.existsCurrencyByCode(command.baseCurrencyCode()))  throw new CurrencyNotFoundException(command.baseCurrencyCode());
         if (!fxReader.existsCurrencyByCode(command.quoteCurrencyCode())) throw new CurrencyNotFoundException(command.quoteCurrencyCode());
 
-        ExchangeRate rate = ExchangeRate.quote(
+        // 1. 이력 테이블에 먼저 INSERT
+        ExchangeRateHistory history = ExchangeRateHistory.record(
             command.baseCurrencyCode(), command.quoteCurrencyCode(),
             command.rateType(), command.rate(), command.quotedAt(), command.source()
         );
-        entityManager.persist(rate);
+        entityManager.persist(history);
+
+        // 2. 현재 환율 UPSERT — 있으면 refresh, 없으면 INSERT
+        ExchangeRate current = entityManager.createQuery(
+                "SELECT r FROM ExchangeRate r " +
+                "WHERE r.baseCurrencyCode = :base AND r.quoteCurrencyCode = :quote AND r.rateType = :type",
+                ExchangeRate.class)
+            .setParameter("base", command.baseCurrencyCode())
+            .setParameter("quote", command.quoteCurrencyCode())
+            .setParameter("type", command.rateType())
+            .getResultStream().findFirst()
+            .orElse(null);
+
+        if (current != null) {
+            current.refresh(command.rate(), command.quotedAt(), command.source());
+        } else {
+            current = ExchangeRate.of(
+                command.baseCurrencyCode(), command.quoteCurrencyCode(),
+                command.rateType(), command.rate(), command.quotedAt(), command.source()
+            );
+            entityManager.persist(current);
+        }
+
         // TODO:REVY - EVENT 발행(ExchangeRateQuoted) - commit after
-        return rate.getId();
+        return current.getId();
     }
 
     @Override
@@ -109,8 +138,8 @@ public class FxCommandImpl implements FxCommand {
             throw new InvalidFxPairException("toAccount currency mismatch: " + toAccount.currency());
         }
 
-        // 4. 환율 조회
-        ExchangeRateResult rate = fxReader.findLatestRate(
+        // 4. 현재 환율 조회
+        ExchangeRateResult rate = fxReader.findCurrentRate(
                 command.fromCurrencyCode(), command.toCurrencyCode(), command.rateType())
             .orElseThrow(() -> new ExchangeRateNotFoundException(command.fromCurrencyCode(), command.toCurrencyCode()));
 
@@ -148,6 +177,55 @@ public class FxCommandImpl implements FxCommand {
         return conversion.getId();
     }
 
+    // ── FxCorridor ───────────────────────────────────────────────
+
+    @Override
+    public Long createCorridor(CreateFxCorridorCommand command) {
+        if (fxReader.existsCorridorByPair(command.baseCurrencyCode(), command.quoteCurrencyCode())) {
+            throw new FxCorridorDuplicatedException(command.baseCurrencyCode(), command.quoteCurrencyCode());
+        }
+        // 통화 존재 검증
+        if (!fxReader.existsCurrencyByCode(command.baseCurrencyCode()))  throw new CurrencyNotFoundException(command.baseCurrencyCode());
+        if (!fxReader.existsCurrencyByCode(command.quoteCurrencyCode())) throw new CurrencyNotFoundException(command.quoteCurrencyCode());
+
+        FxCorridor corridor = FxCorridor.create(
+            command.baseCurrencyCode(), command.quoteCurrencyCode(),
+            command.minAmount(), command.maxAmount(),
+            command.dailyLimit(), command.spreadRate()
+        );
+        entityManager.persist(corridor);
+        return corridor.getId();
+    }
+
+    @Override
+    public void updateCorridor(Long id, UpdateFxCorridorCommand command) {
+        loadCorridor(id).update(
+            command.minAmount(), command.maxAmount(),
+            command.dailyLimit(), command.spreadRate()
+        );
+    }
+
+    @Override
+    public void activateCorridor(Long id) {
+        loadCorridor(id).activate();
+    }
+
+    @Override
+    public void deactivateCorridor(Long id) {
+        loadCorridor(id).deactivate();
+    }
+
+    @Override
+    public void suspendCorridor(Long id) {
+        loadCorridor(id).suspend();
+    }
+
+    @Override
+    public void deleteCorridor(Long id) {
+        FxCorridor corridor = loadCorridor(id);
+        entityManager.remove(corridor);
+    }
+
     // ── 내부 ─────────────────────────────────────────────────────
 
     private Currency loadCurrency(String code) {
@@ -161,5 +239,13 @@ public class FxCommandImpl implements FxCommand {
     private CurrencyResult loadCurrencyDto(String code) {
         return fxReader.findCurrencyByCode(code)
             .orElseThrow(() -> new CurrencyNotFoundException(code));
+    }
+
+    private FxCorridor loadCorridor(Long id) {
+        return entityManager.createQuery(
+                "SELECT c FROM FxCorridor c WHERE c.id = :id", FxCorridor.class)
+            .setParameter("id", id)
+            .getResultStream().findFirst()
+            .orElseThrow(() -> new FxCorridorNotFoundException(id));
     }
 }

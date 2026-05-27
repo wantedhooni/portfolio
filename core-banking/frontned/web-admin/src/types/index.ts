@@ -66,3 +66,19 @@ export interface JwtPrincipal {
 }
 
 export type { DetailPageConfig, DetailField } from './page-config';
+
+/**
+ * 백엔드 `GET /api/v1/meta/codes` 응답 항목.
+ * - code  : enum 상수값 (서버로 송신)
+ * - label : 사용자 표시 라벨 (i18n 적용 전 기본 메시지)
+ */
+export interface CodeInfo {
+  code: string;
+  label: string;
+}
+
+/**
+ * enum 클래스명(예: `JobType`) → 옵션 목록 맵.
+ * 백엔드의 모든 `ExposedEnum` 구현이 자동 포함됩니다.
+ */
+export type CodeMap = Record<string, CodeInfo[]>;

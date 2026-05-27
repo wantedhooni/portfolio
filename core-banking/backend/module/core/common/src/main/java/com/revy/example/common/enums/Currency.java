@@ -1,6 +1,12 @@
 package com.revy.example.common.enums;
 
-public enum Currency {
+/**
+ * ISO 4217 통화 코드 enum.
+ *
+ * <p>200+ 항목으로 셀렉트박스에 그대로 노출하기엔 부적합하므로
+ * {@code ExposedEnum}을 구현하지 않습니다. 프론트엔드에서는 별도의 통화 검색 컴포넌트를 사용하세요.
+ */
+public enum Currency implements ExposedEnum {
     // --- A ---
     ADP("ADP", "020", "ADP", 0),
     AED("AED", "784", "د.إ", 2),
@@ -295,7 +301,11 @@ public enum Currency {
         this.digits = digits;
     }
 
-    public String getCode() {
+    public String getLabel() {
+        return this.code;
+    }
+
+    public String getName() {
         return code;
     }
 

@@ -1,5 +1,13 @@
 # 작업 내역
 
+## 2026-05-26
+
+- `MetaController`의 설정값 주입 애노테이션을 Lombok `Value`가 아닌 Spring `Value`로 수정했다.
+- 명시 생성자와 함께 불필요하게 생성될 수 있는 Lombok `RequiredArgsConstructor`를 제거했다.
+- `MetaExposed.value()`가 비어 있으면 enum 클래스명을 카멜케이스 메타 키로 사용하는 기본 동작을 복원했다.
+- 메타 enum 조회 컨트롤러와 메서드에 한글 doc 주석을 추가했다.
+- `./gradlew :application:api-admin:compileJava`로 컴파일 성공을 확인했다.
+
 ## 2026-05-24
 
 - `frankfurter-client` 모듈 테스트 실행 시 SLF4J 로그가 콘솔에 보이도록 Gradle `testLogging.showStandardStreams`를 활성화했다.

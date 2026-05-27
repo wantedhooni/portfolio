@@ -1,5 +1,7 @@
 package com.revy.example.jwt.enums;
 
-public enum PrincipalType {
+import com.revy.example.common.enums.ExposedEnum;
+
+public enum PrincipalType implements ExposedEnum {
     ADMIN, USER
 }

@@ -12,6 +12,7 @@ import {
 import { api } from '@/lib/api';
 import { getApiError, fetchDetail } from '@/services/crud';
 import type { ClaimItem } from '@/features/insurance/config';
+import { getClaimStatusVariant } from '@/features/insurance/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -22,14 +23,6 @@ import { Spinner } from '@/components/ui/spinner';
 import { toast } from 'sonner';
 
 const ENDPOINT = '/api/v1/insurance/claim';
-
-const STATUS_VARIANT: Record<ClaimItem['status'], 'default' | 'outline' | 'destructive' | 'secondary'> = {
-  SUBMITTED:  'outline',
-  REVIEWING:  'secondary',
-  APPROVED:   'default',
-  REJECTED:   'destructive',
-  PAID:       'default',
-};
 
 export default function ClaimDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -129,7 +122,7 @@ export default function ClaimDetailPage({ params }: { params: Promise<{ id: stri
           <CardHeader>
             <div className="flex items-center justify-between gap-2">
               <CardTitle className="font-mono text-base">{claim.claimNumber}</CardTitle>
-              <Badge variant={STATUS_VARIANT[claim.status]}>{claim.status}</Badge>
+              <Badge variant={getClaimStatusVariant(claim.status)}>{claim.status}</Badge>
             </div>
           </CardHeader>
           <CardContent>

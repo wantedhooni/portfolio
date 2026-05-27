@@ -1,6 +1,8 @@
 package com.revy.example.domain.ledger.enums;
 
-public enum AccountCategory {
+import com.revy.example.common.enums.ExposedEnum;
+
+public enum AccountCategory implements ExposedEnum {
     ASSET(NormalBalance.DEBIT),       // 자산   (차변잔액)
     LIABILITY(NormalBalance.CREDIT),  // 부채   (대변잔액)
     EQUITY(NormalBalance.CREDIT),     // 자본   (대변잔액)

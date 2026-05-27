@@ -204,7 +204,7 @@ flowchart TD
 | **Trade** | (커맨드만) | 매수/매도 트랜잭션 (Account + Position + Tx 동시 갱신) |
 | **Portfolio** | (Reader만) | 포지션·평가금액·자산배분 집계 |
 | **User / Admin / RBAC** | `User`, `Admin`, `AdminRole`, `AdminPermission` | 사용자/관리자 인증, 관리자 역할·권한 연결 |
-| **FX** | `Currency`, `ExchangeRate`, `FxConversion` | 통화 등록, 환율 등록, 환전 (계좌 출금/입금 + 분개) |
+| **FX** | `Currency`, `ExchangeRate`, `ExchangeRateHistory`, `FxCorridor`, `FxConversion` | 통화 등록, 현재 환율/이력 관리, 통화 회랑 한도·스프레드 관리, 환전 (계좌 출금/입금 + 분개) |
 | **Insurance** | `InsuranceProduct`, `InsurancePolicy`, `Beneficiary`, `PremiumPayment`, `InsuranceClaim` | 상품 등록, 증권 발행, 자동이체 납부, 청구 심사·지급 |
 | **Ledger** | `LedgerAccount`, `AccountingPeriod`, `JournalEntry`, `JournalLine` | 복식부기 — 계정과목·회계기간·분개·전기·역분개·시산표 |
 | **Billing / Settlement** | `BillingInvoice`, `BillingItem`, `Settlement` | 청구서 발행·결제·연체 처리, 정산 생성·성공/실패 처리 |
@@ -359,6 +359,8 @@ PageTemplate (검색바 + ag-Grid + 등록/수정/삭제 모달)
 services/crud.ts → axios api → 백엔드
 ```
 
+외환 관리 화면은 현재 환율(`/dashboard/fx/rate`), 환율 이력(`/dashboard/fx/rate/history`), 통화 회랑(`/dashboard/fx/corridor`)을 분리했다. 현재 환율 등록은 `exchange_rate` 최신 행과 `exchange_rate_history` 감사 이력을 함께 갱신하고, 통화 회랑은 통화쌍별 최소/최대 금액, 일 한도, 스프레드율과 상태를 운영자가 관리한다.
+
 ### web-saas (사용자)
 ```
 사용자 액션
@@ -397,6 +399,7 @@ shared/api/client.ts → axios api (silent refresh) → 백엔드
 | `V20260522130100__create_table_billing_invoice.sql` | 청구서 |
 | `V20260522130200__create_table_billing_item.sql` | 청구 항목 |
 | `V20260522130300__create_table_settlement.sql` | 정산 |
+| `V20260527000001__refactor_exchange_rate_add_corridor.sql` | 현재 환율/환율 이력 분리, 통화 회랑 |
 
 JPA는 `ddl-auto: validate` 모드 — 스키마 변경은 Flyway만으로 관리.
 
@@ -479,7 +482,8 @@ cd frontned/web-saas  && npm install && npm run dev    # 사용자 워크스페�
 | **주문** | `/api/v1/order` | — |
 | **매매** | `/api/v1/trade` (조회) | `/api/v1/accounts/{id}/trades` (BUY/SELL/DIVIDEND) |
 | **외환 통화** | `/api/v1/fx/currency` | `/api/v1/fx/currencies` (공개) |
-| **외환 환율** | `/api/v1/fx/rate` | `/api/v1/fx/rate/latest` (공개) |
+| **외환 환율** | `/api/v1/fx/rate`, `/api/v1/fx/rate/current`, `/api/v1/fx/rate/history` | `/api/v1/fx/rate/latest` (공개) |
+| **외환 회랑** | `/api/v1/fx/corridor` | — |
 | **외환 환전** | `/api/v1/fx/conversion` | `/api/v1/fx/conversions` (본인 계좌 간) |
 | **보험 상품** | `/api/v1/insurance/product` (CRUD) | `/api/v1/insurance/products` (공개, 활성만) |
 | **보험 증권** | `/api/v1/insurance/policy` (전체) | `/api/v1/insurance/policies` (본인) |

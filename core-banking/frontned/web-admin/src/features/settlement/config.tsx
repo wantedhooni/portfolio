@@ -6,7 +6,8 @@ export interface SettlementItem {
   accountId: number;
   type: 'TRADE' | 'FX' | 'INSURANCE_PREMIUM' | 'FEE';
   settlementDate: string;
-  status: 'PENDING' | 'SETTLED' | 'FAILED' | 'CANCELLED';
+  /** 백엔드 SettlementStatus(ExposedEnum) — 옵션은 codeStore('SettlementStatus') 참조 */
+  status: string;
   currency: string;
   grossAmount: string;
   feeAmount: string;

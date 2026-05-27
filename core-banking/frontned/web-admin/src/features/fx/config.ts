@@ -76,7 +76,7 @@ export interface ExchangeRateItem {
   id: number;
   baseCurrencyCode: string;
   quoteCurrencyCode: string;
-  rateType: 'BUY' | 'SELL' | 'MID' | 'TT_BUY' | 'TT_SELL';
+  rateType: 'MID' | 'BUY' | 'SELL' | 'CASH_BUY' | 'CASH_SELL' | 'REMIT_BUY' | 'REMIT_SELL';
   rate: string;
   quotedAt: string;
   source: string;
@@ -90,8 +90,8 @@ interface RateSearch {
 }
 
 export const rateConfig: PageConfig<ExchangeRateItem, RateSearch> = {
-  endpoint: '/api/v1/fx/rate',
-  title: '환율 관리',
+  endpoint: '/api/v1/fx/rate/history',
+  title: '환율 이력',
   addLabel: '환율 등록',
   modalTitle: '환율',
 
@@ -99,7 +99,7 @@ export const rateConfig: PageConfig<ExchangeRateItem, RateSearch> = {
   searchFields: [
     { key: 'baseCurrencyCode',  label: '기준통화', placeholder: 'USD' },
     { key: 'quoteCurrencyCode', label: '인용통화', placeholder: 'KRW' },
-    { key: 'rateType',          label: '환율타입', placeholder: 'BUY / SELL / MID' },
+    { key: 'rateType',          label: '환율타입', placeholder: 'MID / BUY / SELL / REMIT_SELL' },
     { key: 'source',            label: '제공처',   placeholder: '한국은행' },
   ],
 
@@ -114,7 +114,7 @@ export const rateConfig: PageConfig<ExchangeRateItem, RateSearch> = {
   ],
 };
 
-// Rate 등록 모달용 필드 (목록은 등록 후 수정/삭제 없음)
+// Rate 등록 모달용 필드 (현재 환율 페이지에서 사용)
 export const rateCreateFields = [
   {
     key: 'baseCurrencyCode',
@@ -131,9 +131,11 @@ export const rateCreateFields = [
   {
     key: 'rateType',
     label: '환율 타입',
-    placeholder: 'BUY / SELL / MID / TT_BUY / TT_SELL',
+    placeholder: 'MID / BUY / SELL / CASH_BUY / CASH_SELL / REMIT_BUY / REMIT_SELL',
     validate: (v: string) =>
-      ['BUY', 'SELL', 'MID', 'TT_BUY', 'TT_SELL'].includes(v) ? undefined : '잘못된 환율 타입',
+      ['MID', 'BUY', 'SELL', 'CASH_BUY', 'CASH_SELL', 'REMIT_BUY', 'REMIT_SELL'].includes(v)
+        ? undefined
+        : '잘못된 환율 타입',
   },
   {
     key: 'rate',
@@ -149,6 +151,115 @@ export const rateCreateFields = [
   },
   { key: 'source', label: '제공처', placeholder: '한국은행' },
 ];
+
+
+// ─────────────────────────────────────────────────────────────
+// Exchange Rate History
+// ─────────────────────────────────────────────────────────────
+
+export const rateHistoryConfig: PageConfig<ExchangeRateItem, RateSearch> = {
+  ...rateConfig,
+  endpoint: '/api/v1/fx/rate/history',
+  title: '환율 이력',
+  addLabel: undefined,
+  crudFields: undefined,
+};
+
+
+// ─────────────────────────────────────────────────────────────
+// FX Corridor
+// ─────────────────────────────────────────────────────────────
+
+export interface FxCorridorItem {
+  id: number;
+  baseCurrencyCode: string;
+  quoteCurrencyCode: string;
+  minAmount: string;
+  maxAmount: string | null;
+  dailyLimit: string | null;
+  spreadRate: string;
+  status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
+}
+
+interface CorridorSearch {
+  baseCurrencyCode: string;
+  quoteCurrencyCode: string;
+  status: string;
+}
+
+export const corridorConfig: PageConfig<FxCorridorItem, CorridorSearch> = {
+  endpoint: '/api/v1/fx/corridor',
+  title: '통화 회랑 관리',
+  addLabel: '회랑 등록',
+  modalTitle: '통화 회랑',
+
+  initialSearch: { baseCurrencyCode: '', quoteCurrencyCode: '', status: '' },
+  searchFields: [
+    { key: 'baseCurrencyCode',  label: '기준통화', placeholder: 'USD' },
+    { key: 'quoteCurrencyCode', label: '인용통화', placeholder: 'KRW' },
+    { key: 'status',            label: '상태',     placeholder: 'ACTIVE / INACTIVE / SUSPENDED' },
+  ],
+
+  columnDefs: (onEdit, onDelete): ColDef[] => [
+    { field: 'id',                headerName: 'ID',       maxWidth: 80 },
+    { field: 'baseCurrencyCode',  headerName: '기준',     maxWidth: 90 },
+    { field: 'quoteCurrencyCode', headerName: '인용',     maxWidth: 90 },
+    { field: 'minAmount',         headerName: '최소금액', flex: 1, type: 'rightAligned' },
+    { field: 'maxAmount',         headerName: '최대금액', flex: 1, type: 'rightAligned' },
+    { field: 'dailyLimit',        headerName: '일 한도',  flex: 1, type: 'rightAligned' },
+    { field: 'spreadRate',        headerName: '스프레드', maxWidth: 120, type: 'rightAligned' },
+    { field: 'status',            headerName: '상태',     maxWidth: 120 },
+    createActionColumn(onEdit, onDelete),
+  ],
+
+  crudFields: [
+    {
+      key: 'baseCurrencyCode',
+      label: '기준 통화',
+      placeholder: 'USD',
+      validate: (v) => (v.length === 3 ? undefined : '3자리'),
+    },
+    {
+      key: 'quoteCurrencyCode',
+      label: '인용 통화',
+      placeholder: 'KRW',
+      validate: (v) => (v.length === 3 ? undefined : '3자리'),
+    },
+    {
+      key: 'minAmount',
+      label: '건당 최소 금액',
+      type: 'number',
+      placeholder: '10',
+      validate: (v) => (Number(v) >= 0 ? undefined : '0 이상'),
+    },
+    {
+      key: 'maxAmount',
+      label: '건당 최대 금액',
+      type: 'number',
+      placeholder: '10000',
+      required: false,
+      validate: (v) => (!v || Number(v) >= 0 ? undefined : '0 이상'),
+    },
+    {
+      key: 'dailyLimit',
+      label: '1일 한도',
+      type: 'number',
+      placeholder: '50000',
+      required: false,
+      validate: (v) => (!v || Number(v) >= 0 ? undefined : '0 이상'),
+    },
+    {
+      key: 'spreadRate',
+      label: '스프레드율',
+      type: 'number',
+      placeholder: '0.015',
+      validate: (v) => {
+        const n = Number(v);
+        return n >= 0 && n <= 1 ? undefined : '0~1 사이 값';
+      },
+    },
+  ],
+};
 
 
 // ─────────────────────────────────────────────────────────────

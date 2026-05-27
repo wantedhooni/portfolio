@@ -62,6 +62,11 @@ public enum ErrorCode {
     EXCHANGE_RATE_NOT_FOUND(404, "FX-004", "환율을 찾을 수 없습니다."),
     FX_CONVERSION_FAILED(422, "FX-005", "환전 처리에 실패했습니다."),
     INVALID_FX_PAIR(422, "FX-006", "유효하지 않은 통화쌍입니다."),
+    FX_CORRIDOR_NOT_FOUND(404,  "FX-007", "환전 구간을 찾을 수 없습니다."),
+    FX_CORRIDOR_DUPLICATED(409, "FX-008", "이미 등록된 통화쌍 환전 구간입니다."),
+    FX_CORRIDOR_NOT_ACTIVE(422, "FX-009", "활성 상태의 환전 구간이 아닙니다."),
+    FX_AMOUNT_BELOW_MIN(422,    "FX-010", "환전 금액이 최소 한도에 미달합니다."),
+    FX_AMOUNT_EXCEEDS_MAX(422,  "FX-011", "환전 금액이 최대 한도를 초과합니다."),
 
     // ── Ledger ────────────────────────────────────────────────────
     LEDGER_ACCOUNT_NOT_FOUND(404, "LEDGER-001", "원장 계정을 찾을 수 없습니다."),

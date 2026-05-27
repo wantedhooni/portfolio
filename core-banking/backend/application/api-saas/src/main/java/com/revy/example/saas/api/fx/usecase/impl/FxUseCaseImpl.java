@@ -37,7 +37,7 @@ public class FxUseCaseImpl implements FxUseCase {
     @Override
     @Transactional(readOnly = true)
     public Optional<FxPayload.RateResponse> latestRate(String baseCode, String quoteCode, RateType rateType) {
-        return fxReader.findLatestRate(baseCode, quoteCode, rateType).map(this::toRateResponse);
+        return fxReader.findCurrentRate(baseCode, quoteCode, rateType).map(this::toRateResponse);
     }
 
     @Override

@@ -1,6 +1,8 @@
 package com.revy.example.domain.account.enums;
 
-public enum TxStatus {
+import com.revy.example.common.enums.ExposedEnum;
+
+public enum TxStatus implements ExposedEnum {
     PENDING,    // 처리 대기 중 (주문 접수 → 체결 전)
     COMPLETED,  // 체결·처리 완료
     CANCELLED,  // 주문 취소

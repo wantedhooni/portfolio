@@ -7,13 +7,17 @@ import com.revy.example.core.error.BusinessException;
 import com.revy.example.core.error.ErrorCode;
 import com.revy.example.fx.command.FxCommand;
 import com.revy.example.fx.command.dto.ConvertCurrencyCommand;
+import com.revy.example.fx.command.dto.CreateFxCorridorCommand;
 import com.revy.example.fx.command.dto.QuoteExchangeRateCommand;
 import com.revy.example.fx.command.dto.RegisterCurrencyCommand;
+import com.revy.example.fx.command.dto.UpdateFxCorridorCommand;
 import com.revy.example.fx.reader.FxReader;
 import com.revy.example.fx.reader.dto.CurrencyResult;
 import com.revy.example.fx.reader.dto.ExchangeRateResult;
 import com.revy.example.fx.reader.dto.ExchangeRateSearchCondition;
 import com.revy.example.fx.reader.dto.FxConversionResult;
+import com.revy.example.fx.reader.dto.FxCorridorResult;
+import com.revy.example.fx.reader.dto.FxCorridorSearchCondition;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -22,6 +26,12 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+/**
+ * 관리자 FX API의 유스케이스 구현체입니다.
+ *
+ * <p>Controller의 요청/응답 모델과 FX 비즈니스 계층의 Command/Reader DTO를 변환하고,
+ * 환율·환전·통화 회랑 관리 흐름의 트랜잭션 책임은 하위 Command 계층에 위임합니다.</p>
+ */
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -70,10 +80,17 @@ public class FxUseCaseImpl implements FxUseCase {
             request.baseCurrencyCode(), request.quoteCurrencyCode(),
             request.rateType(), request.rate(), request.quotedAt(), request.source()
         ));
-        // 방금 저장한 rate 조회
-        return fxReader.findLatestRate(request.baseCurrencyCode(), request.quoteCurrencyCode(), request.rateType())
+        // 방금 저장한 현재 환율 조회
+        return fxReader.findCurrentRate(request.baseCurrencyCode(), request.quoteCurrencyCode(), request.rateType())
             .map(this::toRateResponse)
             .orElseThrow(() -> new BusinessException(ErrorCode.ENTITY_NOT_FOUND, "ExchangeRate id=" + id));
+    }
+
+    @Override
+    public List<FxPayload.ExchangeRateResponse> listCurrentRates() {
+        return fxReader.findAllCurrentRates().stream()
+            .map(this::toRateResponse)
+            .toList();
     }
 
     @Override
@@ -87,7 +104,7 @@ public class FxUseCaseImpl implements FxUseCase {
             .quotedFrom(request.quotedFrom())
             .quotedTo(request.quotedTo())
             .build();
-        Page<ExchangeRateResult> page = fxReader.searchRates(pageable, condition);
+        Page<ExchangeRateResult> page = fxReader.searchRateHistory(pageable, condition);
         return ApiPageResponse.of(
             page.getContent().stream().map(this::toRateResponse).toList(),
             page.getTotalElements(), page.getNumber(), page.getSize()
@@ -113,6 +130,67 @@ public class FxUseCaseImpl implements FxUseCase {
             .orElseThrow(() -> new BusinessException(ErrorCode.ENTITY_NOT_FOUND, "FxConversion id=" + id));
     }
 
+    // ── FxCorridor ───────────────────────────────────────────────
+
+    @Override
+    public FxPayload.CorridorResponse createCorridor(FxPayload.CorridorCreateRequest request) {
+        Long id = fxCommand.createCorridor(new CreateFxCorridorCommand(
+            request.baseCurrencyCode(), request.quoteCurrencyCode(),
+            request.minAmount(), request.maxAmount(), request.dailyLimit(), request.spreadRate()
+        ));
+        return getCorridor(id);
+    }
+
+    @Override
+    public FxPayload.CorridorResponse getCorridor(Long id) {
+        return fxReader.findCorridorById(id)
+            .map(this::toCorridorResponse)
+            .orElseThrow(() -> new BusinessException(ErrorCode.ENTITY_NOT_FOUND, "FxCorridor id=" + id));
+    }
+
+    @Override
+    public ApiPageResponse<FxPayload.CorridorResponse> searchCorridors(Pageable pageable,
+                                                                       FxPayload.CorridorSearchRequest request) {
+        FxCorridorSearchCondition condition = FxCorridorSearchCondition.builder()
+            .baseCurrencyCode(request.baseCurrencyCode())
+            .quoteCurrencyCode(request.quoteCurrencyCode())
+            .status(request.status())
+            .build();
+        Page<FxCorridorResult> page = fxReader.searchCorridors(pageable, condition);
+        return ApiPageResponse.of(
+            page.getContent().stream().map(this::toCorridorResponse).toList(),
+            page.getTotalElements(), page.getNumber(), page.getSize()
+        );
+    }
+
+    @Override
+    public FxPayload.CorridorResponse updateCorridor(Long id, FxPayload.CorridorUpdateRequest request) {
+        fxCommand.updateCorridor(id, new UpdateFxCorridorCommand(
+            request.minAmount(), request.maxAmount(), request.dailyLimit(), request.spreadRate()
+        ));
+        return getCorridor(id);
+    }
+
+    @Override
+    public void deleteCorridor(Long id) {
+        fxCommand.deleteCorridor(id);
+    }
+
+    @Override
+    public void activateCorridor(Long id) {
+        fxCommand.activateCorridor(id);
+    }
+
+    @Override
+    public void deactivateCorridor(Long id) {
+        fxCommand.deactivateCorridor(id);
+    }
+
+    @Override
+    public void suspendCorridor(Long id) {
+        fxCommand.suspendCorridor(id);
+    }
+
     // ── Mapper ────────────────────────────────────────────────────
 
     private FxPayload.CurrencyResponse toCurrencyResponse(CurrencyResult r) {
@@ -135,6 +213,13 @@ public class FxUseCaseImpl implements FxUseCase {
             r.fromAmount(), r.toAmount(), r.appliedRate(), r.appliedRateType(),
             r.fee(), r.status(), r.debitTxId(), r.creditTxId(),
             r.executedAt(), r.referenceId()
+        );
+    }
+
+    private FxPayload.CorridorResponse toCorridorResponse(FxCorridorResult r) {
+        return new FxPayload.CorridorResponse(
+            r.id(), r.baseCurrencyCode(), r.quoteCurrencyCode(),
+            r.minAmount(), r.maxAmount(), r.dailyLimit(), r.spreadRate(), r.status()
         );
     }
 }

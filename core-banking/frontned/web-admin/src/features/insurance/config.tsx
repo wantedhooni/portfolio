@@ -126,7 +126,8 @@ export interface PolicyItem {
   startDate: string;
   endDate: string;
   nextPaymentDate: string | null;
-  status: 'PENDING' | 'ACTIVE' | 'SUSPENDED' | 'TERMINATED' | 'EXPIRED' | 'CANCELLED';
+  /** 백엔드 PolicyStatus(ExposedEnum) — 옵션은 codeStore('PolicyStatus') 참조 */
+  status: string;
   activatedAt: string | null;
   terminatedAt: string | null;
 }
@@ -225,7 +226,8 @@ export interface ClaimItem {
   approvedAmount: string | null;
   payoutAccountId: number | null;
   accountTxId: number | null;
-  status: 'SUBMITTED' | 'REVIEWING' | 'APPROVED' | 'REJECTED' | 'PAID';
+  /** 백엔드 ClaimStatus(ExposedEnum) — 옵션은 codeStore('ClaimStatus') 참조 */
+  status: string;
   submittedAt: string;
   reviewedAt: string | null;
   paidAt: string | null;
