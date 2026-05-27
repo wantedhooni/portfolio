@@ -1,6 +1,7 @@
 package com.revy.example.domain.insurance.enums;
 
-public enum PremiumFrequency {
+import com.revy.example.common.enums.ExposedEnum;
+public enum PremiumFrequency implements ExposedEnum{
     MONTHLY,      // 월납
     QUARTERLY,    // 분기납
     SEMIANNUAL,   // 반기납

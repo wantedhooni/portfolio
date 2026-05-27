@@ -1,6 +1,8 @@
 package com.revy.example.domain.account.enums;
 
-public enum OrderSide {
+import com.revy.example.common.enums.ExposedEnum;
+
+public enum OrderSide implements ExposedEnum {
     BUY,   // 매수
     SELL   // 매도
 }

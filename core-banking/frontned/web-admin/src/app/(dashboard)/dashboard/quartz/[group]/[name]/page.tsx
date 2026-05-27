@@ -14,15 +14,15 @@ import {
 import { toast } from 'sonner';
 
 import { quartzService } from '@/features/quartz/service';
+import { getExecutionStatusVariant, getTriggerStateVariant } from '@/features/quartz/badge';
 import type {
-  ExecutionStatus,
   JobHistory,
   QuartzJob,
   RescheduleRequest,
   ScheduleType,
-  TriggerState,
 } from '@/features/quartz/types';
 import { getApiError } from '@/services/crud';
+import { CodeSelect } from '@/components/CodeSelect';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -37,29 +37,6 @@ import { Input } from '@/components/ui/input';
 import { Field, FieldLabel } from '@/components/ui/field';
 import { Spinner } from '@/components/ui/spinner';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-
-const STATE_VARIANT: Record<TriggerState, 'default' | 'outline' | 'destructive' | 'secondary'> = {
-  NORMAL:   'default',
-  PAUSED:   'secondary',
-  COMPLETE: 'outline',
-  ERROR:    'destructive',
-  BLOCKED:  'destructive',
-  NONE:     'outline',
-};
-
-const STATUS_VARIANT: Record<ExecutionStatus, 'default' | 'outline' | 'destructive' | 'secondary'> = {
-  RUNNING: 'outline',
-  SUCCESS: 'default',
-  FAILED:  'destructive',
-  VETOED:  'secondary',
-};
 
 const PAGE_SIZE = 20;
 
@@ -136,7 +113,7 @@ export default function QuartzJobDetailPage({
           <h1 className="text-lg font-semibold truncate">{job.jobName}</h1>
           <p className="text-xs text-muted-foreground">{job.jobGroup}</p>
         </div>
-        <Badge variant={STATE_VARIANT[job.triggerState] ?? 'outline'}>{job.triggerState}</Badge>
+        <Badge variant={getTriggerStateVariant(job.triggerState)}>{job.triggerState}</Badge>
         <Button variant="outline" size="sm" onClick={reload}>
           <RefreshCwIcon data-icon="inline-start" />새로고침
         </Button>
@@ -208,7 +185,7 @@ export default function QuartzJobDetailPage({
                         <td className="py-1.5 pr-3">{fmt(h.endTime)}</td>
                         <td className="py-1.5 pr-3 text-right">{h.durationMs ?? '-'}</td>
                         <td className="py-1.5 pr-3">
-                          <Badge variant={STATUS_VARIANT[h.status]}>{h.status}</Badge>
+                          <Badge variant={getExecutionStatusVariant(h.status)}>{h.status}</Badge>
                         </td>
                         <td className="py-1.5 max-w-xs truncate text-destructive"
                             title={h.errorMessage ?? ''}>{h.errorMessage ?? ''}</td>
@@ -297,14 +274,7 @@ function RescheduleDialog({ open, onClose, onSuccess, group, name }: {
           <div className="grid gap-3 py-2 sm:grid-cols-2">
             <Field className="sm:col-span-2">
               <FieldLabel htmlFor="scheduleType">스케줄 타입</FieldLabel>
-              <Select value={scheduleType} onValueChange={(v) => setScheduleType(v as ScheduleType)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="CRON">CRON</SelectItem>
-                  <SelectItem value="SIMPLE">SIMPLE</SelectItem>
-                  <SelectItem value="ONCE">ONCE</SelectItem>
-                </SelectContent>
-              </Select>
+              <CodeSelect codeKey="ScheduleType" value={scheduleType} onChange={setScheduleType} />
             </Field>
 
             {scheduleType === 'CRON' && (

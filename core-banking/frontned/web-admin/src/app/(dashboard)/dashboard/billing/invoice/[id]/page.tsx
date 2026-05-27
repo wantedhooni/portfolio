@@ -13,6 +13,7 @@ import {
 import { api } from '@/lib/api';
 import { getApiError, fetchDetail } from '@/services/crud';
 import type { BillingInvoiceItem } from '@/features/billing/config';
+import { getInvoiceStatusVariant } from '@/features/billing/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -30,17 +31,6 @@ import {
 import { toast } from 'sonner';
 
 const ENDPOINT = '/api/v1/billing/invoice';
-
-const STATUS_VARIANT: Record<
-  BillingInvoiceItem['status'],
-  'default' | 'outline' | 'destructive' | 'secondary'
-> = {
-  DRAFT:     'outline',
-  ISSUED:    'secondary',
-  PAID:      'default',
-  OVERDUE:   'destructive',
-  CANCELLED: 'secondary',
-};
 
 const ITEM_TYPES = [
   'ACCOUNT_FEE',
@@ -121,7 +111,7 @@ export default function BillingInvoiceDetailPage({ params }: { params: Promise<{
           목록
         </Button>
         <h1 className="text-lg font-semibold flex-1">청구서 #{id}</h1>
-        <Badge variant={STATUS_VARIANT[invoice.status]}>{invoice.status}</Badge>
+        <Badge variant={getInvoiceStatusVariant(invoice.status)}>{invoice.status}</Badge>
       </div>
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.6fr_1fr]">

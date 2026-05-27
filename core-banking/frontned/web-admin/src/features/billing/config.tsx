@@ -14,7 +14,8 @@ export interface BillingInvoiceItem {
   id: number;
   accountId: number;
   billingPeriod: string;
-  status: 'DRAFT' | 'ISSUED' | 'PAID' | 'OVERDUE' | 'CANCELLED';
+  /** 백엔드 InvoiceStatus(ExposedEnum) — 옵션은 codeStore('InvoiceStatus') 참조 */
+  status: string;
   currency: string;
   subtotal: string;
   taxAmount: string;

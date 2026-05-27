@@ -18,3 +18,9 @@
 - Grafana 컨테이너 기동 시 Prometheus datasource가 자동 등록되도록 provisioning 파일을 추가한다.
 - Spring Boot 운영에서 자주 보는 HTTP 처리량/오류율/응답시간, JVM, CPU, DB 커넥션 풀, 로그 이벤트, Pushgateway 수집 지연 패널을 기본 대시보드로 구성한다.
 - Pushgateway 라벨 보존을 위해 Prometheus scrape 설정을 조정하고 README에 접속 정보와 대시보드 위치를 기록한다.
+
+## 2026-05-27 FX 환율/통화 회랑 관리자 기능 보강
+- 변경된 `ExchangeRate`, `ExchangeRateHistory`, `FxCorridor` 도메인 구조를 기준으로 `api-admin` 조회/생성/수정 API를 점검하고 누락된 관리 API를 추가한다.
+- 운영자가 환율, 환율 이력, 통화 회랑을 검색하고 관리할 수 있도록 `web-admin` 관리 페이지와 메뉴를 구성한다.
+- 금액, 통화, 상태 코드, 적용 시각 등 운영 입력값은 실제 코어뱅킹 관리 흐름에 맞게 검증 가능한 형태로 노출한다.
+- 작업 내역은 `TASK.md`에 기록하고 완료 후 루트 `README.md`에 관리자 기능 범위를 갱신한다.

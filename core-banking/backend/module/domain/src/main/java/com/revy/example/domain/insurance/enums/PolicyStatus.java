@@ -1,6 +1,7 @@
 package com.revy.example.domain.insurance.enums;
 
-public enum PolicyStatus {
+import com.revy.example.common.enums.ExposedEnum;
+public enum PolicyStatus  implements ExposedEnum{
     PENDING,      // 청약 접수
     ACTIVE,       // 효력 발생
     SUSPENDED,    // 효력 정지 (보험료 연체 등)

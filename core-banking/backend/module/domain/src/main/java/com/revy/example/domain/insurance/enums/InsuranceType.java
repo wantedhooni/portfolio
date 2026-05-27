@@ -1,6 +1,7 @@
 package com.revy.example.domain.insurance.enums;
 
-public enum InsuranceType {
+import com.revy.example.common.enums.ExposedEnum;
+public enum InsuranceType implements ExposedEnum {
     LIFE,        // 생명보험
     HEALTH,      // 건강·의료
     AUTO,        // 자동차

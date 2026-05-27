@@ -6,6 +6,7 @@ import { ArrowLeftIcon, BanknoteIcon, XCircleIcon, XIcon } from 'lucide-react';
 import { api } from '@/lib/api';
 import { getApiError, fetchDetail } from '@/services/crud';
 import type { SettlementItem } from '@/features/settlement/config';
+import { getSettlementStatusVariant } from '@/features/settlement/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -15,16 +16,6 @@ import { Spinner } from '@/components/ui/spinner';
 import { toast } from 'sonner';
 
 const ENDPOINT = '/api/v1/settlement';
-
-const STATUS_VARIANT: Record<
-  SettlementItem['status'],
-  'default' | 'outline' | 'destructive' | 'secondary'
-> = {
-  PENDING:   'outline',
-  SETTLED:   'default',
-  FAILED:    'destructive',
-  CANCELLED: 'secondary',
-};
 
 export default function SettlementDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -92,7 +83,7 @@ export default function SettlementDetailPage({ params }: { params: Promise<{ id:
           목록
         </Button>
         <h1 className="text-lg font-semibold flex-1">정산 상세</h1>
-        <Badge variant={STATUS_VARIANT[settlement.status]}>{settlement.status}</Badge>
+        <Badge variant={getSettlementStatusVariant(settlement.status)}>{settlement.status}</Badge>
       </div>
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.5fr_1fr]">

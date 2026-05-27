@@ -1,5 +1,6 @@
 package com.revy.example.quartz.handler.impl;
 
+import com.revy.example.quartz.DelegatingJob;
 import com.revy.example.quartz.TriggerFactory;
 import com.revy.example.quartz.domain.QuartzJobExecutionHistory;
 import com.revy.example.quartz.dto.QuartzJobResult;
@@ -9,10 +10,8 @@ import com.revy.example.quartz.enums.QuartzJobExecutionStatus;
 import com.revy.example.quartz.exception.QuartzSchedulerException;
 import com.revy.example.quartz.handler.QuartzJobHandler;
 import com.revy.example.quartz.reader.QuartzJobExecutionHistoryReader;
-import com.revy.example.quartz.registry.JobClassRegistry;
 import lombok.RequiredArgsConstructor;
 import org.quartz.CronTrigger;
-import org.quartz.Job;
 import org.quartz.JobBuilder;
 import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
@@ -35,7 +34,6 @@ public class QuartzJobHandlerImpl implements QuartzJobHandler {
 
     private final Scheduler                      scheduler;
     private final QuartzJobExecutionHistoryReader reader;
-    private final JobClassRegistry               jobClassRegistry;
 
     @Override
     public void createJob(QuartzJobUpsertCommand command) {
@@ -46,10 +44,9 @@ public class QuartzJobHandlerImpl implements QuartzJobHandler {
                 throw new IllegalArgumentException("이미 존재하는 Job입니다. jobKey=" + jobKey);
             }
 
-            Class<? extends Job> jobClass = jobClassRegistry.resolve(command.jobType());
             JobDataMap jobDataMap = buildJobDataMap(command);
 
-            JobDetail jobDetail = JobBuilder.newJob(jobClass)
+            JobDetail jobDetail = JobBuilder.newJob(DelegatingJob.class)
                     .withIdentity(jobKey)
                     .withDescription(command.description())
                     .usingJobData(jobDataMap)
@@ -111,7 +108,6 @@ public class QuartzJobHandlerImpl implements QuartzJobHandler {
             List<QuartzJobResult> result = new ArrayList<>();
             for (String groupName : scheduler.getJobGroupNames()) {
                 for (JobKey jobKey : scheduler.getJobKeys(GroupMatcher.jobGroupEquals(groupName))) {
-                    JobDetail jobDetail = scheduler.getJobDetail(jobKey);
                     for (Trigger trigger : scheduler.getTriggersOfJob(jobKey)) {
                         Trigger.TriggerState state = scheduler.getTriggerState(trigger.getKey());
                         result.add(new QuartzJobResult(
@@ -119,7 +115,7 @@ public class QuartzJobHandlerImpl implements QuartzJobHandler {
                                 trigger.getKey().getName(), trigger.getKey().getGroup(),
                                 state.name(),
                                 trigger instanceof CronTrigger ? "CRON" : trigger.getClass().getSimpleName(),
-                                jobDetail.getDescription(),
+                                jobKey.getName(),
                                 toInstant(trigger.getPreviousFireTime()),
                                 toInstant(trigger.getNextFireTime())
                         ));

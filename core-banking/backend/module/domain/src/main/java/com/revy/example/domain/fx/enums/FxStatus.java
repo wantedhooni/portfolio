@@ -1,6 +1,8 @@
 package com.revy.example.domain.fx.enums;
 
-public enum FxStatus {
+import com.revy.example.common.enums.ExposedEnum;
+
+public enum FxStatus implements ExposedEnum {
     PENDING,
     COMPLETED,
     FAILED,

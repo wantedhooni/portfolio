@@ -1,6 +1,7 @@
 package com.revy.example.domain.billing.enums;
 
-public enum SettlementStatus {
+import com.revy.example.common.enums.ExposedEnum;
+public enum SettlementStatus implements ExposedEnum {
     /** 정산 대기 */
     PENDING,
     /** 정산 처리 완료 */

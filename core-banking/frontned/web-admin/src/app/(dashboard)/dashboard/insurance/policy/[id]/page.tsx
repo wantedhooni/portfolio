@@ -13,6 +13,7 @@ import {
 import { api } from '@/lib/api';
 import { getApiError, fetchDetail } from '@/services/crud';
 import type { PolicyItem } from '@/features/insurance/config';
+import { getPolicyStatusVariant } from '@/features/insurance/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -21,15 +22,6 @@ import { Spinner } from '@/components/ui/spinner';
 import { toast } from 'sonner';
 
 const ENDPOINT = '/api/v1/insurance/policy';
-
-const STATUS_VARIANT: Record<PolicyItem['status'], 'default' | 'outline' | 'destructive' | 'secondary'> = {
-  PENDING:    'outline',
-  ACTIVE:     'default',
-  SUSPENDED:  'secondary',
-  TERMINATED: 'destructive',
-  EXPIRED:    'destructive',
-  CANCELLED:  'destructive',
-};
 
 export default function PolicyDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -88,7 +80,7 @@ export default function PolicyDetailPage({ params }: { params: Promise<{ id: str
           <CardHeader>
             <div className="flex items-center justify-between gap-2">
               <CardTitle className="font-mono text-base">{policy.policyNumber}</CardTitle>
-              <Badge variant={STATUS_VARIANT[policy.status]}>{policy.status}</Badge>
+              <Badge variant={getPolicyStatusVariant(policy.status)}>{policy.status}</Badge>
             </div>
           </CardHeader>
           <CardContent>

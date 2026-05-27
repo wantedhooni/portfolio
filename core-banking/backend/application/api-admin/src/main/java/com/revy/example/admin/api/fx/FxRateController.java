@@ -20,6 +20,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
+/**
+ * 관리자 환율 API 컨트롤러입니다.
+ *
+ * <p>현재 환율은 `exchange_rate`, 감사/추적용 이력은 `exchange_rate_history` 기준으로
+ * 분리 조회하며, 신규 시세 등록 시 현재 환율과 이력을 함께 갱신합니다.</p>
+ */
 @Slf4j
 @Tag(name = "FX - ExchangeRate", description = "환율 관리")
 @RequiredArgsConstructor
@@ -38,9 +46,24 @@ public class FxRateController {
             .body(ApiResponse.ok(useCase.quoteRate(request)));
     }
 
+    @Operation(summary = "현재 환율 목록 조회")
+    @GetMapping("/current")
+    public ResponseEntity<ApiResponse<List<FxPayload.ExchangeRateResponse>>> currentRates() {
+        return ResponseEntity.ok(ApiResponse.ok(useCase.listCurrentRates()));
+    }
+
     @Operation(summary = "환율 목록 조회")
     @GetMapping
     public ResponseEntity<ApiResponse<ApiPageResponse<FxPayload.ExchangeRateResponse>>> search(
+            Pageable pageable,
+            @Valid @ModelAttribute FxPayload.RateSearchRequest request
+    ) {
+        return ResponseEntity.ok(ApiResponse.ok(useCase.searchRates(pageable, request)));
+    }
+
+    @Operation(summary = "환율 이력 목록 조회")
+    @GetMapping("/history")
+    public ResponseEntity<ApiResponse<ApiPageResponse<FxPayload.ExchangeRateResponse>>> searchHistory(
             Pageable pageable,
             @Valid @ModelAttribute FxPayload.RateSearchRequest request
     ) {

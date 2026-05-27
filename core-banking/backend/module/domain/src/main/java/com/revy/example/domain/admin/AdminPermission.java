@@ -1,6 +1,8 @@
 package com.revy.example.domain.admin;
 
-public enum AdminPermission {
+import com.revy.example.common.enums.ExposedEnum;
+
+public enum AdminPermission implements ExposedEnum {
     USER_READ, USER_WRITE,
     ACCOUNT_READ, ACCOUNT_WRITE, ACCOUNT_TRANSFER,
     STOCK_READ, STOCK_WRITE,

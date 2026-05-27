@@ -17,10 +17,22 @@ public interface FxUseCase {
 
     // ── ExchangeRate ─────────────────────────────────────────────
     FxPayload.ExchangeRateResponse quoteRate(FxPayload.QuoteRateRequest request);
+    List<FxPayload.ExchangeRateResponse> listCurrentRates();
     ApiPageResponse<FxPayload.ExchangeRateResponse> searchRates(Pageable pageable,
                                                                 FxPayload.RateSearchRequest request);
 
     // ── FxConversion ─────────────────────────────────────────────
     FxPayload.ConversionResponse convert(FxPayload.ConvertRequest request);
     FxPayload.ConversionResponse getConversion(Long id);
+
+    // ── FxCorridor ───────────────────────────────────────────────
+    FxPayload.CorridorResponse createCorridor(FxPayload.CorridorCreateRequest request);
+    FxPayload.CorridorResponse getCorridor(Long id);
+    ApiPageResponse<FxPayload.CorridorResponse> searchCorridors(Pageable pageable,
+                                                                FxPayload.CorridorSearchRequest request);
+    FxPayload.CorridorResponse updateCorridor(Long id, FxPayload.CorridorUpdateRequest request);
+    void deleteCorridor(Long id);
+    void activateCorridor(Long id);
+    void deactivateCorridor(Long id);
+    void suspendCorridor(Long id);
 }

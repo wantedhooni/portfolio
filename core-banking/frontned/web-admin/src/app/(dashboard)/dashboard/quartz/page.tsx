@@ -14,16 +14,17 @@ import {
 import { toast } from 'sonner';
 
 import { quartzService } from '@/features/quartz/service';
+import { getTriggerStateVariant } from '@/features/quartz/badge';
 import type {
   JobType,
   QuartzJob,
   RunningJob,
   ScheduleType,
-  TriggerState,
   UpsertRequest,
 } from '@/features/quartz/types';
 import CompletedJobsGrid from './_components/CompletedJobsGrid';
 import { getApiError } from '@/services/crud';
+import { CodeSelect } from '@/components/CodeSelect';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -38,25 +39,7 @@ import { Input } from '@/components/ui/input';
 import { Field, FieldLabel } from '@/components/ui/field';
 import { Spinner } from '@/components/ui/spinner';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-
-const STATE_VARIANT: Record<TriggerState, 'default' | 'outline' | 'destructive' | 'secondary'> = {
-  NORMAL:   'default',
-  PAUSED:   'secondary',
-  COMPLETE: 'outline',
-  ERROR:    'destructive',
-  BLOCKED:  'destructive',
-  NONE:     'outline',
-};
-
-const JOB_TYPES: JobType[] = ['SETTLEMENT', 'REPORT', 'NOTIFICATION', 'API_CALL'];
 
 export default function QuartzJobsPage() {
   const router = useRouter();
@@ -161,7 +144,7 @@ export default function QuartzJobsPage() {
                     <CardTitle className="text-base font-mono truncate">{job.jobName}</CardTitle>
                     <p className="text-xs text-muted-foreground">{job.jobGroup}</p>
                   </div>
-                  <Badge variant={STATE_VARIANT[job.triggerState] ?? 'outline'}>
+                  <Badge variant={getTriggerStateVariant(job.triggerState)}>
                     {job.triggerState}
                   </Badge>
                 </div>
@@ -236,7 +219,8 @@ function CreateJobDialog({ open, onClose, onSuccess, defaultValues = {} }: {
   open: boolean; onClose: () => void; onSuccess: () => void;
   defaultValues?: { jobName?: string; jobGroup?: string };
 }) {
-  const [jobType, setJobType] = useState<JobType>('SETTLEMENT');
+  // 초기값은 codeStore가 채워지면 첫 옵션으로 자동 세팅됨 (CodeSelect placeholder 처리)
+  const [jobType, setJobType] = useState<JobType>('');
   const [scheduleType, setScheduleType] = useState<ScheduleType>('CRON');
 
   const [state, action, pending] = useActionState(
@@ -259,6 +243,7 @@ function CreateJobDialog({ open, onClose, onSuccess, defaultValues = {} }: {
 
       if (!req.jobName)  return { error: 'Job 이름을 입력하세요' };
       if (!req.jobGroup) return { error: 'Job 그룹을 입력하세요' };
+      if (!req.jobType)  return { error: 'Job 타입을 선택하세요' };
       if (scheduleType === 'CRON' && !req.cronExpression)
         return { error: 'Cron 표현식을 입력하세요' };
       if (scheduleType === 'SIMPLE' && !(req.repeatIntervalMs && req.repeatIntervalMs > 0))
@@ -299,23 +284,11 @@ function CreateJobDialog({ open, onClose, onSuccess, defaultValues = {} }: {
 
             <Field>
               <FieldLabel htmlFor="jobType">Job 타입</FieldLabel>
-              <Select value={jobType} onValueChange={(v) => setJobType(v as JobType)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {JOB_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <CodeSelect codeKey="JobType" value={jobType} onChange={setJobType} placeholder="Job 타입 선택" />
             </Field>
             <Field>
               <FieldLabel htmlFor="scheduleType">스케줄 타입</FieldLabel>
-              <Select value={scheduleType} onValueChange={(v) => setScheduleType(v as ScheduleType)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="CRON">CRON</SelectItem>
-                  <SelectItem value="SIMPLE">SIMPLE</SelectItem>
-                  <SelectItem value="ONCE">ONCE</SelectItem>
-                </SelectContent>
-              </Select>
+              <CodeSelect codeKey="ScheduleType" value={scheduleType} onChange={setScheduleType} placeholder="스케줄 타입 선택" />
             </Field>
 
             {scheduleType === 'CRON' && (

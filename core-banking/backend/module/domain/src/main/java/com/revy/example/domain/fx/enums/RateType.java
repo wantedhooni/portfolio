@@ -1,6 +1,8 @@
 package com.revy.example.domain.fx.enums;
 
-public enum RateType {
+import com.revy.example.common.enums.ExposedEnum;
+
+public enum RateType implements ExposedEnum {
     MID,           // 매매기준율 (중간환율)
     BUY,           // 은행이 사는 가격 (고객 매도)
     SELL,          // 은행이 파는 가격 (고객 매수)
