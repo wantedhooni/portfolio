@@ -35,18 +35,41 @@ public class FxController {
         return ApiResponse.ok(useCase.listCurrencies());
     }
 
-    /** 최신 환율 조회 — 환전 화면에서 시세를 미리 보여주기 위한 용도 */
-    @GetMapping("/rate/latest")
-    public ApiResponse<FxPayload.RateResponse> latestRate(
+    /** 현재 환율 조회 — 환전 화면에서 시세를 미리 보여주기 위한 용도 */
+    @GetMapping("/rate/current")
+    public ApiResponse<FxPayload.RateResponse> currentRate(
             @RequestParam String baseCurrencyCode,
             @RequestParam String quoteCurrencyCode,
             @RequestParam(defaultValue = "SELL") RateType rateType
     ) {
         return ApiResponse.ok(
-            useCase.latestRate(baseCurrencyCode.toUpperCase(), quoteCurrencyCode.toUpperCase(), rateType)
+            useCase.currentRate(baseCurrencyCode.toUpperCase(), quoteCurrencyCode.toUpperCase(), rateType)
                    .orElseThrow(() -> new BusinessException(ErrorCode.EXCHANGE_RATE_NOT_FOUND))
         );
     }
+
+    // ── FxCorridor ───────────────────────────────────────────────
+
+    /** 활성 통화쌍(코리더) 목록 조회 — 환전 가능 통화쌍 및 한도 확인 */
+    @GetMapping("/corridors")
+    public ApiResponse<List<FxPayload.CorridorResponse>> listCorridors() {
+        return ApiResponse.ok(useCase.listActiveCorridors());
+    }
+
+    /** 특정 통화쌍 코리더 단건 조회 — 환전 전 한도·스프레드 확인 */
+    @GetMapping("/corridors/{base}/{quote}")
+    public ApiResponse<FxPayload.CorridorResponse> getCorridor(
+            @PathVariable String base,
+            @PathVariable String quote
+    ) {
+        return ApiResponse.ok(
+            useCase.findCorridor(base.toUpperCase(), quote.toUpperCase())
+                   .orElseThrow(() -> new BusinessException(ErrorCode.ENTITY_NOT_FOUND,
+                       "FxCorridor " + base.toUpperCase() + "/" + quote.toUpperCase()))
+        );
+    }
+
+    // ── FxConversion ─────────────────────────────────────────────
 
     @PostMapping("/conversions")
     public ResponseEntity<ApiResponse<FxPayload.ConversionResponse>> convert(

@@ -1,5 +1,6 @@
 package com.revy.example.saas.api.fx.payload;
 
+import com.revy.example.domain.fx.enums.CorridorStatus;
 import com.revy.example.domain.fx.enums.FxStatus;
 import com.revy.example.domain.fx.enums.RateType;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -33,6 +34,21 @@ public class FxPayload {
             BigDecimal rate,
             Instant quotedAt,
             String source
+    ) {}
+
+    // ── FxCorridor ───────────────────────────────────────────────
+
+    /** 환전 가능 통화쌍 및 거래 한도 정보 */
+    @Schema(name = "SaasFxPayload.CorridorResponse")
+    public record CorridorResponse(
+            Long id,
+            String baseCurrencyCode,
+            String quoteCurrencyCode,
+            BigDecimal minAmount,
+            BigDecimal maxAmount,
+            BigDecimal dailyLimit,
+            BigDecimal spreadRate,
+            CorridorStatus status
     ) {}
 
     // ── Conversion ───────────────────────────────────────────────

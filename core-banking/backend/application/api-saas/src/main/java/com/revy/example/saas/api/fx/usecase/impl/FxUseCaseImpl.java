@@ -9,6 +9,7 @@ import com.revy.example.fx.reader.FxReader;
 import com.revy.example.fx.reader.dto.CurrencyResult;
 import com.revy.example.fx.reader.dto.ExchangeRateResult;
 import com.revy.example.fx.reader.dto.FxConversionResult;
+import com.revy.example.fx.reader.dto.FxCorridorResult;
 import com.revy.example.saas.api.common.AccountOwnershipValidator;
 import com.revy.example.saas.api.fx.payload.FxPayload;
 import com.revy.example.saas.api.fx.usecase.FxUseCase;
@@ -36,9 +37,25 @@ public class FxUseCaseImpl implements FxUseCase {
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<FxPayload.RateResponse> latestRate(String baseCode, String quoteCode, RateType rateType) {
+    public Optional<FxPayload.RateResponse> currentRate(String baseCode, String quoteCode, RateType rateType) {
         return fxReader.findCurrentRate(baseCode, quoteCode, rateType).map(this::toRateResponse);
     }
+
+    // ── FxCorridor ────────────────────────────────────────────────
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<FxPayload.CorridorResponse> listActiveCorridors() {
+        return fxReader.findAllActiveCorridors().stream().map(this::toCorridorResponse).toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<FxPayload.CorridorResponse> findCorridor(String baseCode, String quoteCode) {
+        return fxReader.findCorridorByPair(baseCode, quoteCode).map(this::toCorridorResponse);
+    }
+
+    // ── FxConversion ──────────────────────────────────────────────
 
     @Override
     public FxPayload.ConversionResponse convert(Long userId, FxPayload.ConvertRequest request) {
@@ -79,6 +96,13 @@ public class FxUseCaseImpl implements FxUseCase {
 
     private FxPayload.CurrencyResponse toCurrencyResponse(CurrencyResult r) {
         return new FxPayload.CurrencyResponse(r.code(), r.name(), r.symbol(), r.decimalPlaces());
+    }
+
+    private FxPayload.CorridorResponse toCorridorResponse(FxCorridorResult r) {
+        return new FxPayload.CorridorResponse(
+            r.id(), r.baseCurrencyCode(), r.quoteCurrencyCode(),
+            r.minAmount(), r.maxAmount(), r.dailyLimit(), r.spreadRate(), r.status()
+        );
     }
 
     private FxPayload.RateResponse toRateResponse(ExchangeRateResult r) {
