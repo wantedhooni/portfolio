@@ -25,7 +25,7 @@
 
 ### 최근 작업에서 중점적으로 본 부분
 
-이번 업데이트에서는 “기능이 많다”보다 “운영 가능한 금융 시스템처럼 책임이 나뉘어 있는가”를 기준으로 다시 정리했다. 외환은 현재 환율만 저장하는 구조에서 환율 이력과 통화 회랑까지 분리했고, 스케줄러는 관리자 API가 직접 실행까지 맡지 않도록 `server-executor`를 별도 워커로 뺐다. 이 두 지점은 포트폴리오에서 단순 CRUD를 넘어 운영 통제, 감사 추적, 실행 책임 분리를 보여주는 부분이다.
+이번 업데이트에서는 “기능이 많다”보다 “운영 가능한 금융 시스템처럼 책임이 나뉘어 있는가”를 기준으로 다시 정리했다. 외환은 현재 환율만 저장하는 구조에서 환율 이력과 통화 회랑까지 분리했고, 스케줄러는 관리자 API가 직접 실행까지 맡지 않도록 `server-executor`를 별도 워커로 뺐다. 이 두 지점은 포트폴리오에서 단순 CRUD를 넘어 운영 통제, 감사 추적, 실행 책임 분리를 보여주는 부분이다. 외부 환율 수집 클라이언트(`frankfurter-client`)는 Frankfurter v2 API 스펙에 맞춰 전면 리팩토링하고, `getLatestRates(base)` 메서드로 설정 변경 없이 전체 통화쌍을 자동 수집하는 `ExchangeRateRefreshService.refreshAll()`을 추가했다. 이 서비스는 `server-executor`에서 Quartz Job으로 실행된다.
 
 ### 프론트엔드 화면 - web-admin
 
@@ -78,14 +78,6 @@
 ### 인프라스트럭처 다이어그램
 
 ![Infrastructure Diagram](docs/images/infrastructure.png)
-
-### 백엔드 API 문서
-
-관리자/사용자 API 스크린샷은 저장된 OpenAPI JSON과 컨트롤러 기준 API 목록을 문서용 이미지로 렌더링했다. 전체 API 목록은 아래 표에 컨트롤러 기준으로 보강했다.
-
-![api-admin OpenAPI preview](docs/images/api-admin-swagger.png)
-
-![api-saas OpenAPI preview](docs/images/api-saas-swagger.png)
 
 ---
 
@@ -180,14 +172,14 @@ flowchart TD
 | `module:jwt-auth` | `core-exception`, `core-web` | JWT 발급/검증, Redis refresh token, Security 필터 지원 |
 | `module:quartz-batch:quartz-batch-common` | 없음 | Quartz Job/Trigger 공통 모델과 상태 코드 |
 | `module:quartz-batch:quartz-batch-management` | `quartz-batch-common` | Job 등록·수정·삭제, 실행 이력 조회, pause/resume/runNow 제어 |
-| `module:quartz-batch:quartz-batch-executor` | `quartz-batch-common`, `business-logic`, `external-api:frankfurter-client` | Trigger 발화, Batch Job 실행, 외부 환율 수집 작업 |
-| `module:external-api:frankfurter-client` | 없음 | Frankfurter 환율 API RestClient |
+| `module:quartz-batch:quartz-batch-executor` | `quartz-batch-common`, `business-logic`, `external-api:frankfurter-client` | Trigger 발화, Batch Job 실행, `ExchangeRateRefreshService.refresh()` / `refreshAll()` 환율 수집 |
+| `module:external-api:frankfurter-client` | 없음 | Frankfurter **v2** 환율 API RestClient — `getLatestRates(base)`(전체 통화), `getRates(FrankfurterRatesRequest)`(날짜 범위·그룹), `getCurrency(code)`, `getProviders()` |
 | `module:external-api:kafka-client` | 없음 | Kafka producer/consumer 공통 설정 후보 모듈 |
 | `module:tools:metrics` | 없음 | Actuator, Prometheus, Pushgateway 연동 |
 | `module:tools:log-elk` | 없음 | Logstash encoder 기반 로그 전송 |
 | `application:api-admin` | `core-web`, `jwt-auth`, `business-logic`, `quartz-batch-management`, `metrics`, `log-elk` | 운영자 API, Flyway, 운영/정산/Quartz 제어 조립 |
 | `application:api-saas` | `core-web`, `jwt-auth`, `business-logic`, `metrics`, `log-elk` | 사용자 API와 본인 계좌 중심 업무 조립 |
-| `application:server-executor` | `core-web`, `business-logic`, `quartz-batch-executor`, `metrics`, `log-elk` | Quartz Trigger 실행과 Batch Job 처리를 담당하는 워커 |
+| `application:server-executor` | `core-web`, `business-logic`, `quartz-batch-executor`, `metrics`, `log-elk` | Quartz Trigger 실행·Batch Job 처리 워커 (`ExchangeRateRefreshService`를 Quartz Job으로 실행해 Frankfurter 환율 수집) |
 
 ### 백엔드 설계 포인트
 
@@ -304,6 +296,62 @@ flowchart LR
     pnl --> deposit["매도대금 계좌 입금"]
 ```
 
+### Quartz 실행 플로우 — api-admin / server-executor 역할 분리
+
+두 애플리케이션은 같은 PostgreSQL Quartz Metastore를 바라보되, **관리 노드(api-admin)**와 **실행 노드(server-executor)**로 책임이 분리된다.
+
+| 관심사 | api-admin | server-executor |
+|---|---|---|
+| Job 등록·수정·삭제 | O (`QuartzJobHandler`) | X |
+| pause / resume / runNow / retry | O | X |
+| Trigger 발화 | X | O (Quartz Scheduler polling) |
+| 실제 Job 클래스 보유 | X (`EmptyJobClassRegistry`) | O (`TypedJobRegistryConfig`) |
+| 실행 이력 조회 | O | — (리스너가 저장) |
+
+```mermaid
+sequenceDiagram
+    participant Admin  as 🛠 api-admin (8081)
+    participant DB     as 💾 PostgreSQL<br/>(Quartz Metastore + appdb)
+    participant Exec   as ⚙ server-executor (8071)
+    participant FX     as 🌐 Frankfurter API
+
+    rect rgb(220,235,255)
+        Note over Admin,DB: ① Job 등록 / 스케줄 변경 / 제어
+        Admin->>DB: scheduleJob(DelegatingJob.class, cronTrigger)<br/>JobDataMap { jobType=EXCHANGE_RATE_REFRESH }
+        Admin->>DB: pauseJob / resumeJob / triggerJob(runNow) / deleteJob
+    end
+
+    rect rgb(220,255,225)
+        Note over Exec,FX: ② Trigger 발화 → DelegatingJob → 실제 Job 위임
+        Exec->>DB: Trigger polling (Cron / Interval)
+        DB-->>Exec: Trigger 발화
+        Exec->>Exec: DelegatingJob.execute()<br/>JobDataMap["jobType"] 읽기
+        Exec->>Exec: JobClassRegistry.resolve(EXCHANGE_RATE_REFRESH)<br/>→ ExchangeRateRefreshJob.class
+        Exec->>Exec: ExchangeRateRefreshJob.execute()<br/>fxReader.findAllActiveCorridors()
+        Exec->>FX: GET /v2/rates?base=USD&quotes=KRW,...
+        FX-->>Exec: FrankfurterRateResponse[]
+        Exec->>DB: fxCommand.quoteRate() × N<br/>(exchange_rate UPSERT + exchange_rate_history INSERT)
+    end
+
+    rect rgb(255,245,220)
+        Note over Exec,DB: ③ 실행 이력 저장 (QuartzJobHistoryListener)
+        Exec->>DB: jobToBeExecuted → status=RUNNING
+        Exec->>DB: jobWasExecuted  → status=SUCCESS / FAILED
+    end
+
+    rect rgb(255,230,230)
+        Note over Admin,DB: ④ 이력 조회 / 실패 재실행
+        Admin->>DB: quartz_job_execution_history 조회
+        DB-->>Admin: 실행 이력 목록
+        Admin->>DB: scheduler.triggerJob(jobKey) [retry]
+    end
+```
+
+**핵심 설계:**
+- `DelegatingJob` — 항상 이 클래스명으로 Quartz DB에 저장. api-admin은 실제 Job 클래스를 몰라도 등록 가능.
+- `JobClassRegistry` — server-executor에서만 `TypedJob` 빈을 수집해 `JobType → Class` 매핑 구축. api-admin에는 오류 반환 fallback만 존재.
+- `QuartzJobHistoryListener` — server-executor가 Job 시작·완료·실패 시점에 커스텀 이력 테이블(`quartz_job_execution_history`)에 자동 저장.
+
 ## 5. 프론트엔드 플로우
 
 ### 공통 API 호출 흐름
@@ -396,6 +444,8 @@ flowchart TB
     pgpool -->|write/sync read| primary
     pgpool -->|async read| secondary
     primary -.->|streaming replication| secondary
+
+    apiAdmin -.->|"Quartz job 등록·제어<br/>(공유 DB 경유)"| executor
 
     apiSaas -->|Redis DB 1| redis
     apiAdmin -->|Redis DB 0| redis
@@ -741,7 +791,6 @@ flowchart LR
 
 ## 9. 포트폴리오 강조 포인트
 
-- 단순 CRUD가 아니라 계좌 잔고, 거래 내역, 주식 주문/포지션, 환전, 보험, 청구/정산, 복식부기 원장을 연결한 금융 도메인 프로젝트다.
 - Admin API와 SaaS API를 분리하여 운영자 권한과 사용자 권한 경계를 표현했다.
 - 프론트엔드는 관리자 콘솔의 반복 CRUD 패턴과 사용자 워크스페이스의 금융 업무 흐름을 별도 UX로 설계했다.
 - JWT silent refresh, Redis refresh token, QueryDSL 조회, Flyway migration, Quartz/Spring Batch 운영 API, Docker 기반 인프라 구성을 포함한다.

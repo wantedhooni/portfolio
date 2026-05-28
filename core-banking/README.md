@@ -54,7 +54,7 @@
 
 - 외환 도메인은 단순 환율 테이블에서 `현재 환율`, `환율 이력`, `통화 회랑(FxCorridor)` 구조로 확장했다. 운영자는 통화쌍별 최소/최대 금액, 일 한도, 스프레드, 상태를 관리하고 환율 변경 이력을 별도로 추적한다.
 - Quartz/Spring Batch는 `api-admin`이 Job 등록·조회·제어를 담당하고, `server-executor`가 Trigger 발화와 배치 실행을 담당하도록 분리했다. 운영 제어면과 실행 노드를 분리해 실제 운영 구조에 가깝게 만들었다.
-- 외부 환율 수집을 위해 `external-api:frankfurter-client`를 별도 모듈로 두었고, Kafka 연동 후보 코드는 `external-api:kafka-client`로 분리했다.
+- `external-api:frankfurter-client`를 Frankfurter **v2** API(`https://api.frankfurter.dev/v2`) 기준으로 리팩토링했다. `getLatestRates(base)`로 base 통화의 전체 상대 통화를 한 번에 수집하고, `FrankfurterRatesRequest` 빌더로 날짜 범위·그룹·공급자 필터를 조합할 수 있다. `ExchangeRateRefreshService.refreshAll(base)`는 `server-executor`에서 Quartz Job으로 실행되며, 새 통화쌍이 추가되어도 별도 설정 없이 자동으로 수집한다. Kafka 연동 후보 코드는 `external-api:kafka-client`로 분리했다.
 
 ---
 
@@ -200,14 +200,14 @@ flowchart TD
 | `module:jwt-auth` | `core-exception`, `core-web` | JWT 발급/검증, Redis refresh token, Security filter 지원 |
 | `module:quartz-batch:quartz-batch-common` | 없음 | Quartz Job/Trigger 공통 모델과 상태 코드 |
 | `module:quartz-batch:quartz-batch-management` | `quartz-batch-common` | Job 등록·수정·삭제, 실행 이력 조회, pause/resume/runNow 제어 |
-| `module:quartz-batch:quartz-batch-executor` | `quartz-batch-common`, `business-logic`, `external-api:frankfurter-client` | Trigger 발화, Batch Job 실행, 외부 환율 수집 작업 |
-| `module:external-api:frankfurter-client` | 없음 | Frankfurter 환율 API RestClient |
+| `module:quartz-batch:quartz-batch-executor` | `quartz-batch-common`, `business-logic`, `external-api:frankfurter-client` | Trigger 발화, Batch Job 실행, `ExchangeRateRefreshService.refresh()` / `refreshAll()` 환율 수집 |
+| `module:external-api:frankfurter-client` | 없음 | Frankfurter **v2** 환율 API RestClient — `getLatestRates(base)`(전체 통화), `getRates(FrankfurterRatesRequest)`(날짜 범위·그룹), `getCurrency(code)`, `getProviders()` |
 | `module:external-api:kafka-client` | 없음 | Kafka producer/consumer 공통 설정 후보 모듈 |
 | `module:tools:metrics` | 없음 | Actuator, Prometheus, Pushgateway 연동 |
 | `module:tools:log-elk` | 없음 | Logstash encoder, Janino 기반 로그 전송 |
 | `application:api-admin` | `core-web`, `jwt-auth`, `business-logic`, `quartz-batch-management`, `metrics`, `log-elk` | 관리자 API, Flyway, 운영/정산/Quartz 제어 |
 | `application:api-saas` | `core-web`, `jwt-auth`, `business-logic`, `metrics`, `log-elk` | 사용자 API, 본인 계좌 기반 금융 업무 |
-| `application:server-executor` | `core-web`, `business-logic`, `quartz-batch-executor`, `metrics`, `log-elk` | Quartz Trigger 실행과 Batch Job 처리를 담당하는 워커 |
+| `application:server-executor` | `core-web`, `business-logic`, `quartz-batch-executor`, `metrics`, `log-elk` | Quartz Trigger 실행·Batch Job 처리 워커 (`ExchangeRateRefreshService`를 Quartz Job으로 실행해 Frankfurter 환율 수집) |
 
 **핵심 원칙:**
 - `core-common`은 응답 모델이 아니라 utils 모듈이고, `ApiResponse`/`ApiPageResponse`는 `core-web`에 둔다.
@@ -348,6 +348,62 @@ LedgerCommandImpl.createAndPostJournal  @Transactional
   ├─ persist(entry)  (CascadeType.ALL → 라인 동시 저장)
   └─ entry.post(now)                                            ← Σ차변 = Σ대변 검증 → POSTED
 ```
+
+### 6.6 Quartz 실행 플로우 — api-admin / server-executor 역할 분리
+
+두 애플리케이션은 같은 PostgreSQL Quartz Metastore를 바라보되, **관리 노드(api-admin)**와 **실행 노드(server-executor)**로 책임이 분리된다.
+
+| 관심사 | api-admin | server-executor |
+|---|---|---|
+| Job 등록·수정·삭제 | O (`QuartzJobHandler`) | X |
+| pause / resume / runNow / retry | O | X |
+| Trigger 발화 | X | O (Quartz Scheduler polling) |
+| 실제 Job 클래스 보유 | X (`EmptyJobClassRegistry`) | O (`TypedJobRegistryConfig`) |
+| 실행 이력 조회 | O | — (리스너가 저장) |
+
+```mermaid
+sequenceDiagram
+    participant Admin  as 🛠 api-admin (8081)
+    participant DB     as 💾 PostgreSQL<br/>(Quartz Metastore + appdb)
+    participant Exec   as ⚙ server-executor (8071)
+    participant FX     as 🌐 Frankfurter API
+
+    rect rgb(220,235,255)
+        Note over Admin,DB: ① Job 등록 / 스케줄 변경 / 제어
+        Admin->>DB: scheduleJob(DelegatingJob.class, cronTrigger)<br/>JobDataMap { jobType=EXCHANGE_RATE_REFRESH }
+        Admin->>DB: pauseJob / resumeJob / triggerJob(runNow) / deleteJob
+    end
+
+    rect rgb(220,255,225)
+        Note over Exec,FX: ② Trigger 발화 → DelegatingJob → 실제 Job 위임
+        Exec->>DB: Trigger polling (Cron / Interval)
+        DB-->>Exec: Trigger 발화
+        Exec->>Exec: DelegatingJob.execute()<br/>JobDataMap["jobType"] 읽기
+        Exec->>Exec: JobClassRegistry.resolve(EXCHANGE_RATE_REFRESH)<br/>→ ExchangeRateRefreshJob.class
+        Exec->>Exec: ExchangeRateRefreshJob.execute()<br/>fxReader.findAllActiveCorridors()
+        Exec->>FX: GET /v2/rates?base=USD&quotes=KRW,...
+        FX-->>Exec: FrankfurterRateResponse[]
+        Exec->>DB: fxCommand.quoteRate() × N<br/>(exchange_rate UPSERT + exchange_rate_history INSERT)
+    end
+
+    rect rgb(255,245,220)
+        Note over Exec,DB: ③ 실행 이력 저장 (QuartzJobHistoryListener)
+        Exec->>DB: jobToBeExecuted → status=RUNNING
+        Exec->>DB: jobWasExecuted  → status=SUCCESS / FAILED
+    end
+
+    rect rgb(255,230,230)
+        Note over Admin,DB: ④ 이력 조회 / 실패 재실행
+        Admin->>DB: quartz_job_execution_history 조회
+        DB-->>Admin: 실행 이력 목록
+        Admin->>DB: scheduler.triggerJob(jobKey) [retry]
+    end
+```
+
+**핵심 설계:**
+- `DelegatingJob` — 항상 이 클래스명으로 Quartz DB에 저장. api-admin은 실제 Job 클래스를 몰라도 등록 가능.
+- `JobClassRegistry` — server-executor에서만 `TypedJob` 빈을 수집해 `JobType → Class` 매핑 구축. api-admin에는 오류 반환 fallback만 존재.
+- `QuartzJobHistoryListener` — server-executor가 Job 시작·완료·실패 시점에 커스텀 이력 테이블(`quartz_job_execution_history`)에 자동 저장.
 
 ---
 
