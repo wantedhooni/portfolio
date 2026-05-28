@@ -30,7 +30,7 @@ export class FxService {
   async currentRate(
     baseCurrencyCode: string,
     quoteCurrencyCode: string,
-    rateType: RateType = "SELL",
+    rateType: RateType = "MID",
   ): Promise<ExchangeRate> {
     return unwrap(
       await api.get<ApiResponse<ExchangeRate>>("/api/v1/fx/rate/current", {

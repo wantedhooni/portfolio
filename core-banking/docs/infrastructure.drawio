@@ -1,6 +1,6 @@
-<mxfile host="app.diagrams.net" modified="2026-05-21T00:00:00.000Z" agent="Claude Code" version="24.0.0" type="device">
+<mxfile host="app.diagrams.net" modified="2026-05-28T00:00:00.000Z" agent="Claude Code" version="24.0.0" type="device">
   <diagram name="Infrastructure" id="infra-diagram">
-    <mxGraphModel dx="1422" dy="762" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1500" pageHeight="920" math="0" shadow="0">
+    <mxGraphModel dx="1422" dy="762" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1500" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -46,7 +46,7 @@
 
         <!-- Docker -->
         <mxCell id="DOC" value="&lt;b&gt;Docker&lt;/b&gt;" style="shape=image;verticalLabelPosition=bottom;verticalAlign=top;align=center;strokeColor=none;fillColor=none;html=1;aspect=fixed;image=https://cdn.simpleicons.org/docker/2496ED;" vertex="1" parent="1">
-          <mxGeometry x="355" y="270" width="90" height="90" as="geometry" />
+          <mxGeometry x="355" y="350" width="90" height="90" as="geometry" />
         </mxCell>
         <mxCell id="E-GD" value="Deploy" style="edgeStyle=orthogonalEdgeStyle;fontSize=11;endArrow=block;endFill=1;fontStyle=1;" edge="1" source="GH" target="DOC" parent="1">
           <mxGeometry relative="1" as="geometry" />
@@ -60,16 +60,33 @@
         <mxCell id="AS" value="&lt;b&gt;api-saas&lt;/b&gt;&lt;br/&gt;Spring Boot · :8091" style="shape=image;verticalLabelPosition=bottom;verticalAlign=top;align=center;strokeColor=none;fillColor=none;html=1;aspect=fixed;image=https://cdn.simpleicons.org/springboot/6DB33F;" vertex="1" parent="1">
           <mxGeometry x="530" y="400" width="90" height="90" as="geometry" />
         </mxCell>
+        <!-- server-executor -->
+        <mxCell id="SE" value="&lt;b&gt;server-executor&lt;/b&gt;&lt;br/&gt;Spring Boot · :8071" style="shape=image;verticalLabelPosition=bottom;verticalAlign=top;align=center;strokeColor=none;fillColor=none;html=1;aspect=fixed;image=https://cdn.simpleicons.org/springboot/6DB33F;" vertex="1" parent="1">
+          <mxGeometry x="530" y="560" width="90" height="90" as="geometry" />
+        </mxCell>
+
         <mxCell id="E-DA" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="DOC" target="AA" parent="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="E-DS" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="DOC" target="AS" parent="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
+        <mxCell id="E-DSE" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="DOC" target="SE" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
         <mxCell id="E-AAP" value="JDBC" style="edgeStyle=orthogonalEdgeStyle;fontSize=11;strokeColor=#4169E1;fontColor=#4169E1;" edge="1" source="AA" target="PGPOOL" parent="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="E-ASP" value="JDBC" style="edgeStyle=orthogonalEdgeStyle;fontSize=11;strokeColor=#4169E1;fontColor=#4169E1;" edge="1" source="AS" target="PGPOOL" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="E-SEP" value="JDBC" style="edgeStyle=orthogonalEdgeStyle;fontSize=11;strokeColor=#4169E1;fontColor=#4169E1;" edge="1" source="SE" target="PGPOOL" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Quartz: api-admin controls server-executor via shared DB -->
+        <mxCell id="E-AQTZ" value="Quartz Job 제어" style="edgeStyle=orthogonalEdgeStyle;dashed=1;endArrow=open;endFill=0;fontSize=10;strokeColor=#888888;fontColor=#555555;fontStyle=2;" edge="1" source="AA" target="SE" parent="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
 
@@ -105,7 +122,7 @@
 
         <!-- Redis -->
         <mxCell id="RD" value="&lt;b&gt;Redis&lt;/b&gt;&lt;br/&gt;:6379 · DB0/DB1" style="shape=image;verticalLabelPosition=bottom;verticalAlign=top;align=center;strokeColor=none;fillColor=none;html=1;aspect=fixed;image=https://cdn.simpleicons.org/redis/DC382D;" vertex="1" parent="1">
-          <mxGeometry x="350" y="610" width="90" height="90" as="geometry" />
+          <mxGeometry x="350" y="760" width="90" height="90" as="geometry" />
         </mxCell>
         <mxCell id="E-AR" value="DB 0" style="edgeStyle=orthogonalEdgeStyle;fontSize=11;strokeColor=#DC382D;fontColor=#DC382D;" edge="1" source="AA" target="RD" parent="1">
           <mxGeometry relative="1" as="geometry" />
@@ -116,7 +133,7 @@
 
         <!-- Pushgateway -->
         <mxCell id="PW" value="&lt;b&gt;Pushgateway&lt;/b&gt;&lt;br/&gt;:39091" style="shape=mxgraph.network.server;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
-          <mxGeometry x="540" y="630" width="70" height="70" as="geometry" />
+          <mxGeometry x="540" y="760" width="70" height="70" as="geometry" />
         </mxCell>
         <mxCell id="E-APW" value="Micrometer" style="edgeStyle=orthogonalEdgeStyle;fontSize=10;strokeColor=#9673a6;fontColor=#9673a6;" edge="1" source="AA" target="PW" parent="1">
           <mxGeometry relative="1" as="geometry" />
@@ -124,10 +141,13 @@
         <mxCell id="E-SPW" value="Micrometer" style="edgeStyle=orthogonalEdgeStyle;fontSize=10;strokeColor=#9673a6;fontColor=#9673a6;" edge="1" source="AS" target="PW" parent="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
+        <mxCell id="E-SEPW" value="Micrometer" style="edgeStyle=orthogonalEdgeStyle;fontSize=10;strokeColor=#9673a6;fontColor=#9673a6;" edge="1" source="SE" target="PW" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
 
         <!-- Prometheus -->
         <mxCell id="PR" value="&lt;b&gt;Prometheus&lt;/b&gt;&lt;br/&gt;:39090" style="shape=image;verticalLabelPosition=bottom;verticalAlign=top;align=center;strokeColor=none;fillColor=none;html=1;aspect=fixed;image=https://cdn.simpleicons.org/prometheus/E6522C;" vertex="1" parent="1">
-          <mxGeometry x="690" y="600" width="90" height="90" as="geometry" />
+          <mxGeometry x="690" y="730" width="90" height="90" as="geometry" />
         </mxCell>
         <mxCell id="E-PWP" value="scrape" style="edgeStyle=orthogonalEdgeStyle;fontSize=11;" edge="1" source="PW" target="PR" parent="1">
           <mxGeometry relative="1" as="geometry" />
@@ -135,7 +155,7 @@
 
         <!-- Grafana -->
         <mxCell id="GR" value="&lt;b&gt;Grafana&lt;/b&gt;&lt;br/&gt;:33000" style="shape=image;verticalLabelPosition=bottom;verticalAlign=top;align=center;strokeColor=none;fillColor=none;html=1;aspect=fixed;image=https://cdn.simpleicons.org/grafana/F46800;" vertex="1" parent="1">
-          <mxGeometry x="870" y="600" width="90" height="90" as="geometry" />
+          <mxGeometry x="870" y="730" width="90" height="90" as="geometry" />
         </mxCell>
         <mxCell id="E-PG" value="datasource" style="edgeStyle=orthogonalEdgeStyle;fontSize=11;" edge="1" source="PR" target="GR" parent="1">
           <mxGeometry relative="1" as="geometry" />
@@ -143,7 +163,7 @@
 
         <!-- Logstash -->
         <mxCell id="LS" value="&lt;b&gt;Logstash&lt;/b&gt;&lt;br/&gt;TCP :4560" style="shape=image;verticalLabelPosition=bottom;verticalAlign=top;align=center;strokeColor=none;fillColor=none;html=1;aspect=fixed;image=https://cdn.simpleicons.org/logstash/FEC514;" vertex="1" parent="1">
-          <mxGeometry x="1040" y="600" width="90" height="90" as="geometry" />
+          <mxGeometry x="1040" y="730" width="90" height="90" as="geometry" />
         </mxCell>
         <mxCell id="E-AL" value="TCP :4560" style="edgeStyle=orthogonalEdgeStyle;fontSize=10;strokeColor=#FEC514;fontColor=#888800;" edge="1" source="AA" target="LS" parent="1">
           <mxGeometry relative="1" as="geometry" />
@@ -151,10 +171,13 @@
         <mxCell id="E-SL" value="TCP :4560" style="edgeStyle=orthogonalEdgeStyle;fontSize=10;strokeColor=#FEC514;fontColor=#888800;" edge="1" source="AS" target="LS" parent="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
+        <mxCell id="E-SEL" value="TCP :4560" style="edgeStyle=orthogonalEdgeStyle;fontSize=10;strokeColor=#FEC514;fontColor=#888800;" edge="1" source="SE" target="LS" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
 
         <!-- Elasticsearch -->
         <mxCell id="ES" value="&lt;b&gt;Elasticsearch&lt;/b&gt;&lt;br/&gt;:9200" style="shape=image;verticalLabelPosition=bottom;verticalAlign=top;align=center;strokeColor=none;fillColor=none;html=1;aspect=fixed;image=https://cdn.simpleicons.org/elasticsearch/005571;" vertex="1" parent="1">
-          <mxGeometry x="1220" y="600" width="90" height="90" as="geometry" />
+          <mxGeometry x="1220" y="730" width="90" height="90" as="geometry" />
         </mxCell>
         <mxCell id="E-LE" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="LS" target="ES" parent="1">
           <mxGeometry relative="1" as="geometry" />
@@ -162,7 +185,7 @@
 
         <!-- Kibana -->
         <mxCell id="KB" value="&lt;b&gt;Kibana&lt;/b&gt;&lt;br/&gt;:5601" style="shape=image;verticalLabelPosition=bottom;verticalAlign=top;align=center;strokeColor=none;fillColor=none;html=1;aspect=fixed;image=https://cdn.simpleicons.org/kibana/E8488B;" vertex="1" parent="1">
-          <mxGeometry x="1220" y="780" width="90" height="90" as="geometry" />
+          <mxGeometry x="1220" y="910" width="90" height="90" as="geometry" />
         </mxCell>
         <mxCell id="E-EK" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="ES" target="KB" parent="1">
           <mxGeometry relative="1" as="geometry" />

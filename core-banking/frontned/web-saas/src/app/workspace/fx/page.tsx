@@ -21,7 +21,7 @@ import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 
-const RATE_TYPES: RateType[] = ["SELL", "BUY", "MID", "CASH_BUY", "CASH_SELL", "REMIT_BUY", "REMIT_SELL"];
+const RATE_TYPES: RateType[] = ["MID", "SELL", "BUY", "CASH_BUY", "CASH_SELL", "REMIT_BUY", "REMIT_SELL"];
 
 /**
  * 환전 페이지입니다.
@@ -34,7 +34,7 @@ export default function FxPage() {
   const [fromAccountId, setFromAccountId] = useState<number | null>(null);
   const [toAccountId, setToAccountId]     = useState<number | null>(null);
   const [fromAmount, setFromAmount]       = useState("100");
-  const [rateType, setRateType]           = useState<RateType>("SELL");
+  const [rateType, setRateType]           = useState<RateType>("MID");
   const [fee, setFee]                     = useState("0");
   const [referenceId, setReferenceId]     = useState(makeReference("FX"));
 

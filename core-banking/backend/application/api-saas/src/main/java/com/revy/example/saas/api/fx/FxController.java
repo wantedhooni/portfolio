@@ -40,7 +40,7 @@ public class FxController {
     public ApiResponse<FxPayload.RateResponse> currentRate(
             @RequestParam String baseCurrencyCode,
             @RequestParam String quoteCurrencyCode,
-            @RequestParam(defaultValue = "SELL") RateType rateType
+            @RequestParam(defaultValue = "MID") RateType rateType
     ) {
         return ApiResponse.ok(
             useCase.currentRate(baseCurrencyCode.toUpperCase(), quoteCurrencyCode.toUpperCase(), rateType)
