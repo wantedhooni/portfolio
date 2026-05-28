@@ -13,11 +13,7 @@ import com.revy.example.common.enums.ExposedEnum;
  */
 public enum JobType implements ExposedEnum {
 
-    SETTLEMENT("정산"),
-    EXCHANGE_RATE_REFRESH("환율 자동 갱신"),
-    REPORT("리포트"),
-    NOTIFICATION("알림"),
-    API_CALL("외부 API 호출");
+    SETTLEMENT("정산"), EXCHANGE_RATE_REFRESH("환율 자동 갱신");
 
     private final String description;
 
