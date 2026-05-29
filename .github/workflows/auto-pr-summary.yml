@@ -22,27 +22,52 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
 
-      - name: Generate PR Summary with Copilot
+      - name: Install Copilot CLI
+        run: npm install -g @github/copilot
+
+      - name: Generate PR diff
         env:
-          GH_TOKEN: ${{ secrets.TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
-          PR_TITLE: ${{ github.event.pull_request.title }}
-          REPO: ${{ github.repository }}
         run: |
-          # PR 정보 수집
-          gh pr diff $PR_NUMBER --name-only > /tmp/changed_files.txt
-          
-          # 한글 서머리 생성 및 PR 코멘트 작성
-          gh pr comment $PR_NUMBER --body "## 🤖 AI 생성 PR 요약 (한글)
-          
-          이 PR 서머리는 GitHub Copilot을 통해 자동으로 생성되었습니다.
-          
-          ### 📋 주요 변경사항
-          - PR 분석 완료
-          - 한글 서머리 자동 생성
-          - PR 코멘트 자동 등록
-          
-          ---
-          *자동 생성됨*"
+          gh pr diff "$PR_NUMBER" > /tmp/pr_diff.txt
+
+      - name: Generate Korean PR Summary with Copilot
+        env:
+          COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_PAT }}
+        run: |
+          copilot -p "
+          다음 PR diff를 분석해서 한국어로 PR 요약을 작성해줘.
+
+          형식:
+          ## 🤖 AI 생성 PR 요약
+
+          ### 변경 요약
+          - 핵심 변경사항 3~5개
+
+          ### 영향 범위
+          - 영향을 받는 모듈, API, UI, DB, 설정 등
+
+          ### 리뷰 포인트
+          - 리뷰어가 중점적으로 봐야 할 부분
+
+          ### 테스트 관점
+          - 확인해야 할 테스트 항목
+
+          아래 파일을 입력으로 사용:
+          /tmp/pr_diff.txt
+
+          결과를 /tmp/pr_summary.md 파일로 저장해줘.
+          " \
+          --allow-tool='shell(cat:*)' \
+          --allow-tool=write \
+          --no-ask-user
+
+      - name: Comment PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          gh pr comment "$PR_NUMBER" --body-file /tmp/pr_summary.md
