@@ -66,6 +66,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: '/dashboard',                     label: '대시보드',    icon: LayoutDashboardIcon },
       { href: '/dashboard/user',                label: '사용자 관리', icon: UserRoundIcon },
       { href: '/dashboard/admin',               label: '어드민 관리', icon: ShieldIcon },
+      { href: '/dashboard/rbac/role', label: '역할 관리', icon: KeyRoundIcon },
     ],
   },
   {
@@ -98,7 +99,7 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    label: '보험',
+    label: '보험(분석/설계중)',
     items: [
       { href: '/dashboard/insurance/product',           label: '보험 상품',     icon: PackageIcon },
       { href: '/dashboard/insurance/policy',            label: '보험 증권',     icon: ShieldCheckIcon },
@@ -107,7 +108,7 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    label: '원장',
+    label: '원장(분석/설계중)',
     items: [
       { href: '/dashboard/ledger/account',       label: '계정과목',   icon: BookOpenIcon },
       { href: '/dashboard/ledger/period',        label: '회계기간',   icon: CalendarRangeIcon },
@@ -116,14 +117,14 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    label: '정산 · 청구',
+    label: '정산 · 청구(분석/설계중)',
     items: [
       { href: '/dashboard/settlement',        label: '정산 관리',   icon: HandshakeIcon },
       { href: '/dashboard/billing/invoice',   label: '청구서 관리', icon: ReceiptTextIcon },
     ],
   },
   {
-    label: 'PG (결제 게이트웨이)',
+    label: 'PG (결제 게이트웨이)(분석/설계중)',
     items: [
       { href: '/dashboard/pg/merchant',   label: '가맹점 관리', icon: StoreIcon },
       { href: '/dashboard/pg/payment',    label: 'PG 결제',     icon: CreditCardIcon },
@@ -135,12 +136,6 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { href: '/dashboard/quartz',         label: 'Quartz Job',    icon: ClockIcon },
       { href: '/dashboard/quartz-history', label: '실행 이력',     icon: LayersIcon },
-    ],
-  },
-  {
-    label: 'RBAC',
-    items: [
-      { href: '/dashboard/rbac/role', label: '역할 관리', icon: KeyRoundIcon },
     ],
   },
 ];
