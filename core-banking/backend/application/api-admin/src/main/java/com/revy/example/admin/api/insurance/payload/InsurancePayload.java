@@ -132,16 +132,37 @@ public class InsurancePayload {
             @NotBlank String referenceId
     ) {}
 
+    @Schema(name = "InsurancePayload.PremiumSearchRequest")
+    public record PremiumSearchRequest(
+            Long      policyId,
+            String    status,
+            LocalDate dueDateFrom,
+            LocalDate dueDateTo
+    ) {}
+
+    @Schema(name = "InsurancePayload.SchedulePremiumRequest")
+    public record SchedulePremiumRequest(
+            @NotNull                      Long       policyId,
+            @NotNull @DecimalMin("0.01") BigDecimal amount,
+            @NotBlank                     String     currency,
+            @NotNull                      LocalDate  dueDate,
+            @NotNull                      Long       billingAccountId,
+            @NotBlank                     String     referenceId
+    ) {}
+
     @Schema(name = "InsurancePayload.PremiumPaymentResponse")
     public record PremiumPaymentResponse(
-            Long id,
-            Long policyId,
+            Long       id,
+            Long       policyId,
             BigDecimal amount,
-            String currency,
-            LocalDate dueDate,
-            String status,
-            Instant paidAt,
-            String referenceId
+            String     currency,
+            LocalDate  dueDate,
+            String     status,
+            Instant    paidAt,
+            Long       billingAccountId,
+            Long       accountTxId,
+            String     referenceId,
+            String     failureReason
     ) {}
 
     // ── Claim ────────────────────────────────────────────────────

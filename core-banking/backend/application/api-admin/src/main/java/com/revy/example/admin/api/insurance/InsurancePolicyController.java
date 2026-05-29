@@ -106,4 +106,11 @@ public class InsurancePolicyController {
         useCase.markPremiumOverdue(paymentId);
         return ResponseEntity.ok(ApiResponse.ok());
     }
+
+    @Operation(summary = "증권별 보험료 납부 내역 조회")
+    @GetMapping("/{id}/payments")
+    public ResponseEntity<ApiResponse<java.util.List<InsurancePayload.PremiumPaymentResponse>>> payments(
+            @PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.ok(useCase.getPaymentsByPolicy(id)));
+    }
 }

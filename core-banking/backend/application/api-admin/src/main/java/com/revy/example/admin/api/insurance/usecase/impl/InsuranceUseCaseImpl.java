@@ -20,6 +20,7 @@ import com.revy.example.insurance.reader.dto.InsurancePolicyResult;
 import com.revy.example.insurance.reader.dto.InsurancePolicySearchCondition;
 import com.revy.example.insurance.reader.dto.InsuranceProductResult;
 import com.revy.example.insurance.reader.dto.InsuranceProductSearchCondition;
+import com.revy.example.insurance.reader.dto.PremiumPaymentResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -142,13 +143,62 @@ public class InsuranceUseCaseImpl implements InsuranceUseCase {
     // ── Premium Payment ──────────────────────────────────────────
 
     @Override
+    public InsurancePayload.PremiumPaymentResponse getPremiumPayment(Long paymentId) {
+        return insuranceReader.findPaymentById(paymentId)
+                .map(this::toPremiumResponse)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ENTITY_NOT_FOUND,
+                        "PremiumPayment id=" + paymentId));
+    }
+
+    @Override
+    public ApiPageResponse<InsurancePayload.PremiumPaymentResponse> searchPremiumPayments(
+            Pageable pageable, InsurancePayload.PremiumSearchRequest req) {
+        Page<PremiumPaymentResult> page = insuranceReader.searchPayments(
+                pageable, req.policyId(), req.status(), req.dueDateFrom(), req.dueDateTo());
+        return ApiPageResponse.of(
+                page.getContent().stream().map(this::toPremiumResponse).toList(),
+                page.getTotalElements(), page.getNumber(), page.getSize());
+    }
+
+    @Override
+    public List<InsurancePayload.PremiumPaymentResponse> getPaymentsByPolicy(Long policyId) {
+        return insuranceReader.findAllPaymentsByPolicyId(policyId).stream()
+                .map(this::toPremiumResponse).toList();
+    }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional
+    public InsurancePayload.PremiumPaymentResponse schedulePremiumPayment(
+            InsurancePayload.SchedulePremiumRequest req) {
+        Long id = insuranceCommand.schedulePremiumPayment(
+                req.policyId(), req.amount(), req.currency(),
+                req.dueDate(), req.billingAccountId(), req.referenceId());
+        return getPremiumPayment(id);
+    }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional
     public void payPremium(Long policyId, InsurancePayload.PayPremiumRequest request) {
         insuranceCommand.payPremium(new PayPremiumCommand(request.paymentId(), request.referenceId()));
     }
 
     @Override
+    @org.springframework.transaction.annotation.Transactional
+    public void payPremiumById(Long paymentId, String referenceId) {
+        insuranceCommand.payPremium(new PayPremiumCommand(paymentId, referenceId));
+    }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional
     public void markPremiumOverdue(Long paymentId) {
         insuranceCommand.markPremiumOverdue(paymentId);
+    }
+
+    private InsurancePayload.PremiumPaymentResponse toPremiumResponse(PremiumPaymentResult r) {
+        return new InsurancePayload.PremiumPaymentResponse(
+                r.id(), r.policyId(), r.amount(), r.currency(), r.dueDate(),
+                r.status().name(), r.paidAt(), r.billingAccountId(),
+                r.accountTxId(), r.referenceId(), r.failureReason());
     }
 
     // ── Claim ────────────────────────────────────────────────────

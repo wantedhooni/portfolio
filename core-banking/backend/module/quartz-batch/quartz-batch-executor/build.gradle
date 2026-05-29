@@ -4,5 +4,11 @@ dependencies {
 
     implementation project(':module:external-api:frankfurter-client')
     implementation("org.springframework.boot:spring-boot-starter-batch")
+    // spring-boot-batch 가 spring-batch-core 를 runtime 으로만 노출하므로
+    // 배치 API(Job, Step, ItemReader 등)를 컴파일 타임에 사용하려면 직접 선언 필요
+    // Spring Batch 6: spring-boot-batch 가 core/infrastructure 를 runtime 으로만 노출
+    implementation("org.springframework.batch:spring-batch-core")
+    implementation("org.springframework.batch:spring-batch-infrastructure")
     implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 }

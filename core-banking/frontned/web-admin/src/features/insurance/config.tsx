@@ -308,3 +308,60 @@ export const claimDetailConfig: DetailPageConfig = {
     { key: 'reviewNotes',     label: '심사 코멘트' },
   ],
 };
+
+// ─────────────────────────────────────────────────────────────
+// Premium Payment
+// ─────────────────────────────────────────────────────────────
+
+export interface PremiumPaymentItem {
+  id: number;
+  policyId: number;
+  amount: string;
+  currency: string;
+  dueDate: string;
+  status: string;
+  paidAt: string | null;
+  billingAccountId: number;
+  accountTxId: number | null;
+  referenceId: string;
+  failureReason: string | null;
+}
+
+interface PremiumSearch {
+  policyId: string;
+  status: string;
+  dueDateFrom: string;
+  dueDateTo: string;
+}
+
+export const premiumPaymentConfig: PageConfig<PremiumPaymentItem, PremiumSearch> = {
+  endpoint: '/api/v1/insurance/premium-payment',
+  title: '보험료 납부 내역',
+  detailBasePath: '/dashboard/insurance/premium-payment',
+
+  initialSearch: { policyId: '', status: '', dueDateFrom: '', dueDateTo: '' },
+  searchFields: [
+    { key: 'policyId',    label: '증권 ID',    placeholder: '예: 10' },
+    { key: 'status',      label: '상태',        placeholder: 'PENDING / PAID / OVERDUE ...' },
+    { key: 'dueDateFrom', label: '납부일(from)', placeholder: '2026-01-01' },
+    { key: 'dueDateTo',   label: '납부일(to)',   placeholder: '2026-12-31' },
+  ],
+
+  columnDefs: (_e, _d, onDetail): ColDef[] => [
+    { field: 'id',               headerName: 'ID',       maxWidth: 80 },
+    { field: 'policyId',         headerName: '증권',     maxWidth: 100 },
+    { field: 'dueDate',          headerName: '납부일',   maxWidth: 120 },
+    { field: 'amount',           headerName: '금액',     flex: 1, type: 'rightAligned' },
+    { field: 'currency',         headerName: '통화',     maxWidth: 80 },
+    { field: 'status',           headerName: '상태',     maxWidth: 110 },
+    { field: 'paidAt',           headerName: '납부 시각', flex: 1.2 },
+    { field: 'referenceId',      headerName: '참조 ID',  flex: 1.2 },
+    { field: 'billingAccountId', headerName: '결제 계좌', maxWidth: 110 },
+    {
+      headerName: '상세', maxWidth: 80, sortable: false, filter: false,
+      cellRenderer: (p: { data?: PremiumPaymentItem }) => p.data && onDetail
+        ? <button className="px-2 py-0.5 text-xs rounded border hover:bg-accent" onClick={() => onDetail(p.data!)}>상세</button>
+        : null,
+    },
+  ],
+};

@@ -28,3 +28,16 @@ export function getClaimStatusVariant(status: string | null | undefined): BadgeV
   if (!status) return 'outline';
   return CLAIM_STATUS_VARIANT[status] ?? 'outline';
 }
+
+const PREMIUM_STATUS_VARIANT: Record<string, BadgeVariant> = {
+  PENDING: 'outline',
+  PAID:    'default',
+  OVERDUE: 'destructive',
+  FAILED:  'destructive',
+  WAIVED:  'secondary',
+};
+
+export function getPremiumStatusVariant(status: string | null | undefined): BadgeVariant {
+  if (!status) return 'outline';
+  return PREMIUM_STATUS_VARIANT[status] ?? 'outline';
+}

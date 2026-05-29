@@ -10,6 +10,7 @@ import {
   CalendarRangeIcon,
   ClipboardListIcon,
   CoinsIcon,
+  CreditCardIcon,
   FileTextIcon,
   ClockIcon,
   HandshakeIcon,
@@ -28,8 +29,10 @@ import {
   ShieldCheckIcon,
   ShieldIcon,
   ShieldPlusIcon,
+  StoreIcon,
   TrendingUpIcon,
   UserRoundIcon,
+  WalletCardsIcon,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import {
@@ -76,11 +79,12 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: '주식',
     items: [
-      { href: '/dashboard/stock',         label: '종목 관리',  icon: TrendingUpIcon },
-      { href: '/dashboard/order',         label: '주문 관리',  icon: ClipboardListIcon },
-      { href: '/dashboard/order/place',   label: '주문 접수',  icon: ShieldPlusIcon },
-      { href: '/dashboard/trade',         label: '체결 내역',  icon: ReceiptIcon },
-      { href: '/dashboard/portfolio',     label: '포트폴리오', icon: LineChartIcon },
+      { href: '/dashboard/stock',           label: '종목 관리',  icon: TrendingUpIcon },
+      { href: '/dashboard/order',           label: '주문 관리',  icon: ClipboardListIcon },
+      { href: '/dashboard/order/place',     label: '주문 접수',  icon: ShieldPlusIcon },
+      { href: '/dashboard/trade',           label: '체결 내역',  icon: ReceiptIcon },
+      { href: '/dashboard/stock/dividend',  label: '배당금 처리', icon: CoinsIcon },
+      { href: '/dashboard/portfolio',       label: '포트폴리오', icon: LineChartIcon },
     ],
   },
   {
@@ -96,9 +100,10 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: '보험',
     items: [
-      { href: '/dashboard/insurance/product',   label: '보험 상품',   icon: PackageIcon },
-      { href: '/dashboard/insurance/policy',    label: '보험 증권',   icon: ShieldCheckIcon },
-      { href: '/dashboard/insurance/claim',     label: '보험금 청구', icon: HeartHandshakeIcon },
+      { href: '/dashboard/insurance/product',           label: '보험 상품',     icon: PackageIcon },
+      { href: '/dashboard/insurance/policy',            label: '보험 증권',     icon: ShieldCheckIcon },
+      { href: '/dashboard/insurance/claim',             label: '보험금 청구',   icon: HeartHandshakeIcon },
+      { href: '/dashboard/insurance/premium-payment',   label: '보험료 납부',   icon: CalendarRangeIcon },
     ],
   },
   {
@@ -113,8 +118,16 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: '정산 · 청구',
     items: [
-      { href: '/dashboard/settlement',        label: '정산 관리', icon: HandshakeIcon },
+      { href: '/dashboard/settlement',        label: '정산 관리',   icon: HandshakeIcon },
       { href: '/dashboard/billing/invoice',   label: '청구서 관리', icon: ReceiptTextIcon },
+    ],
+  },
+  {
+    label: 'PG (결제 게이트웨이)',
+    items: [
+      { href: '/dashboard/pg/merchant',   label: '가맹점 관리', icon: StoreIcon },
+      { href: '/dashboard/pg/payment',    label: 'PG 결제',     icon: CreditCardIcon },
+      { href: '/dashboard/pg/settlement', label: 'PG 정산',     icon: WalletCardsIcon },
     ],
   },
   {

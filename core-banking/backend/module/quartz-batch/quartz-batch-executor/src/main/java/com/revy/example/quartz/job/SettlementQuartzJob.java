@@ -8,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -28,10 +27,13 @@ import java.time.format.DateTimeParseException;
  */
 @Slf4j
 @Component
-public class SettlementJob implements TypedJob {
+public class SettlementQuartzJob implements TypedJob {
 
-    @Autowired
     private InsurancePremiumSettlementService settlementService;
+
+    public SettlementQuartzJob(InsurancePremiumSettlementService settlementService) {
+        this.settlementService = settlementService;
+    }
 
     @Override
     public JobType getType() {

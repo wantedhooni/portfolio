@@ -36,6 +36,16 @@ public class TradePayload {
             @NotNull                          Instant    tradedAt
     ) {}
 
+    @Schema(name = "TradePayload.DividendRequest")
+    public record DividendRequest(
+            @NotNull                         Long       accountId,
+            @NotNull                         Long       stockId,
+            @NotNull @DecimalMin("0.000001") BigDecimal grossAmount,
+            @NotNull @DecimalMin("0.0")      BigDecimal tax,
+            @NotBlank                        String     referenceId,
+            @NotNull                         Instant    tradedAt
+    ) {}
+
     @Schema(name = "TradePayload.SearchRequest")
     public record SearchRequest(
             Long     accountId,
