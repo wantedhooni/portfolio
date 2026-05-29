@@ -169,6 +169,34 @@ public class InsuranceReaderImpl implements InsuranceReader {
             .stream().map(PremiumPaymentResult::from).toList();
     }
 
+    @Override
+    public Page<PremiumPaymentResult> searchPayments(
+            Pageable pageable, Long policyId, String statusStr,
+            java.time.LocalDate dueDateFrom, java.time.LocalDate dueDateTo) {
+
+        BooleanBuilder where = new BooleanBuilder();
+        if (policyId != null) where.and(PAY.policyId.eq(policyId));
+        if (statusStr != null && !statusStr.isBlank()) {
+            try {
+                where.and(PAY.status.eq(
+                    com.revy.example.domain.insurance.enums.PaymentStatus.valueOf(statusStr.toUpperCase())));
+            } catch (IllegalArgumentException ignored) {}
+        }
+        if (dueDateFrom != null) where.and(PAY.dueDate.goe(dueDateFrom));
+        if (dueDateTo   != null) where.and(PAY.dueDate.loe(dueDateTo));
+
+        List<PremiumPaymentResult> content = jpaQueryFactory.selectFrom(PAY)
+            .where(where)
+            .orderBy(PAY.dueDate.desc(), PAY.id.desc())
+            .offset(pageable.getOffset())
+            .limit(pageable.getPageSize())
+            .fetch().stream().map(PremiumPaymentResult::from).toList();
+
+        JPAQuery<Long> countQ = jpaQueryFactory.select(PAY.count()).from(PAY).where(where);
+        return PageableExecutionUtils.getPage(content, pageable,
+                () -> java.util.Optional.ofNullable(countQ.fetchOne()).orElse(0L));
+    }
+
     // ── Claim ────────────────────────────────────────────────────
 
     @Override

@@ -5,6 +5,7 @@ import com.revy.example.core.common.ApiPageResponse;
 import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public interface InsuranceUseCase {
 
@@ -28,7 +29,14 @@ public interface InsuranceUseCase {
     void cancelPolicy(Long id);
 
     // ── Premium Payment ──────────────────────────────────────────
+    InsurancePayload.PremiumPaymentResponse getPremiumPayment(Long paymentId);
+    ApiPageResponse<InsurancePayload.PremiumPaymentResponse> searchPremiumPayments(
+            Pageable pageable, InsurancePayload.PremiumSearchRequest request);
+    List<InsurancePayload.PremiumPaymentResponse> getPaymentsByPolicy(Long policyId);
+    InsurancePayload.PremiumPaymentResponse schedulePremiumPayment(
+            InsurancePayload.SchedulePremiumRequest request);
     void payPremium(Long policyId, InsurancePayload.PayPremiumRequest request);
+    void payPremiumById(Long paymentId, String referenceId);
     void markPremiumOverdue(Long paymentId);
 
     // ── Claim ────────────────────────────────────────────────────

@@ -12,8 +12,8 @@ import {
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { getApiError, fetchDetail } from '@/services/crud';
-import type { PolicyItem } from '@/features/insurance/config';
-import { getPolicyStatusVariant } from '@/features/insurance/badge';
+import type { PolicyItem, PremiumPaymentItem } from '@/features/insurance/config';
+import { getPolicyStatusVariant, getPremiumStatusVariant } from '@/features/insurance/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -26,13 +26,19 @@ const ENDPOINT = '/api/v1/insurance/policy';
 export default function PolicyDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const [policy, setPolicy] = useState<PolicyItem | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [policy, setPolicy]     = useState<PolicyItem | null>(null);
+  const [payments, setPayments] = useState<PremiumPaymentItem[]>([]);
+  const [loading, setLoading]   = useState(true);
 
   const reload = useCallback(async () => {
     setLoading(true);
     try {
-      setPolicy(await fetchDetail<PolicyItem>(ENDPOINT, id));
+      const [pol, pays] = await Promise.all([
+        fetchDetail<PolicyItem>(ENDPOINT, id),
+        api.get(`${ENDPOINT}/${id}/payments`).then((r) => r.data?.data ?? []),
+      ]);
+      setPolicy(pol);
+      setPayments(pays);
     } catch (err) {
       toast.error(getApiError(err, '증권 조회 실패'));
     } finally {
@@ -146,6 +152,56 @@ export default function PolicyDetailPage({ params }: { params: Promise<{ id: str
           </CardContent>
         </Card>
       </div>
+
+      {/* 보험료 납부 내역 */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">
+            보험료 납부 내역 ({payments.length}건)
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {payments.length === 0 ? (
+            <p className="text-sm text-muted-foreground">납부 내역이 없습니다.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b text-xs uppercase text-muted-foreground">
+                    <th className="py-2 pr-4 text-left">납부일</th>
+                    <th className="py-2 pr-4 text-right">금액</th>
+                    <th className="py-2 pr-4 text-center">상태</th>
+                    <th className="py-2 pr-4 text-left">납부시각</th>
+                    <th className="py-2 text-left">참조 ID</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {payments.map((p) => (
+                    <tr key={p.id} className="border-b last:border-0 hover:bg-muted/30 cursor-pointer"
+                        onClick={() => router.push(`/dashboard/insurance/premium-payment/${p.id}`)}>
+                      <td className="py-2 pr-4">{p.dueDate}</td>
+                      <td className="py-2 pr-4 text-right font-medium">
+                        {Number(p.amount).toLocaleString()}
+                      </td>
+                      <td className="py-2 pr-4 text-center">
+                        <Badge variant={getPremiumStatusVariant(p.status)} className="text-xs">
+                          {p.status}
+                        </Badge>
+                      </td>
+                      <td className="py-2 pr-4 text-muted-foreground">
+                        {p.paidAt ? new Date(p.paidAt).toLocaleString('ko-KR') : '-'}
+                      </td>
+                      <td className="py-2 font-mono text-xs text-muted-foreground truncate max-w-[160px]">
+                        {p.referenceId}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

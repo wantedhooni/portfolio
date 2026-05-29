@@ -101,6 +101,18 @@ public enum ErrorCode {
     ROLE_ALREADY_ASSIGNED(409, "RBAC-003", "이미 할당된 역할입니다."),
     ROLE_NOT_ASSIGNED(404,   "RBAC-004", "할당되지 않은 역할입니다."),
 
+    // ── PG (Payment Gateway) ─────────────────────────────────────
+    PG_MERCHANT_NOT_FOUND(404,      "PG-001", "가맹점을 찾을 수 없습니다."),
+    PG_MERCHANT_NOT_ACTIVE(422,     "PG-002", "비활성화된 가맹점입니다."),
+    PG_MERCHANT_DUPLICATED(409,     "PG-003", "이미 등록된 가맹점 코드입니다."),
+    PG_PAYMENT_NOT_FOUND(404,       "PG-101", "PG 결제를 찾을 수 없습니다."),
+    PG_PAYMENT_NOT_APPROVED(422,    "PG-102", "승인된 결제만 처리할 수 있습니다."),
+    PG_PAYMENT_DUPLICATED(409,      "PG-103", "이미 처리된 주문번호입니다."),
+    PG_PAYMENT_ALREADY_SETTLED(409, "PG-104", "이미 정산 처리된 결제입니다."),
+    PG_SETTLEMENT_NOT_FOUND(404,    "PG-201", "PG 정산을 찾을 수 없습니다."),
+    PG_SETTLEMENT_NOT_PENDING(422,  "PG-202", "PENDING 상태의 PG 정산만 처리할 수 있습니다."),
+    PG_SETTLEMENT_DUPLICATED(409,   "PG-203", "이미 생성된 PG 정산입니다."),
+
     // ── Scheduler (Quartz / Batch) ───────────────────────────────
     SCHEDULER_JOB_NOT_FOUND(404,      "SCH-001", "스케줄러 Job 을 찾을 수 없습니다."),
     SCHEDULER_TRIGGER_NOT_FOUND(404,  "SCH-002", "스케줄러 Trigger 를 찾을 수 없습니다."),

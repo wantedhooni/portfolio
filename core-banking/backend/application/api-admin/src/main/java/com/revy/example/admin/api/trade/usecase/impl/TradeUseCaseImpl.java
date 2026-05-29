@@ -7,6 +7,8 @@ import com.revy.example.core.error.BusinessException;
 import com.revy.example.core.error.ErrorCode;
 import com.revy.example.domain.account.enums.TxStatus;
 import com.revy.example.domain.account.enums.TxType;
+import com.revy.example.trade.command.TradeCommand;
+import com.revy.example.trade.command.dto.DividendCommand;
 import com.revy.example.trade.reader.TradeReader;
 import com.revy.example.trade.reader.dto.TradeResult;
 import com.revy.example.trade.reader.dto.TradeSearchCondition;
@@ -14,12 +16,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @RequiredArgsConstructor
 public class TradeUseCaseImpl implements TradeUseCase {
 
-    private final TradeReader tradeReader;
+    private final TradeReader  tradeReader;
+    private final TradeCommand tradeCommand;
 
     @Override
     public TradePayload.ModelResponse get(Long id) {
@@ -46,6 +50,16 @@ public class TradeUseCaseImpl implements TradeUseCase {
             page.getContent().stream().map(this::toResponse).toList(),
             page.getTotalElements(), page.getNumber(), page.getSize()
         );
+    }
+
+    @Override
+    @Transactional
+    public void processDividend(TradePayload.DividendRequest req) {
+        tradeCommand.dividend(new DividendCommand(
+                req.accountId(), req.stockId(),
+                req.grossAmount(), req.tax(),
+                req.referenceId(), req.tradedAt()
+        ));
     }
 
     // ── private ──────────────────────────────────────────────────

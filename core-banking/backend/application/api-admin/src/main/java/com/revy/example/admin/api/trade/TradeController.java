@@ -10,13 +10,20 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-/** 체결 내역 조회 전용 컨트롤러 — 쓰기는 /api/v1/order 에서 처리 */
+/** 체결 내역 조회 + 배당금 처리 */
+@Tag(name = "Trade", description = "체결 내역 조회 및 배당금 처리")
 @Slf4j
 @RequiredArgsConstructor
 @RestController
@@ -38,5 +45,14 @@ public class TradeController {
             @Valid @ModelAttribute TradePayload.SearchRequest searchRequest
     ) {
         return ResponseEntity.ok(ApiResponse.ok(useCase.search(pageable, searchRequest)));
+    }
+
+    @Operation(summary = "배당금 입금 처리")
+    @PostMapping("/dividend")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseEntity<ApiResponse<Void>> dividend(
+            @Valid @RequestBody TradePayload.DividendRequest request) {
+        useCase.processDividend(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok());
     }
 }

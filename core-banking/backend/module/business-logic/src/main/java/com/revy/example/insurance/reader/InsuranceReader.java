@@ -34,6 +34,10 @@ public interface InsuranceReader {
     Optional<PremiumPaymentResult> findPaymentById(Long id);
     boolean existsPaymentByReferenceId(String referenceId);
     List<PremiumPaymentResult> findAllPaymentsByPolicyId(Long policyId);
+    /** 관리자 페이지용 범용 납부 내역 검색 */
+    Page<PremiumPaymentResult> searchPayments(
+            Pageable pageable, Long policyId, String status,
+            LocalDate dueDateFrom, LocalDate dueDateTo);
 
     // ── Claim ────────────────────────────────────────────────────
     Optional<InsuranceClaimResult> findClaimById(Long id);
