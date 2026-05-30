@@ -73,32 +73,29 @@ import java.util.concurrent.atomic.AtomicReference;
 public class PgSettlementBatchConfig {
 
     private static final int SETTLEMENT_CHUNK_SIZE = 20;   // 가맹점 단위 처리
-    private static final int LEDGER_CHUNK_SIZE      = 50;
+    private static final int LEDGER_CHUNK_SIZE = 50;
 
     // 원장 계정 코드
-    static final String CASH_ACCOUNT_CODE       = "1001";
-    static final String MERCHANT_LIAB_CODE      = "2002"; // 가맹점정산부채
-    static final String FEE_REVENUE_CODE        = "4002"; // 수수료수입
+    static final String CASH_ACCOUNT_CODE = "1001";
+    static final String MERCHANT_LIAB_CODE = "2002"; // 가맹점정산부채
+    static final String FEE_REVENUE_CODE = "4002"; // 수수료수입
 
     private static final String LEDGER_REF_TYPE = "PG_SETTLEMENT";
 
-    private final PgCommand     pgCommand;
-    private final PgReader      pgReader;
+    private final PgCommand pgCommand;
+    private final PgReader pgReader;
     private final LedgerCommand ledgerCommand;
-    private final LedgerReader  ledgerReader;
+    private final LedgerReader ledgerReader;
 
     // ── Job ────────────────────────────────────────────────────────────────
 
     @Bean("pgSettlementJob")
-    public Job pgSettlementJob(
-            JobRepository jobRepository,
-            @Qualifier("pgSettlementStep")    Step pgSettlementStep,
-            @Qualifier("pgLedgerPostingStep") Step pgLedgerPostingStep) {
+    public Job pgSettlementJob(JobRepository jobRepository, @Qualifier("pgSettlementStep") Step pgSettlementStep, @Qualifier("pgLedgerPostingStep") Step pgLedgerPostingStep) {
         return new JobBuilder("pgSettlementJob", jobRepository)
-                .incrementer(new RunIdIncrementer())
-                .start(pgSettlementStep)
-                .next(pgLedgerPostingStep)
-                .build();
+            .incrementer(new RunIdIncrementer())
+            .start(pgSettlementStep)
+            .next(pgLedgerPostingStep)
+            .build();
     }
 
     // ══════════════════════════════════════════════════════════════════════
@@ -106,34 +103,31 @@ public class PgSettlementBatchConfig {
     // ══════════════════════════════════════════════════════════════════════
 
     @Bean
-    public Step pgSettlementStep(
-            JobRepository              jobRepository,
-            PlatformTransactionManager transactionManager,
-            @Qualifier("pgMerchantReader")      JpaCursorItemReader<PgMerchant> pgMerchantReader,
-            @Qualifier("pgSettlementProcessor") ItemProcessor<PgMerchant, CreatePgSettlementCommand> pgSettlementProcessor,
-            @Qualifier("pgSettlementWriter")    ItemWriter<CreatePgSettlementCommand> pgSettlementWriter) {
+    public Step pgSettlementStep(JobRepository jobRepository, PlatformTransactionManager transactionManager, @Qualifier("pgMerchantReader") JpaCursorItemReader<PgMerchant> pgMerchantReader, @Qualifier("pgSettlementProcessor") ItemProcessor<PgMerchant, CreatePgSettlementCommand> pgSettlementProcessor, @Qualifier("pgSettlementWriter") ItemWriter<CreatePgSettlementCommand> pgSettlementWriter) {
 
         return new StepBuilder("pgSettlementStep", jobRepository)
-                .<PgMerchant, CreatePgSettlementCommand>chunk(SETTLEMENT_CHUNK_SIZE)
-                        .transactionManager(transactionManager)
-                .reader(pgMerchantReader)
-                .processor(pgSettlementProcessor)
-                .writer(pgSettlementWriter)
-                .faultTolerant()
-                .skip(IllegalStateException.class)
-                .skip(IllegalArgumentException.class)
-                .skipLimit(Integer.MAX_VALUE)
-                .build();
+            .<PgMerchant, CreatePgSettlementCommand>chunk(SETTLEMENT_CHUNK_SIZE)
+            .transactionManager(transactionManager)
+            .reader(pgMerchantReader)
+            .processor(pgSettlementProcessor)
+            .writer(pgSettlementWriter)
+            .faultTolerant()
+            .skip(IllegalStateException.class)
+            .skip(IllegalArgumentException.class)
+            .skipLimit(Integer.MAX_VALUE)
+            .build();
     }
 
-    /** 활성 가맹점을 ID 오름차순으로 스트리밍한다. */
+    /**
+     * 활성 가맹점을 ID 오름차순으로 스트리밍한다.
+     */
     @Bean
     public JpaCursorItemReader<PgMerchant> pgMerchantReader(EntityManagerFactory emf) {
-        return new JpaCursorItemReaderBuilder<PgMerchant>()
-                .name("pgMerchantReader")
-                .entityManagerFactory(emf)
-                .queryString("SELECT m FROM PgMerchant m WHERE m.isActive = true ORDER BY m.id ASC")
-                .build();
+        return new JpaCursorItemReaderBuilder<PgMerchant>().name("pgMerchantReader")
+                                                           .entityManagerFactory(emf)
+                                                           .queryString(
+                                                               "SELECT m FROM PgMerchant m WHERE m.isActive = true ORDER BY m.id ASC")
+                                                           .build();
     }
 
     /**
@@ -146,50 +140,47 @@ public class PgSettlementBatchConfig {
      */
     @Bean
     @StepScope
-    public ItemProcessor<PgMerchant, CreatePgSettlementCommand> pgSettlementProcessor(
-            @Value("#{jobParameters['targetDate']}") LocalDate targetDate) {
+    public ItemProcessor<PgMerchant, CreatePgSettlementCommand> pgSettlementProcessor(@Value("#{jobParameters['targetDate']}") LocalDate targetDate) {
 
         LocalDate settlementDate = (targetDate != null) ? targetDate : LocalDate.now();
 
         return merchant -> {
             // 가맹점별 정산 기준일: settlementDate - settlementCycle
-            LocalDate paymentDate  = settlementDate.minusDays(merchant.getSettlementCycle());
-            String    referenceId  = "PGSTL-" + merchant.getId() + "-" + paymentDate;
+            LocalDate paymentDate = settlementDate.minusDays(merchant.getSettlementCycle());
+            String referenceId = "PGSTL-" + merchant.getId() + "-" + paymentDate;
 
             // 멱등성 체크
             if (pgReader.existsSettlementByReferenceId(referenceId)) {
-                log.debug("[PgSettlementProcessor] 이미 정산된 가맹점 스킵 merchantId={} date={}",
-                        merchant.getId(), paymentDate);
+                log.debug("[PgSettlementProcessor] 이미 정산된 가맹점 스킵 merchantId={} date={}", merchant.getId(), paymentDate);
                 return null;
             }
 
             // 정산 대상 결제 조회
-            List<PgPaymentResult> payments =
-                    pgReader.findApprovedPaymentsForSettlement(merchant.getId(), paymentDate);
+            List<PgPaymentResult> payments = pgReader.findApprovedPaymentsForSettlement(merchant.getId(), paymentDate);
 
             if (payments.isEmpty()) {
-                log.debug("[PgSettlementProcessor] 정산 대상 결제 없음 merchantId={} date={}",
-                        merchant.getId(), paymentDate);
+                log.debug("[PgSettlementProcessor] 정산 대상 결제 없음 merchantId={} date={}", merchant.getId(), paymentDate);
                 return null;
             }
 
             // 집계
-            BigDecimal totalAmount      = payments.stream()
-                    .map(PgPaymentResult::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
+            BigDecimal totalAmount = payments.stream()
+                                             .map(PgPaymentResult::amount)
+                                             .reduce(BigDecimal.ZERO, BigDecimal::add);
             BigDecimal commissionAmount = payments.stream()
-                    .map(PgPaymentResult::commissionAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
-            BigDecimal netAmount        = totalAmount.subtract(commissionAmount);
-            List<Long> paymentIds       = payments.stream().map(PgPaymentResult::id).toList();
+                                                  .map(PgPaymentResult::commissionAmount)
+                                                  .reduce(BigDecimal.ZERO, BigDecimal::add);
+            BigDecimal netAmount = totalAmount.subtract(commissionAmount);
+            List<Long> paymentIds = payments.stream()
+                                            .map(PgPaymentResult::id)
+                                            .toList();
 
-            log.info("[PgSettlementProcessor] 정산 집계 merchantId={} paymentDate={} count={} total={}",
-                    merchant.getId(), paymentDate, payments.size(), totalAmount);
+            log.info("[PgSettlementProcessor] 정산 집계 merchantId={} paymentDate={} count={} total={}", merchant.getId(),
+                     paymentDate, payments.size(), totalAmount);
 
-            return new CreatePgSettlementCommand(
-                    merchant.getId(), paymentDate, settlementDate,
-                    merchant.getCurrency(), payments.size(),
-                    totalAmount, commissionAmount, netAmount,
-                    referenceId, paymentIds
-            );
+            return new CreatePgSettlementCommand(merchant.getId(), paymentDate, settlementDate, merchant.getCurrency(),
+                                                 payments.size(), totalAmount, commissionAmount, netAmount, referenceId,
+                                                 paymentIds);
         };
     }
 
@@ -207,10 +198,10 @@ public class PgSettlementBatchConfig {
                     Long settlementId = pgCommand.createSettlement(cmd);
                     pgCommand.completeSettlement(settlementId, cmd.paymentIds());
                     log.info("[PgSettlementWriter] 정산 완료 merchantId={} settlementId={} count={} net={}",
-                            cmd.merchantId(), settlementId, cmd.paymentCount(), cmd.netAmount());
+                             cmd.merchantId(), settlementId, cmd.paymentCount(), cmd.netAmount());
                 } catch (Exception e) {
-                    log.error("[PgSettlementWriter] 정산 실패 merchantId={} ref={} error={}",
-                            cmd.merchantId(), cmd.referenceId(), e.getMessage(), e);
+                    log.error("[PgSettlementWriter] 정산 실패 merchantId={} ref={} error={}", cmd.merchantId(),
+                              cmd.referenceId(), e.getMessage(), e);
                     throw e;
                 }
             }
@@ -222,24 +213,19 @@ public class PgSettlementBatchConfig {
     // ══════════════════════════════════════════════════════════════════════
 
     @Bean
-    public Step pgLedgerPostingStep(
-            JobRepository              jobRepository,
-            PlatformTransactionManager transactionManager,
-            @Qualifier("pgSettledForLedgerReader") JpaCursorItemReader<PgSettlement> pgSettledForLedgerReader,
-            @Qualifier("pgLedgerProcessor")         ItemProcessor<PgSettlement, PostJournalEntryCommand> pgLedgerProcessor,
-            @Qualifier("pgLedgerWriter")            ItemWriter<PostJournalEntryCommand> pgLedgerWriter) {
+    public Step pgLedgerPostingStep(JobRepository jobRepository, PlatformTransactionManager transactionManager, @Qualifier("pgSettledForLedgerReader") JpaCursorItemReader<PgSettlement> pgSettledForLedgerReader, @Qualifier("pgLedgerProcessor") ItemProcessor<PgSettlement, PostJournalEntryCommand> pgLedgerProcessor, @Qualifier("pgLedgerWriter") ItemWriter<PostJournalEntryCommand> pgLedgerWriter) {
 
-        return new StepBuilder("pgLedgerPostingStep", jobRepository)
-                .<PgSettlement, PostJournalEntryCommand>chunk(LEDGER_CHUNK_SIZE)
-                        .transactionManager(transactionManager)
-                .reader(pgSettledForLedgerReader)
-                .processor(pgLedgerProcessor)
-                .writer(pgLedgerWriter)
-                .faultTolerant()
-                .skip(IllegalStateException.class)
-                .skip(IllegalArgumentException.class)
-                .skipLimit(Integer.MAX_VALUE)
-                .build();
+        return new StepBuilder("pgLedgerPostingStep", jobRepository).<PgSettlement, PostJournalEntryCommand>chunk(
+                                                                        LEDGER_CHUNK_SIZE)
+                                                                    .transactionManager(transactionManager)
+                                                                    .reader(pgSettledForLedgerReader)
+                                                                    .processor(pgLedgerProcessor)
+                                                                    .writer(pgLedgerWriter)
+                                                                    .faultTolerant()
+                                                                    .skip(IllegalStateException.class)
+                                                                    .skip(IllegalArgumentException.class)
+                                                                    .skipLimit(Integer.MAX_VALUE)
+                                                                    .build();
     }
 
     /**
@@ -249,34 +235,30 @@ public class PgSettlementBatchConfig {
      */
     @Bean
     @StepScope
-    public JpaCursorItemReader<PgSettlement> pgSettledForLedgerReader(
-            EntityManagerFactory emf,
-            @Value("#{jobParameters['targetDate']}") LocalDate targetDate) {
+    public JpaCursorItemReader<PgSettlement> pgSettledForLedgerReader(EntityManagerFactory emf, @Value("#{jobParameters['targetDate']}") LocalDate targetDate) {
 
         LocalDate resolved = (targetDate != null) ? targetDate : LocalDate.now();
 
         String jpql = """
-                SELECT s FROM PgSettlement s
-                WHERE s.status = :status
-                  AND s.settlementDate = :settlementDate
-                  AND NOT EXISTS (
-                      SELECT 1 FROM JournalEntry je
-                      WHERE je.referenceType = :refType
-                        AND je.referenceId   = s.referenceId
-                  )
-                ORDER BY s.id ASC
-                """;
+            SELECT s FROM PgSettlement s
+            WHERE s.status = :status
+              AND s.settlementDate = :settlementDate
+              AND NOT EXISTS (
+                  SELECT 1 FROM JournalEntry je
+                  WHERE je.referenceType = :refType
+                    AND je.referenceId   = s.referenceId
+              )
+            ORDER BY s.id ASC
+            """;
 
-        return new JpaCursorItemReaderBuilder<PgSettlement>()
-                .name("pgSettledForLedgerReader")
-                .entityManagerFactory(emf)
-                .queryString(jpql)
-                .parameterValues(Map.of(
-                        "status",         com.revy.example.domain.pg.enums.PgSettlementStatus.SETTLED,
-                        "settlementDate", resolved,
-                        "refType",        LEDGER_REF_TYPE
-                ))
-                .build();
+        return new JpaCursorItemReaderBuilder<PgSettlement>().name("pgSettledForLedgerReader")
+                                                             .entityManagerFactory(emf)
+                                                             .queryString(jpql)
+                                                             .parameterValues(Map.of("status",
+                                                                                     com.revy.example.domain.pg.enums.PgSettlementStatus.SETTLED,
+                                                                                     "settlementDate", resolved,
+                                                                                     "refType", LEDGER_REF_TYPE))
+                                                             .build();
     }
 
     /**
@@ -292,45 +274,34 @@ public class PgSettlementBatchConfig {
      */
     @Bean
     public ItemProcessor<PgSettlement, PostJournalEntryCommand> pgLedgerProcessor() {
-        AtomicReference<Long> cashIdRef    = new AtomicReference<>();
-        AtomicReference<Long> liabIdRef    = new AtomicReference<>();
+        AtomicReference<Long> cashIdRef = new AtomicReference<>();
+        AtomicReference<Long> liabIdRef = new AtomicReference<>();
         AtomicReference<Long> revenueIdRef = new AtomicReference<>();
 
         return settlement -> {
-            long cashId    = resolveAccountId(cashIdRef,    CASH_ACCOUNT_CODE);
-            long liabId    = resolveAccountId(liabIdRef,    MERCHANT_LIAB_CODE);
+            long cashId = resolveAccountId(cashIdRef, CASH_ACCOUNT_CODE);
+            long liabId = resolveAccountId(liabIdRef, MERCHANT_LIAB_CODE);
             long revenueId = resolveAccountId(revenueIdRef, FEE_REVENUE_CODE);
 
-            BigDecimal total      = settlement.getTotalAmount();
-            BigDecimal net        = settlement.getNetAmount();
+            BigDecimal total = settlement.getTotalAmount();
+            BigDecimal net = settlement.getNetAmount();
             BigDecimal commission = settlement.getCommissionAmount();
-            String     currency   = settlement.getCurrency();
+            String currency = settlement.getCurrency();
 
             List<JournalLineInput> lines = List.of(
-                    JournalLineInput.debit(
-                            cashId, total, currency,
-                            "PG 결제 수령 merchantId=" + settlement.getMerchantId()),
-                    JournalLineInput.credit(
-                            liabId, net, currency,
-                            "가맹점 정산 지급 예정 merchantId=" + settlement.getMerchantId()),
-                    JournalLineInput.credit(
-                            revenueId, commission, currency,
-                            "PG 수수료 수입 merchantId=" + settlement.getMerchantId())
-            );
+                JournalLineInput.debit(cashId, total, currency, "PG 결제 수령 merchantId=" + settlement.getMerchantId()),
+                JournalLineInput.credit(liabId, net, currency, "가맹점 정산 지급 예정 merchantId=" + settlement.getMerchantId()),
+                JournalLineInput.credit(revenueId, commission, currency,
+                                        "PG 수수료 수입 merchantId=" + settlement.getMerchantId()));
 
             String journalNumber = "JRNL-PG-" + settlement.getReferenceId();
 
             log.debug("[PgLedgerProcessor] merchantId={} referenceId={} total={} commission={}",
-                    settlement.getMerchantId(), settlement.getReferenceId(), total, commission);
+                      settlement.getMerchantId(), settlement.getReferenceId(), total, commission);
 
-            return new PostJournalEntryCommand(
-                    journalNumber,
-                    settlement.getSettlementDate(),
-                    "PG 정산 원장 전기 merchantId=" + settlement.getMerchantId(),
-                    LEDGER_REF_TYPE,
-                    settlement.getReferenceId(),
-                    lines
-            );
+            return new PostJournalEntryCommand(journalNumber, settlement.getSettlementDate(),
+                                               "PG 정산 원장 전기 merchantId=" + settlement.getMerchantId(), LEDGER_REF_TYPE,
+                                               settlement.getReferenceId(), lines);
         };
     }
 
@@ -340,11 +311,9 @@ public class PgSettlementBatchConfig {
             for (PostJournalEntryCommand cmd : chunk.getItems()) {
                 try {
                     Long journalId = ledgerCommand.createAndPostJournal(cmd);
-                    log.info("[PgLedgerWriter] 전기 완료 referenceId={} journalId={}",
-                            cmd.referenceId(), journalId);
+                    log.info("[PgLedgerWriter] 전기 완료 referenceId={} journalId={}", cmd.referenceId(), journalId);
                 } catch (Exception e) {
-                    log.error("[PgLedgerWriter] 전기 실패 referenceId={} error={}",
-                            cmd.referenceId(), e.getMessage(), e);
+                    log.error("[PgLedgerWriter] 전기 실패 referenceId={} error={}", cmd.referenceId(), e.getMessage(), e);
                     throw e;
                 }
             }
@@ -357,9 +326,8 @@ public class PgSettlementBatchConfig {
         Long cached = ref.get();
         if (cached != null) return cached;
         Long id = ledgerReader.findAccountByCode(code)
-                .map(r -> r.id())
-                .orElseThrow(() -> new IllegalStateException(
-                        "원장 계정을 찾을 수 없습니다. code=" + code));
+                              .map(r -> r.id())
+                              .orElseThrow(() -> new IllegalStateException("원장 계정을 찾을 수 없습니다. code=" + code));
         ref.compareAndSet(null, id);
         return id;
     }

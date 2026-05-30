@@ -10,6 +10,7 @@ import {
   CalendarRangeIcon,
   ClipboardListIcon,
   CoinsIcon,
+  GaugeIcon,
   CreditCardIcon,
   FileTextIcon,
   ClockIcon,
@@ -136,6 +137,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { href: '/dashboard/quartz',         label: 'Quartz Job',    icon: ClockIcon },
       { href: '/dashboard/quartz-history', label: '실행 이력',     icon: LayersIcon },
+      { href: '/dashboard/batch',          label: 'Spring Batch',  icon: GaugeIcon },
     ],
   },
 ];

@@ -1,4 +1,4 @@
-package com.revy.example.quartz.reader;
+package com.revy.example.quartz.domain.reader;
 
 import com.revy.example.quartz.domain.QuartzJobExecutionHistory;
 import com.revy.example.quartz.dto.QuartzJobExecutionHistoryResult;

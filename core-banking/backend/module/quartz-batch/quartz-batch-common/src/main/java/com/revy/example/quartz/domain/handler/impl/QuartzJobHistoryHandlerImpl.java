@@ -1,8 +1,8 @@
-package com.revy.example.quartz.handler.impl;
+package com.revy.example.quartz.domain.handler.impl;
 
 import com.revy.example.quartz.domain.QuartzJobExecutionHistory;
-import com.revy.example.quartz.handler.QuartzJobHistoryHandler;
-import com.revy.example.quartz.reader.QuartzJobExecutionHistoryReader;
+import com.revy.example.quartz.domain.handler.QuartzJobHistoryHandler;
+import com.revy.example.quartz.domain.reader.QuartzJobExecutionHistoryReader;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

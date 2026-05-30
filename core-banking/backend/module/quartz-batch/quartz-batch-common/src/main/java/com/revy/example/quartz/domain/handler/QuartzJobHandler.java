@@ -1,4 +1,4 @@
-package com.revy.example.quartz.handler;
+package com.revy.example.quartz.domain.handler;
 
 import com.revy.example.quartz.dto.QuartzJobResult;
 import com.revy.example.quartz.dto.QuartzJobUpsertCommand;

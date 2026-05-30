@@ -1,4 +1,4 @@
-package com.revy.example.quartz.reader.impl;
+package com.revy.example.quartz.domain.reader.impl;
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.ConstructorExpression;
@@ -9,7 +9,7 @@ import com.revy.example.quartz.domain.QQuartzJobExecutionHistory;
 import com.revy.example.quartz.domain.QuartzJobExecutionHistory;
 import com.revy.example.quartz.dto.QuartzJobExecutionHistoryResult;
 import com.revy.example.quartz.enums.QuartzJobExecutionStatus;
-import com.revy.example.quartz.reader.QuartzJobExecutionHistoryReader;
+import com.revy.example.quartz.domain.reader.QuartzJobExecutionHistoryReader;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

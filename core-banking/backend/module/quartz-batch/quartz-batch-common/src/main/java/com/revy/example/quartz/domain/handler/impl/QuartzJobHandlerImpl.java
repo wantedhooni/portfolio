@@ -1,4 +1,4 @@
-package com.revy.example.quartz.handler.impl;
+package com.revy.example.quartz.domain.handler.impl;
 
 import com.revy.example.quartz.DelegatingJob;
 import com.revy.example.quartz.TriggerFactory;
@@ -8,8 +8,8 @@ import com.revy.example.quartz.dto.QuartzJobUpsertCommand;
 import com.revy.example.quartz.dto.QuartzRunningJobResult;
 import com.revy.example.quartz.enums.QuartzJobExecutionStatus;
 import com.revy.example.quartz.exception.QuartzSchedulerException;
-import com.revy.example.quartz.handler.QuartzJobHandler;
-import com.revy.example.quartz.reader.QuartzJobExecutionHistoryReader;
+import com.revy.example.quartz.domain.handler.QuartzJobHandler;
+import com.revy.example.quartz.domain.reader.QuartzJobExecutionHistoryReader;
 import lombok.RequiredArgsConstructor;
 import org.quartz.CronTrigger;
 import org.quartz.JobBuilder;

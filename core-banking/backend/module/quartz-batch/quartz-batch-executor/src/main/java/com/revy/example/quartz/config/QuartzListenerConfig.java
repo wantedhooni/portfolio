@@ -1,5 +1,6 @@
 package com.revy.example.quartz.config;
 
+
 import com.revy.example.quartz.listener.QuartzJobHistoryListener;
 import org.quartz.Scheduler;
 import org.quartz.impl.matchers.EverythingMatcher;
@@ -12,7 +13,6 @@ public class QuartzListenerConfig {
 
     @Bean
     public CommandLineRunner registerQuartzJobHistoryListener(Scheduler scheduler, QuartzJobHistoryListener listener) {
-        return args -> scheduler.getListenerManager()
-            .addJobListener(listener, EverythingMatcher.allJobs());
+        return args -> scheduler.getListenerManager().addJobListener(listener, EverythingMatcher.allJobs());
     }
 }

@@ -1,5 +1,6 @@
 package com.revy.example.quartz.job;
 
+import com.revy.example.common.utils.UuidUtil;
 import com.revy.example.quartz.TypedJob;
 import com.revy.example.quartz.enums.JobType;
 import lombok.extern.slf4j.Slf4j;
@@ -7,6 +8,7 @@ import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.springframework.batch.core.job.Job;
+import org.springframework.batch.core.job.JobExecution;
 import org.springframework.batch.core.job.parameters.JobParameters;
 import org.springframework.batch.core.job.parameters.JobParametersBuilder;
 import org.springframework.batch.core.launch.JobOperator;
@@ -72,8 +74,9 @@ public class PgSettlementQuartzJob implements TypedJob {
                 .addLong("fireTime", context.getFireTime().getTime())
                 .toJobParameters();
 
+        log.info("[PgSettlementBatchJob] JobParameters={}", params);
         try {
-            var execution = jobOperator.start(pgSettlementJob, params);
+            JobExecution execution = jobOperator.start(pgSettlementJob, params);
             log.info("[PgSettlementBatchJob] 완료 jobKey={} batchStatus={} exitCode={}",
                     jobKey, execution.getStatus(), execution.getExitStatus().getExitCode());
         } catch (Exception e) {

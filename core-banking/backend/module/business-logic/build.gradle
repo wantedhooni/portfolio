@@ -3,5 +3,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
 
+    // Spring Batch 메타데이터 조회(JobRepository API)용. JobExplorer 는 6.0 에서 제거됨.
+    implementation 'org.springframework.batch:spring-batch-core'
+
     implementation "com.querydsl:querydsl-jpa:${querydslVersion}:jakarta"
 }
