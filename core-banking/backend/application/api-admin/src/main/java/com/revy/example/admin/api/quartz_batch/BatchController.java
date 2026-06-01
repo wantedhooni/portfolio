@@ -1,10 +1,10 @@
-package com.revy.example.admin.api.batch;
+package com.revy.example.admin.api.quartz_batch;
 
 import com.revy.example.admin.api.common.ApiConstants;
+import com.revy.example.admin.api.quartz_batch.usecase.BatchUseCase;
 import com.revy.example.business.batch.dto.BatchJobExecutionDetailDto;
 import com.revy.example.business.batch.dto.BatchJobExecutionDto;
 import com.revy.example.business.batch.dto.BatchSummaryDto;
-import com.revy.example.business.batch.reader.BatchJobReader;
 import com.revy.example.core.common.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -28,18 +28,18 @@ import java.util.List;
 @RequestMapping(ApiConstants.PREFIX_API_V1 + "/batch")
 public class BatchController {
 
-    private final BatchJobReader batchJobReader;
+    private final BatchUseCase useCase;
 
     @GetMapping("/summary")
     @PreAuthorize("hasAuthority('SCHEDULER_READ')")
     public ApiResponse<BatchSummaryDto> getSummary() {
-        return ApiResponse.ok(batchJobReader.getSummary());
+        return ApiResponse.ok(useCase.getSummary());
     }
 
     @GetMapping("/job-names")
     @PreAuthorize("hasAuthority('SCHEDULER_READ')")
     public ApiResponse<List<String>> getJobNames() {
-        return ApiResponse.ok(batchJobReader.getJobNames());
+        return ApiResponse.ok(useCase.getJobNames());
     }
 
     @GetMapping("/executions")
@@ -49,12 +49,12 @@ public class BatchController {
             @RequestParam(required = false) String status,
             @RequestParam(required = false, defaultValue = "50") int limit
     ) {
-        return ApiResponse.ok(batchJobReader.getExecutions(jobName, status, limit));
+        return ApiResponse.ok(useCase.getExecutions(jobName, status, limit));
     }
 
     @GetMapping("/executions/{id}")
     @PreAuthorize("hasAuthority('SCHEDULER_READ')")
     public ApiResponse<BatchJobExecutionDetailDto> getExecutionDetail(@PathVariable Long id) {
-        return ApiResponse.ok(batchJobReader.getExecutionDetail(id));
+        return ApiResponse.ok(useCase.getExecutionDetail(id));
     }
 }

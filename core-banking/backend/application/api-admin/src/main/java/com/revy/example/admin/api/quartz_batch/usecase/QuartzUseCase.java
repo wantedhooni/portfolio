@@ -1,6 +1,6 @@
-package com.revy.example.admin.api.quartz.usecase;
+package com.revy.example.admin.api.quartz_batch.usecase;
 
-import com.revy.example.admin.api.quartz.payload.QuartzPayload;
+import com.revy.example.admin.api.quartz_batch.payload.QuartzPayload;
 import com.revy.example.core.common.ApiPageResponse;
 import com.revy.example.quartz.enums.QuartzJobExecutionStatus;
 import org.springframework.data.domain.Pageable;

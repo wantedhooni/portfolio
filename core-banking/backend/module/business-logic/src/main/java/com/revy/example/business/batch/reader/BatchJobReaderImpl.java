@@ -88,11 +88,8 @@ public class BatchJobReaderImpl implements BatchJobReader {
     public List<BatchJobExecutionDto> getExecutions(String jobName, String status, int limit) {
         int safeLimit = limit <= 0 ? 50 : Math.min(limit, 500);
 
-        return loadExecutions(jobName).stream()
-                                      .filter(e -> status == null || status.isBlank() || (e.getStatus() != null && e.getStatus()
-                                                                                                                    .name()
-                                                                                                                    .equals(
-                                                                                                                        status)))
+        return loadExecutions(jobName).stream().filter(
+                                          e -> status == null || status.isBlank() || (e.getStatus() != null && e.getStatus().name().equals(status)))
                                       .sorted(Comparator.comparing(JobExecution::getId).reversed()).limit(safeLimit)
                                       .map(this::toExecutionDto).toList();
     }
@@ -137,10 +134,9 @@ public class BatchJobReaderImpl implements BatchJobReader {
 
     private BatchJobExecutionDto toExecutionDto(JobExecution e) {
         ExitStatus exit = e.getExitStatus();
-        return BatchJobExecutionDto.builder().jobExecutionId(e.getId())
-                                   .jobInstanceId(e.getJobInstance() == null ? null : e.getJobInstance()
-                                                                                       .getInstanceId())
-                                   .jobName(jobName(e)).status(e.getStatus() == null ? null : e.getStatus().name())
+        return BatchJobExecutionDto.builder().jobExecutionId(e.getId()).jobInstanceId(
+                                       e.getJobInstance() == null ? null : e.getJobInstance().getInstanceId()).jobName(jobName(e))
+                                   .status(e.getStatus() == null ? null : e.getStatus().name())
                                    .exitCode(exit == null ? null : exit.getExitCode()).createTime(e.getCreateTime())
                                    .startTime(e.getStartTime()).endTime(e.getEndTime())
                                    .durationMs(duration(e.getStartTime(), e.getEndTime())).build();

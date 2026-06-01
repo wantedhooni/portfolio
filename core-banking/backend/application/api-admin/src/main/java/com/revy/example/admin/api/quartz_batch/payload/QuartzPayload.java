@@ -1,4 +1,4 @@
-package com.revy.example.admin.api.quartz.payload;
+package com.revy.example.admin.api.quartz_batch.payload;
 
 import com.revy.example.quartz.enums.JobType;
 import com.revy.example.quartz.enums.QuartzJobExecutionStatus;
