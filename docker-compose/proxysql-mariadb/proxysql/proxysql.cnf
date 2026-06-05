@@ -1,0 +1,84 @@
+datadir="/var/lib/proxysql"
+
+admin_variables =
+{
+    admin_credentials="admin:admin"
+    mysql_ifaces="0.0.0.0:6032"
+}
+
+mysql_variables =
+{
+    threads=4
+    max_connections=2048
+    interfaces="0.0.0.0:6033"
+
+    monitor_username="monitor"
+    monitor_password="monitorpass"
+
+    monitor_connect_interval=2000
+    monitor_ping_interval=2000
+    monitor_read_only_interval=2000
+
+    default_query_delay=0
+    default_query_timeout=36000000
+    have_compress=true
+    poll_timeout=2000
+}
+
+mysql_servers =
+(
+    {
+        address="mariadb-primary"
+        port=3306
+        hostgroup=10
+        max_connections=1000
+        comment="primary writer"
+    },
+    {
+        address="mariadb-replica"
+        port=3306
+        hostgroup=20
+        max_connections=1000
+        comment="replica reader"
+    }
+)
+
+mysql_users =
+(
+    {
+        username="app"
+        password="apppass"
+        default_hostgroup=10
+        active=1
+        max_connections=1000
+    }
+)
+
+mysql_replication_hostgroups =
+(
+    {
+        writer_hostgroup=10
+        reader_hostgroup=20
+        comment="mariadb primary-replica"
+    }
+)
+
+mysql_query_rules =
+(
+    {
+        rule_id=10
+        active=1
+        match_digest="^SELECT .* FOR UPDATE"
+        destination_hostgroup=10
+        apply=1
+        comment="SELECT FOR UPDATE goes to writer"
+    },
+    {
+        rule_id=20
+        active=1
+        match_digest="^SELECT"
+        destination_hostgroup=20
+        apply=1
+        comment="SELECT goes to reader"
+    }
+)
