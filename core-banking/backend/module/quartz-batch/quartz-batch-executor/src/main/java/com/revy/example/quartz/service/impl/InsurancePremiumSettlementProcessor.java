@@ -1,5 +1,8 @@
 package com.revy.example.quartz.service.impl;
 
+import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import com.revy.example.domain.billing.enums.SettlementType;
 import com.revy.example.domain.insurance.enums.PaymentStatus;
 import com.revy.example.insurance.command.InsuranceCommand;
@@ -44,6 +47,8 @@ public class InsurancePremiumSettlementProcessor {
      *
      * @return {@link ProcessResult#SUCCESS} / {@link ProcessResult#FAILED} / {@link ProcessResult#SKIPPED}
      */
+    @Retryable(retryFor = OptimisticLockingFailureException.class, maxAttempts = 3,
+               backoff = @Backoff(delay = 50, multiplier = 2.0, maxDelay = 300, random = true))
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public ProcessResult process(InsurancePolicyResult policy, LocalDate targetDate) {
         String referenceId = buildReferenceId(policy.id(), targetDate);
