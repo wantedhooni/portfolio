@@ -6,6 +6,9 @@ import com.revy.example.account.command.dto.OpenAccountCommand;
 import com.revy.example.account.command.dto.TransferCommand;
 import com.revy.example.account.command.dto.WithdrawCommand;
 import com.revy.example.account.reader.AccountReader;
+import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import com.revy.example.domain.account.Account;
 import com.revy.example.domain.account.AccountTx;
 import com.revy.example.domain.account.exception.AccountNotFoundException;
@@ -69,6 +72,8 @@ public class AccountCommandImpl implements AccountCommand {
     }
 
     @Override
+    @Retryable(retryFor = OptimisticLockingFailureException.class, maxAttempts = 3,
+               backoff = @Backoff(delay = 50, multiplier = 2.0, maxDelay = 300, random = true))
     public void deposit(DepositCommand command) {
         if (accountReader.existsTxByReferenceId(command.referenceId())) {
             log.info("Duplicate deposit ignored. referenceId={}", command.referenceId());
@@ -85,6 +90,8 @@ public class AccountCommandImpl implements AccountCommand {
     }
 
     @Override
+    @Retryable(retryFor = OptimisticLockingFailureException.class, maxAttempts = 3,
+               backoff = @Backoff(delay = 50, multiplier = 2.0, maxDelay = 300, random = true))
     public void withdraw(WithdrawCommand command) {
         if (accountReader.existsTxByReferenceId(command.referenceId())) {
             log.info("Duplicate withdrawal ignored. referenceId={}", command.referenceId());
@@ -101,6 +108,8 @@ public class AccountCommandImpl implements AccountCommand {
     }
 
     @Override
+    @Retryable(retryFor = OptimisticLockingFailureException.class, maxAttempts = 3,
+               backoff = @Backoff(delay = 50, multiplier = 2.0, maxDelay = 300, random = true))
     public void transfer(TransferCommand command) {
         // 1) 멱등성 — 동일 referenceId의 거래가 있으면 무시
         if (accountReader.existsTxByReferenceId(command.referenceId())) {

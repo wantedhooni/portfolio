@@ -3,6 +3,10 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
 
+    // 낙관적 락(@Version) 충돌 재시도용 — @OptimisticLockRetry(@Retryable) 지원
+    // @Retryable 은 Spring AOP 프록시로 동작하므로 spring-aop(스프링 컨텍스트 전이) 만으로 충분.
+    implementation 'org.springframework.retry:spring-retry'
+
     // Spring Batch 메타데이터 조회(JobRepository API)용. JobExplorer 는 6.0 에서 제거됨.
     implementation 'org.springframework.batch:spring-batch-core'
 

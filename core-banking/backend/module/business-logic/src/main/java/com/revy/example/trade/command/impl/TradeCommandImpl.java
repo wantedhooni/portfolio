@@ -2,6 +2,9 @@ package com.revy.example.trade.command.impl;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.revy.example.account.reader.AccountReader;
+import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import com.revy.example.domain.account.Account;
 import com.revy.example.domain.account.AccountTx;
 import com.revy.example.domain.account.QPositionLot;
@@ -39,6 +42,8 @@ public class TradeCommandImpl implements TradeCommand {
     private final QPositionLot   LOT      = QPositionLot.positionLot;
 
     @Override
+    @Retryable(retryFor = OptimisticLockingFailureException.class, maxAttempts = 3,
+               backoff = @Backoff(delay = 50, multiplier = 2.0, maxDelay = 300, random = true))
     public void buy(BuyCommand command) {
         // 1. 멱등성 체크
         if (accountReader.existsTxByReferenceId(command.referenceId())) {
@@ -82,6 +87,8 @@ public class TradeCommandImpl implements TradeCommand {
     }
 
     @Override
+    @Retryable(retryFor = OptimisticLockingFailureException.class, maxAttempts = 3,
+               backoff = @Backoff(delay = 50, multiplier = 2.0, maxDelay = 300, random = true))
     public void sell(SellCommand command) {
         // 1. 멱등성 체크
         if (accountReader.existsTxByReferenceId(command.referenceId())) {
@@ -117,6 +124,8 @@ public class TradeCommandImpl implements TradeCommand {
     }
 
     @Override
+    @Retryable(retryFor = OptimisticLockingFailureException.class, maxAttempts = 3,
+               backoff = @Backoff(delay = 50, multiplier = 2.0, maxDelay = 300, random = true))
     public void dividend(DividendCommand command) {
         if (accountReader.existsTxByReferenceId(command.referenceId())) {
             log.info("Duplicate dividend ignored. referenceId={}", command.referenceId());
@@ -141,6 +150,8 @@ public class TradeCommandImpl implements TradeCommand {
     }
 
     @Override
+    @Retryable(retryFor = OptimisticLockingFailureException.class, maxAttempts = 3,
+               backoff = @Backoff(delay = 50, multiplier = 2.0, maxDelay = 300, random = true))
     public void releaseReservation(Long accountId, BigDecimal amount) {
         loadAccount(accountId).releaseReservation(amount);
         // TODO:REVY - EVENT 발행(AccountReservationReleased) - commit after

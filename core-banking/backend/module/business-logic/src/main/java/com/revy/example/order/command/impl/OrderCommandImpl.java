@@ -1,6 +1,9 @@
 package com.revy.example.order.command.impl;
 
 import com.revy.example.account.reader.AccountReader;
+import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import com.revy.example.domain.account.Account;
 import com.revy.example.domain.account.Stock;
 import com.revy.example.domain.account.StockOrder;
@@ -31,6 +34,8 @@ public class OrderCommandImpl implements OrderCommand {
     private final TradeCommand  tradeCommand;
 
     @Override
+    @Retryable(retryFor = OptimisticLockingFailureException.class, maxAttempts = 3,
+               backoff = @Backoff(delay = 50, multiplier = 2.0, maxDelay = 300, random = true))
     public Long placeOrder(PlaceOrderCommand cmd) {
         // 계좌·종목 존재 확인
         Account account = loadAccount(cmd.accountId());
@@ -59,6 +64,8 @@ public class OrderCommandImpl implements OrderCommand {
     }
 
     @Override
+    @Retryable(retryFor = OptimisticLockingFailureException.class, maxAttempts = 3,
+               backoff = @Backoff(delay = 50, multiplier = 2.0, maxDelay = 300, random = true))
     public void executeOrder(ExecuteOrderCommand cmd) {
         StockOrder order = loadOrder(cmd.orderId());
 
@@ -91,6 +98,8 @@ public class OrderCommandImpl implements OrderCommand {
     }
 
     @Override
+    @Retryable(retryFor = OptimisticLockingFailureException.class, maxAttempts = 3,
+               backoff = @Backoff(delay = 50, multiplier = 2.0, maxDelay = 300, random = true))
     public void cancelOrder(Long orderId) {
         StockOrder order = loadOrder(orderId);
 

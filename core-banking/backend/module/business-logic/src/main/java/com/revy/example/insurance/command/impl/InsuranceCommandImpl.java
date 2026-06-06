@@ -3,6 +3,9 @@ package com.revy.example.insurance.command.impl;
 import com.revy.example.account.command.AccountCommand;
 import com.revy.example.account.command.dto.DepositCommand;
 import com.revy.example.account.command.dto.WithdrawCommand;
+import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import com.revy.example.core.error.BusinessException;
 import com.revy.example.core.error.ErrorCode;
 import com.revy.example.domain.insurance.InsuranceClaim;
@@ -146,6 +149,8 @@ public class InsuranceCommandImpl implements InsuranceCommand {
     }
 
     @Override
+    @Retryable(retryFor = OptimisticLockingFailureException.class, maxAttempts = 3,
+               backoff = @Backoff(delay = 50, multiplier = 2.0, maxDelay = 300, random = true))
     public void payPremium(PayPremiumCommand command) {
         PremiumPayment payment = loadPayment(command.paymentId());
 
@@ -228,6 +233,8 @@ public class InsuranceCommandImpl implements InsuranceCommand {
     }
 
     @Override
+    @Retryable(retryFor = OptimisticLockingFailureException.class, maxAttempts = 3,
+               backoff = @Backoff(delay = 50, multiplier = 2.0, maxDelay = 300, random = true))
     public void payClaim(PayClaimCommand command) {
         InsuranceClaim claim = loadClaim(command.claimId());
         // 승인금액이 없거나 0 이하이면 아직 승인되지 않은 청구 — 지급 불가

@@ -1,10 +1,14 @@
 package com.revy.example.fx.command.impl;
 
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.revy.example.account.command.AccountCommand;
 import com.revy.example.account.command.dto.DepositCommand;
 import com.revy.example.account.command.dto.WithdrawCommand;
 import com.revy.example.account.reader.AccountReader;
 import com.revy.example.account.reader.dto.AccountResult;
+import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import com.revy.example.core.error.BusinessException;
 import com.revy.example.core.error.ErrorCode;
 import com.revy.example.domain.account.exception.AccountNotFoundException;
@@ -13,6 +17,9 @@ import com.revy.example.domain.fx.ExchangeRate;
 import com.revy.example.domain.fx.ExchangeRateHistory;
 import com.revy.example.domain.fx.FxConversion;
 import com.revy.example.domain.fx.FxCorridor;
+import com.revy.example.domain.fx.QCurrency;
+import com.revy.example.domain.fx.QExchangeRate;
+import com.revy.example.domain.fx.QFxCorridor;
 import com.revy.example.domain.fx.exception.CurrencyNotActiveException;
 import com.revy.example.domain.fx.exception.CurrencyNotFoundException;
 import com.revy.example.domain.fx.exception.ExchangeRateNotFoundException;
@@ -46,9 +53,14 @@ import java.util.UUID;
 public class FxCommandImpl implements FxCommand {
 
     private final EntityManager   entityManager;
+    private final JPAQueryFactory jpaQueryFactory;
     private final FxReader        fxReader;
     private final AccountReader   accountReader;
     private final AccountCommand  accountCommand;
+
+    private final QCurrency     CUR      = QCurrency.currency;
+    private final QExchangeRate RATE     = QExchangeRate.exchangeRate;
+    private final QFxCorridor   CORRIDOR = QFxCorridor.fxCorridor;
 
     @Override
     public Long registerCurrency(RegisterCurrencyCommand command) {
@@ -87,15 +99,11 @@ public class FxCommandImpl implements FxCommand {
         entityManager.persist(history);
 
         // 2. 현재 환율 UPSERT — 있으면 refresh, 없으면 INSERT
-        ExchangeRate current = entityManager.createQuery(
-                "SELECT r FROM ExchangeRate r " +
-                "WHERE r.baseCurrencyCode = :base AND r.quoteCurrencyCode = :quote AND r.rateType = :type",
-                ExchangeRate.class)
-            .setParameter("base", command.baseCurrencyCode())
-            .setParameter("quote", command.quoteCurrencyCode())
-            .setParameter("type", command.rateType())
-            .getResultStream().findFirst()
-            .orElse(null);
+        ExchangeRate current = jpaQueryFactory.selectFrom(RATE)
+            .where(RATE.baseCurrencyCode.eq(command.baseCurrencyCode())
+                       .and(RATE.quoteCurrencyCode.eq(command.quoteCurrencyCode()))
+                       .and(RATE.rateType.eq(command.rateType())))
+            .fetchFirst();
 
         if (current != null) {
             current.refresh(command.rate(), command.quotedAt(), command.source());
@@ -112,6 +120,8 @@ public class FxCommandImpl implements FxCommand {
     }
 
     @Override
+    @Retryable(retryFor = OptimisticLockingFailureException.class, maxAttempts = 3,
+               backoff = @Backoff(delay = 50, multiplier = 2.0, maxDelay = 300, random = true))
     public Long convertCurrency(ConvertCurrencyCommand command) {
         // 1. 멱등성 체크
         if (fxReader.existsConversionByReferenceId(command.referenceId())) {
@@ -229,11 +239,13 @@ public class FxCommandImpl implements FxCommand {
     // ── 내부 ─────────────────────────────────────────────────────
 
     private Currency loadCurrency(String code) {
-        return entityManager.createQuery(
-                "SELECT c FROM Currency c WHERE c.code = :code", Currency.class)
-            .setParameter("code", code)
-            .getResultStream().findFirst()
-            .orElseThrow(() -> new CurrencyNotFoundException(code));
+        Currency currency = jpaQueryFactory.selectFrom(CUR)
+            .where(CUR.code.eq(code))
+            .fetchFirst();
+        if (currency == null) {
+            throw new CurrencyNotFoundException(code);
+        }
+        return currency;
     }
 
     private CurrencyResult loadCurrencyDto(String code) {
@@ -242,10 +254,12 @@ public class FxCommandImpl implements FxCommand {
     }
 
     private FxCorridor loadCorridor(Long id) {
-        return entityManager.createQuery(
-                "SELECT c FROM FxCorridor c WHERE c.id = :id", FxCorridor.class)
-            .setParameter("id", id)
-            .getResultStream().findFirst()
-            .orElseThrow(() -> new FxCorridorNotFoundException(id));
+        FxCorridor corridor = jpaQueryFactory.selectFrom(CORRIDOR)
+            .where(CORRIDOR.id.eq(id))
+            .fetchFirst();
+        if (corridor == null) {
+            throw new FxCorridorNotFoundException(id);
+        }
+        return corridor;
     }
 }

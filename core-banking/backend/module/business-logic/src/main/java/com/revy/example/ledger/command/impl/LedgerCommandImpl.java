@@ -1,5 +1,8 @@
 package com.revy.example.ledger.command.impl;
 
+import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import com.revy.example.core.error.BusinessException;
 import com.revy.example.core.error.ErrorCode;
 import com.revy.example.domain.ledger.AccountingPeriod;
@@ -118,6 +121,8 @@ public class LedgerCommandImpl implements LedgerCommand {
     }
 
     @Override
+    @Retryable(retryFor = OptimisticLockingFailureException.class, maxAttempts = 3,
+               backoff = @Backoff(delay = 50, multiplier = 2.0, maxDelay = 300, random = true))
     public Long reverseJournal(Long originalJournalId, String reversalJournalNumber, String reason) {
         JournalEntry original = entityManager.find(JournalEntry.class, originalJournalId);
         if (original == null) throw new JournalEntryNotFoundException();
