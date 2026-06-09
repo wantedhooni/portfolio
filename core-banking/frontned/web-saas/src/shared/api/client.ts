@@ -5,6 +5,9 @@ import { COOKIE_KEYS, clearTokens, getToken, setToken } from "@/shared/auth/toke
 import type { ApiResponse, RefreshTokenRequest, UserAuthResponse } from "@/shared/types/api.types";
 
 export const BASE_URL = BASE_API;
+
+console.log("process.env.NEXT_PUBLIC_BASE_API_URL : ", process.env.NEXT_PUBLIC_BASE_API_URL);
+console.log("BASE_API : ", BASE_API);
 console.log("BASE_URL : ", BASE_URL);
 
 interface RetryConfig extends InternalAxiosRequestConfig {
