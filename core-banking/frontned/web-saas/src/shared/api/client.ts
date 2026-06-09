@@ -5,6 +5,7 @@ import { COOKIE_KEYS, clearTokens, getToken, setToken } from "@/shared/auth/toke
 import type { ApiResponse, RefreshTokenRequest, UserAuthResponse } from "@/shared/types/api.types";
 
 export const BASE_URL = BASE_API;
+console.log("BASE_URL : ", BASE_URL);
 
 interface RetryConfig extends InternalAxiosRequestConfig {
   _retry?: boolean;
