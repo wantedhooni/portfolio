@@ -12,9 +12,10 @@ fi
 
 # 2) 빌드 (각 앱)
 echo "[frontend] web-admin build"
-( cd web-admin && npm install && npm run build )
+( cd web-admin && cp -f .env.dev .env && npm install && npm run build )
+
 echo "[frontend] web-saas build"
-( cd web-saas && npm install && npm run build )
+( cd web-saas && cp -f .env.dev .env && npm install && npm run build )
 
 # 3) PM2로 기동 (이미 떠 있으면 무중단 reload)
 echo "[frontend] pm2 start (auto-restart + memory limit + logs)"
