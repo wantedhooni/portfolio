@@ -1,10 +1,10 @@
 package com.revy.example.admin.api.quartz_batch.usecase.impl;
 
 import com.revy.example.admin.api.quartz_batch.usecase.BatchUseCase;
-import com.revy.example.business.batch.dto.BatchJobExecutionDetailDto;
-import com.revy.example.business.batch.dto.BatchJobExecutionDto;
-import com.revy.example.business.batch.dto.BatchSummaryDto;
-import com.revy.example.business.batch.reader.BatchJobReader;
+import com.revy.example.quartz.batch.dto.BatchJobExecutionDetailDto;
+import com.revy.example.quartz.batch.dto.BatchJobExecutionDto;
+import com.revy.example.quartz.batch.dto.BatchSummaryDto;
+import com.revy.example.quartz.batch.reader.BatchJobReader;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

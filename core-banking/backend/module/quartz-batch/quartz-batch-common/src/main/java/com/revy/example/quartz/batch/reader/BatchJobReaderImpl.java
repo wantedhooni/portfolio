@@ -1,9 +1,10 @@
-package com.revy.example.business.batch.reader;
+package com.revy.example.quartz.batch.reader;
 
-import com.revy.example.business.batch.dto.BatchJobExecutionDetailDto;
-import com.revy.example.business.batch.dto.BatchJobExecutionDto;
-import com.revy.example.business.batch.dto.BatchStepExecutionDto;
-import com.revy.example.business.batch.dto.BatchSummaryDto;
+
+import com.revy.example.quartz.batch.dto.BatchJobExecutionDetailDto;
+import com.revy.example.quartz.batch.dto.BatchJobExecutionDto;
+import com.revy.example.quartz.batch.dto.BatchStepExecutionDto;
+import com.revy.example.quartz.batch.dto.BatchSummaryDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.BatchStatus;

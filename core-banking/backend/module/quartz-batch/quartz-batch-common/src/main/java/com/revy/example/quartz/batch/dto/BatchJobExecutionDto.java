@@ -1,4 +1,4 @@
-package com.revy.example.business.batch.dto;
+package com.revy.example.quartz.batch.dto;
 
 import lombok.Builder;
 import lombok.Getter;

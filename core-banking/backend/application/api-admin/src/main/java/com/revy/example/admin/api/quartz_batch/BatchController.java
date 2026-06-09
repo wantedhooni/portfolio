@@ -2,10 +2,10 @@ package com.revy.example.admin.api.quartz_batch;
 
 import com.revy.example.admin.api.common.ApiConstants;
 import com.revy.example.admin.api.quartz_batch.usecase.BatchUseCase;
-import com.revy.example.business.batch.dto.BatchJobExecutionDetailDto;
-import com.revy.example.business.batch.dto.BatchJobExecutionDto;
-import com.revy.example.business.batch.dto.BatchSummaryDto;
 import com.revy.example.core.common.ApiResponse;
+import com.revy.example.quartz.batch.dto.BatchJobExecutionDetailDto;
+import com.revy.example.quartz.batch.dto.BatchJobExecutionDto;
+import com.revy.example.quartz.batch.dto.BatchSummaryDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -48,7 +48,7 @@ public class BatchController {
             @RequestParam(required = false) String jobName,
             @RequestParam(required = false) String status,
             @RequestParam(required = false, defaultValue = "50") int limit
-    ) {
+                                                                ) {
         return ApiResponse.ok(useCase.getExecutions(jobName, status, limit));
     }
 
