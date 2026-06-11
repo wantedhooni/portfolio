@@ -1,0 +1,52 @@
+# local_dev: dev 서버 DB를 로컬에서 바라볼 때 사용 (기능 통합 테스트용)
+spring:
+  datasource:
+    url: jdbc:postgresql://dev-db-host:5432/demo
+    username: demo
+    password: demo
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  kafka:
+    bootstrap-servers: dev-kafka-host:9092
+
+  boot:
+    admin:
+      client:
+        url: http://localhost:8080
+        instance:
+          name: ${spring.application.name}-local-dev
+          prefer-ip: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+  tracing:
+    sampling:
+      probability: 1.0
+
+springdoc:
+  show-actuator: true
+
+server:
+  port: 8080
+
+logging:
+  level:
+    root: INFO
+    com.revy: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE
