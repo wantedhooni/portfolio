@@ -1,83 +1,146 @@
 package com.revy.demo.controller
 
+import com.revy.demo.model.TaskDtoRequest
+import com.revy.demo.model.TaskDtoResponse
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.http.MediaType
+import org.springframework.test.web.servlet.client.RestTestClient
+
 
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
 )
 @AutoConfigureRestTestClient
-class TaskControllerTest {
+class TaskControllerTest(
+    @Autowired private val client: RestTestClient
+) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
 
     @Test
+    @DisplayName("테스크 생성 요청 - 성공")
     fun createTask() {
-        log.info("createTask")
+        log.info("Test createTask start")
+
+        val testUri = "/tasks/create"
+        val request = TaskDtoRequest(
+            name = "Task",
+            description = "junit test",
+            done = false
+        );
+        log.info("createTask request: $request")
+
+        val response = client.post()
+            .uri(testUri)
+            .body(request)
+            .exchange()
+            .expectStatus().isOk
+            .expectBody(TaskDtoResponse::class.java)
+            .returnResult().responseBody
+
+        log.info("createTask response: $response")
+
+        assertThat(response).isNotNull
+        assertThat(response!!.id).isNotNull
+        assertThat(response.name).isEqualTo(request.name)
+        assertThat(response.description).isEqualTo(request.description)
+        assertThat(response.done).isEqualTo(request.done)
+
+        log.info("Test createTask end")
     }
 
-    @Test
-    fun getTask() {
-        log.info("getTask")
-    }
 
     @Test
-    fun deleteTask() {
-        log.info("deleteTask")
-    }
-
-    @Test
-    fun updateTask() {
-        log.info("updateTask")
-    }
-
-}
-
-/*
-@SpringBootTest(
-    classes = [SpringBootCrudApplication::class],
-    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
-)
-class TaskDTOResponseCRUDIntegrationTest(
-    @Autowired var restTemplate: TestRestTemplate
-) {
-
-    var taskId: Long = 0
-
-    @Test
-    fun createTask() {
-        val taskDTORequest = TaskDTORequest("Task", "description", false)
-        val result = this.restTemplate.postForEntity("/tasks/create", taskDTORequest, TaskDTOResponse::class.java)
-        taskId = result.body?.id!!
-        assertTrue { result.body?.name.equals("Task") }
-        assertTrue { result.body?.description.equals("description") }
-    }
-
-    @Test
+    @DisplayName("GET /tasks/{id} - task 단건 조회")
     fun returnTaskSuccessfully() {
-        createTask()
-        val result = this.restTemplate.getForEntity("/tasks/{id}", TaskDTOResponse::class.java, taskId)
-        assertTrue { result.body?.name.equals("Task") }
+        val created = createTaskFixture()
+
+        val response = client.get()
+            .uri("/tasks/{id}", created.id)
+            .exchange()
+            .expectStatus().isOk()
+            .expectBody(TaskDtoResponse::class.java)
+            .returnResult()
+            .responseBody
+
+        assertThat(response).isNotNull
+        assertThat(response!!.id).isEqualTo(created.id)
+        assertThat(response.name).isEqualTo("Task")
+        assertThat(response.description).isEqualTo("description")
+        assertThat(response.done).isFalse()
     }
 
     @Test
-    fun deleteTaskSuccessfully() {
-        createTask()
-        this.restTemplate.delete("/tasks/{id}", taskId)
-        val result = this.restTemplate.getForEntity("/tasks/{id}", String::class.java, taskId)
-        assertTrue { result.statusCode.equals(HttpStatus.NOT_FOUND) }
-    }
-
-    @Test
+    @DisplayName("PUT /tasks/{id} - task 수정")
     fun putTaskSuccessfully() {
-        createTask()
-        val taskDTORequest = TaskDTORequest("Task", "description", true)
-        this.restTemplate.put("/tasks/{id}", taskDTORequest, taskId)
-        val result = this.restTemplate.getForEntity("/tasks/{id}", TaskDTOResponse::class.java, taskId)
-        assertTrue { result.statusCode.is2xxSuccessful }
-        assertTrue { result.body?.done!! }
+        val created = createTaskFixture()
+
+        val updateRequest = TaskDtoRequest(
+            name = "Task",
+            description = "description",
+            done = true
+        )
+
+        client.put()
+            .uri("/tasks/{id}", created.id)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(updateRequest)
+            .exchange()
+            .expectStatus().isOk()
+
+        val response = client.get()
+            .uri("/tasks/{id}", created.id)
+            .exchange()
+            .expectStatus().isOk()
+            .expectBody(TaskDtoResponse::class.java)
+            .returnResult()
+            .responseBody
+
+        assertThat(response).isNotNull
+        assertThat(response!!.id).isEqualTo(created.id)
+        assertThat(response.done).isTrue()
     }
+
+    @Test
+    @DisplayName("DELETE /tasks/{id} - task 삭제")
+    fun deleteTaskSuccessfully() {
+        val created = createTaskFixture()
+
+        client.delete()
+            .uri("/tasks/{id}", created.id)
+            .exchange()
+            .expectStatus().isNoContent()
+
+        client.get()
+            .uri("/tasks/{id}", created.id)
+            .exchange()
+            .expectStatus().isNotFound()
+    }
+
+    private fun createTaskFixture(): TaskDtoResponse {
+        val request = TaskDtoRequest(
+            name = "Task",
+            description = "description",
+            done = false
+        )
+
+        return client.post()
+            .uri("/tasks")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(request)
+            .exchange()
+            .expectStatus().isCreated()
+            .expectBody(TaskDtoResponse::class.java)
+            .returnResult()
+            .responseBody
+            ?: error("Task creation response body must not be null")
+    }
+
+
 }
- */
