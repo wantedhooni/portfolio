@@ -2,6 +2,7 @@
 
 .idea
 .code
+.kotlin
 
 # Compiled class file
 *.class
