@@ -1,0 +1,35 @@
+# msa-lab/docker-compose.yml
+services:
+  discovery:
+    image: discovery-server:1.0
+    ports: ["8761:8761"]
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8761/actuator/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  product:
+    image: product-service:1.0
+    environment:
+      - EUREKA_URI=http://discovery:8761/eureka/
+    depends_on:
+      discovery:
+        condition: service_healthy
+
+  order:
+    image: order-service:1.0
+    environment:
+      - EUREKA_URI=http://discovery:8761/eureka/
+    depends_on:
+      discovery:
+        condition: service_healthy
+
+  gateway:
+    image: api-gateway:1.0
+    ports: ["8080:8080"]
+    environment:
+      - EUREKA_URI=http://discovery:8761/eureka/
+    depends_on:
+      discovery:
+        condition: service_healthy
