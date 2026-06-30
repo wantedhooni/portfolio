@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: discovery-server
+  config:
+    import: "${CONFIG_SERVER_URL:optional:configserver:http://localhost:8888}"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+springdoc:
+  show-actuator: true

@@ -1,0 +1,23 @@
+package com.revy.example.saas.config;
+
+import com.revy.example.core.config.AbstractOpenApiConfig;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class OpenApiConfig extends AbstractOpenApiConfig {
+
+    @Override
+    protected String getInfoVersion() {
+        return "V1";
+    }
+
+    @Override
+    protected String getDesc() {
+        return "SAAS-API 명세서";
+    }
+
+    @Override
+    protected String getTitle() {
+        return "SAAS-API";
+    }
+}

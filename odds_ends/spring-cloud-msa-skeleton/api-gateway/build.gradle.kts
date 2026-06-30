@@ -1,0 +1,34 @@
+plugins {
+    id("org.springframework.boot")
+    id("io.spring.dependency-management")
+    id("java")
+}
+
+java {
+    toolchain { languageVersion.set(JavaLanguageVersion.of(21)) }
+}
+
+dependencyManagement {
+    imports {
+        mavenBom("org.springframework.cloud:spring-cloud-dependencies:2025.1.0")
+    }
+}
+
+dependencies {
+    implementation(project(":common"))
+
+    implementation("org.springframework.boot:spring-boot-starter-webflux")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+
+    // Spring Cloud Gateway Server WebFlux starter
+    implementation("org.springframework.cloud:spring-cloud-starter-gateway-server-webflux")
+    implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
+    implementation("org.springframework.cloud:spring-cloud-starter-config")
+
+    // https://mvnrepository.com/artifact/org.springdoc/springdoc-openapi-starter-webflux-ui
+    implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:3.0.1")
+
+
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("io.projectreactor:reactor-test")
+}
