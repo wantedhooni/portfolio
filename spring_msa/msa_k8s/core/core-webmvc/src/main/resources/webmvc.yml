@@ -1,0 +1,16 @@
+spring:
+  profiles:
+    default: local
+
+springdoc:
+  use-fqn: true
+
+server:
+  error:
+    whitelabel:
+      enabled: false
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${DISCOVERY_SERVER_URL:http://localhost:8761/eureka/}

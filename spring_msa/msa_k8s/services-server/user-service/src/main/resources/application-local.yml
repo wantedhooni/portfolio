@@ -1,0 +1,9 @@
+spring:
+  config:
+    import:
+      - "optional:classpath:application_otel.yaml"
+      - "optional:classpath:webmvc.yml.yaml"
+
+eureka:
+  client:
+    enabled: false
