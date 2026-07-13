@@ -1,0 +1,23 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: application-app-2
+  labels:
+    app: application-app-2
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: application-app-2
+  template:
+    metadata:
+      labels:
+        app: application-app-2
+    spec:
+      containers:
+      - name: application-app-2
+        image: application-app-2
+        envFrom:
+          - configMapRef:
+              name: app-2-config

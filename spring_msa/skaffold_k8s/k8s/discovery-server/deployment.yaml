@@ -1,0 +1,23 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shared-server-discovery-server
+  labels:
+    app: shared-server-discovery-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shared-server-discovery-server
+  template:
+    metadata:
+      labels:
+        app: shared-server-discovery-server
+    spec:
+      containers:
+      - name: shared-server-discovery-server
+        image: shared-server-discovery-server
+        envFrom:
+          - configMapRef:
+              name: shared-server-discovery-server-config
