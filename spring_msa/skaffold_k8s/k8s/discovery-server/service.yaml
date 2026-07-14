@@ -11,4 +11,3 @@ spec:
   clusterIP: None
   selector:
     app: shared-server-discovery-server
----

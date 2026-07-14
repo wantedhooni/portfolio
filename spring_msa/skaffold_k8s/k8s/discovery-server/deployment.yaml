@@ -1,4 +1,3 @@
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -16,8 +15,8 @@ spec:
         app: shared-server-discovery-server
     spec:
       containers:
-      - name: shared-server-discovery-server
-        image: shared-server-discovery-server
-        envFrom:
-          - configMapRef:
-              name: shared-server-discovery-server-config
+        - name: shared-server-discovery-server
+          image: shared-server-discovery-server:latest
+          envFrom:
+            - configMapRef:
+                name: shared-server-discovery-server-config
