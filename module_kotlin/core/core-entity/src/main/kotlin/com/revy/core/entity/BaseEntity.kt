@@ -1,12 +1,30 @@
 package com.revy.core.entity
 
+import jakarta.persistence.Column
+import jakarta.persistence.Id
 import jakarta.persistence.MappedSuperclass
 import org.hibernate.Hibernate
-import java.util.UUID
+import org.springframework.data.annotation.CreatedDate
+import org.springframework.data.annotation.LastModifiedDate
+import java.time.Instant
+import java.util.*
+
 
 @MappedSuperclass
 abstract class BaseEntity {
-    abstract val id: UUID?
+    @Id
+    @Column(name = "id", columnDefinition = "uuid")
+    var id: UUID? = null
+        protected set
+
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false, columnDefinition ="TIMESTAMP")
+    var createdAt: Instant = Instant.now()
+
+    @LastModifiedDate
+    @Column(name = "updated_at", nullable = false, columnDefinition ="TIMESTAMP")
+    var updatedAt: Instant = Instant.now()
+        protected set
 
     final override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -18,8 +36,10 @@ abstract class BaseEntity {
         other as BaseEntity
         return id != null && id == other.id
     }
-
     // ★ 상수 반환: 영속화 전(id=null) → 영속화 후(id 할당) 해시가 바뀌면
     //   HashSet/HashMap에서 엔티티를 잃어버림
     final override fun hashCode(): Int = Hibernate.getClass(this).hashCode()
+    override fun toString(): String {
+        return "BaseEntity(id=$id, createdAt=$createdAt, updatedAt=$updatedAt)"
+    }
 }
