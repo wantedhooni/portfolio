@@ -1,13 +1,12 @@
 package com.revy.entity.domain
 
-import com.querydsl.core.types.SubQueryExpression
 import com.querydsl.jpa.JPAExpressions
 import com.revy.entity.common.BaseEntityComponent
 import com.revy.entity.domain.other.QBookOther
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
-import java.util.UUID
+import java.util.*
 
 @Component
 @Transactional(readOnly = false)
