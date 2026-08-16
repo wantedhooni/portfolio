@@ -12,7 +12,11 @@ import org.springframework.transaction.annotation.Transactional
 class InitRunner(
     val handler: BookHandler, val bookBulkHandler: BookBulkHandler
 ) : CommandLineRunner {
-    private val log = LoggerFactory.getLogger(javaClass)
+
+
+    companion object {
+        private val log = LoggerFactory.getLogger(javaClass)
+    }
 
     @Transactional
     override fun run(vararg args: String) {
@@ -32,6 +36,7 @@ class InitRunner(
         bookBulkHandler.insertBulkBookOtherV2()
         log.info("=== insertBulkBookOtherV2 END ===")
     }
+
 
 
 }
