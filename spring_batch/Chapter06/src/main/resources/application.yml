@@ -1,0 +1,69 @@
+spring:
+  application:
+    name: kotlin-batch-chapter06
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/app
+    username: app
+    password: app
+
+#  sql:
+#    init:
+#      mode: always
+
+  jpa:
+    # OSIV 비활성화
+    # Controller/View 계층에서 Lazy Loading에 의존하지 않도록 함
+    open-in-view: false
+
+    hibernate:
+      # 로컬 개발 초기: update
+      # 운영: validate 또는 none 권장
+      ddl-auto: create-drop
+
+    # Hibernate가 출력하는 SQL을 stdout으로 직접 출력할지 여부
+    # 실무에서는 false + logging 설정 사용 권장
+    show-sql: false
+
+    properties:
+      hibernate:
+        # Hibernate SQL 포맷팅
+        format_sql: true
+        # Lazy Loading 컬렉션/연관관계 조회 시
+        # N+1 완화를 위한 기본 Batch Fetch 크기
+        default_batch_fetch_size: 100
+
+  batch:
+    job:
+      # Quartz가 Job을 실행하므로 애플리케이션 시작 시 자동 실행하지 않음
+      enabled: false
+    jdbc:
+      # 메타데이터 테이블은 Flyway로 관리
+      initialize-schema: never
+      platform: postgresql
+
+  quartz:
+    # Quartz Job/Trigger 정보를 메모리가 아닌 DB에 저장
+    job-store-type: jdbc
+    overwrite-existing-jobs: true
+    jdbc:
+      # 메타데이터 테이블은 Flyway로 관리
+      initialize-schema: never
+    properties:
+      org:
+        quartz:
+          scheduler:
+            instanceName: chapter06Scheduler
+          jobStore:
+            driverDelegateClass: org.quartz.impl.jdbcjobstore.PostgreSQLDelegate
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    baseline-version: 0
+    validate-on-migrate: true
+
+  threads:
+    virtual:
+      enabled: true
