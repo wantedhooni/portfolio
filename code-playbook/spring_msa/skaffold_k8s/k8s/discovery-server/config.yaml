@@ -1,0 +1,7 @@
+apiVersion: v1
+
+kind: ConfigMap
+metadata:
+  name: shared-server-discovery-server-config
+data:
+  DISCOVERY_SERVER_URL: http://shared-server-discovery-server:8761/eureka/

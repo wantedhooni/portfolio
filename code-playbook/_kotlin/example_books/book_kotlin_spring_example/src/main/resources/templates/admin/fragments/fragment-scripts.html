@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<th:block th:fragment="scripts">
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct" crossorigin="anonymous"></script>
+
+    <!-- Custom scripts for all pages-->
+    <script src="js/sb-admin-2.min.js" th:src="@{/js/sb-admin-2.min.js}"></script>
+
+    <!-- Page level plugins -->
+    <script src="https://cdn.datatables.net/v/bs4/dt-2.3.0/datatables.min.js" integrity="sha384-wbr6kKtG1fwJzAofriG4M0lkobC2L5O5TXKp1p7+ZNk5LOOLP8l9zaoE8JvrhFs/" crossorigin="anonymous"></script>
+
+    <!-- Page level custom scripts -->
+    <script th:inline="javascript">
+
+        // 페이지 속성
+        const pageName = [[${pageName}]];
+        const pageId = pageName.toString().toLowerCase();
+        const editable = [[${editable}]];
+        const deletable = [[${deletable}]];
+        const hasDetails = [[${hasDetails}]];
+
+        // 버튼 컴포넌트 정의
+        const detailsButton = "<button type=\"button\" class=\"btn btn-light\" onclick=\"getDetails(this)\"><i class=\"far fa-eye\"></button>";
+        const editButton = "<button type=\"button\" class=\"btn btn-light\" data-toggle=\"modal\" data-target=\"#" + pageId + "-modal\" onclick=\"openEdit(this)\"><i class=\"far fa-edit\"></i></button>"
+        const deleteButton = "<button type=\"button\" class=\"btn btn-light\" onclick=\"deleteRecord(this)\"><i class=\"far fa-trash-alt\"></button>"
+
+        const table = [[${table}]];
+        const datatable = createDatatable(table.name, table.columns, table.records, editable, deletable, hasDetails);
+
+        const detailTable = [[${detailTable}]]
+        let detailDatatable = (hasDetails) ? createDatatable(detailTable.name, detailTable.columns, detailTable.records, false, false, false) : null;
+
+        /**
+         * 데이터테이블 초기화
+         */
+        function createDatatable(tableName, tableColumns, tableRecords, editable, deletable, hasDetails) {
+
+            const datatableId = `#${tableName.toLowerCase()}-datatable`;
+
+            // 편집 가능할 경우 컬럼 및 버튼 추가
+            if (editable) {
+                tableColumns.push("edit")
+                tableRecords.forEach(list => list.push(editButton))
+            }
+
+            // 삭제 가능할 경우 컬럼 및 버튼 추가
+            if (deletable) {
+                tableColumns.push("delete")
+                tableRecords.forEach(list => list.push(deleteButton))
+            }
+
+            // 상세 데이터 포함일 경우 컬럼 및 버튼 추가
+            if (hasDetails) {
+                tableColumns.push("details")
+                tableRecords.forEach(list => list.push(detailsButton))
+            }
+
+            const records = convertRecords(tableRecords, tableColumns);
+
+            // 데이터테이블 컬럼 정의 생성
+            const columns = tableColumns.map(column => ({data: column, title: column}));
+
+            return new DataTable(datatableId, {
+                data: records,
+                columns: columns,
+                scrollX: true
+            });
+        }
+
+        /**
+         * 레코드를 객체로 변환
+         */
+        function convertRecords(tableRecords, tableColumns) {
+            return tableRecords.map(record => {
+                const obj = {};
+                tableColumns.forEach((column, idx) => {
+                    obj[column] = record[idx];
+                });
+                return obj;
+            });
+        }
+
+        /**
+         * 상세 데이터 조회
+         */
+        function getDetails(element) {
+
+            const id = element.parentElement.parentElement.firstElementChild.innerHTML;
+
+            const urlPath = getBaseUrlPath();
+            const url = "/admin/api" + `${urlPath}/${id}/details`;
+
+            const xhr = httpRequest("GET", url, null, false);
+            xhr.onload = () => {
+
+                // 응답 바디를 JSON으로 파싱
+                const response = JSON.parse(xhr.response);
+
+                // records와 columns 가져오기
+                const tableRecords = response["records"];
+                const tableColumns = response["columns"];
+
+                const records = convertRecords(tableRecords, tableColumns);
+
+                // DataTables용 컬럼 정의 생성
+                const columns = tableColumns.map(column => ({data: column, title: column}));
+
+                // 테이블 재초기화
+                const datatableId = `#${pageId}detail-datatable`;
+                detailDatatable.destroy();
+                detailDatatable = new DataTable(datatableId, {
+                    data: records,
+                    columns: columns,
+                    scrollX: true
+                });
+            }
+        }
+
+        /**
+         * 페이지명을 URL 포맷으로 변경
+         */
+        function getBaseUrlPath() {
+            const splits = pageName.replace(/([A-Z])/g, " $1").trim().split(" ")
+
+            let refined = "";
+            for (let i = 0; i < splits.length; i++) {
+                refined += "/";
+                refined += splits[i].charAt(0).toLowerCase() + splits[i].slice(1) + "s";
+            }
+
+            return refined;
+        }
+
+        /**
+         * HTTP 통신
+         */
+        function httpRequest(method, url, body, reload) {
+            const xhr = new XMLHttpRequest();
+            xhr.open(method, url, true);
+            xhr.setRequestHeader("content-type", "application/json");
+            xhr.send(JSON.stringify(body));
+            xhr.onload = () => {
+                if (xhr.response !== "") {
+                    alert(xhr.response);
+                }
+                if (reload) {
+                    location.reload();
+                }
+            }
+
+            return xhr;
+        }
+
+                // 입력 폼 세팅
+        const formId = `${pageId}-form`
+        const modalFormId = `${pageId}-modal-form`
+        const forms = {
+            "form": document.getElementById(formId),
+        }
+        if (editable) {
+            forms["modal-form"] = document.getElementById(modalFormId)
+        }
+
+        // 상세 입력 폼 요소 세팅
+        let detailRows = null;
+        if (hasDetails) {
+            detailRows = {
+                "form-detail": document.getElementById(formId).getElementsByClassName("detail")[0].cloneNode(true),
+                "modal-form-detail": document.getElementById(modalFormId).getElementsByClassName("detail")[0].cloneNode(true),
+            }
+        }
+
+        /**
+         * 입력 폼 상세 행 추가
+         */
+        function addDetailRow(formType) {
+            const row = detailRows[`${formType}-detail`].cloneNode(true);
+            const detailFormRows = getFormRows(formType, "detail");
+            detailFormRows[detailFormRows.length - 1].insertAdjacentElement("afterend", row);
+        }
+
+        /**
+         * 입력 폼 행 조회
+         */
+        function getFormRows(formType, rowType) {
+            const form = forms[formType];
+            const selector = `.row.${rowType}`
+
+            return form.querySelectorAll(selector);
+        }
+
+        /**
+         * 신규 데이터 저장
+         */
+        function save() {
+
+            const body = createRequestBody("form");
+
+            const urlPath = getBaseUrlPath();
+            const url = "/admin/api" + urlPath;
+
+            httpRequest("POST", url, body, true);
+        }
+
+        /**
+         * 입력 폼에서 JSON 요청 바디 생성
+         */
+        function createRequestBody(formType) {
+
+            const body = {};
+
+            // 메인 입력 폼 데이터 세팅
+            const mainRow = getFormRows(formType, "main")[0];
+            const mainFormElements = getFormElements(mainRow);
+            mainFormElements.forEach(element => body[element.name] = element.value);
+
+            // 상세 입력 폼 데이터 세팅
+            if (hasDetails) {
+                const details = [];
+
+                // 각 행마다 데이터 조회하여 객체 생성 및 리스트 추가
+                const detailRows = getFormRows(formType, "detail")
+                detailRows.forEach(detailRow => {
+                    const detail = {};
+
+                    const detailFormElements = getFormElements(detailRow);
+                    detailFormElements.forEach(detailFormElement => {
+                        if (detailFormElement.value != null && detailFormElement.value.trim().length > 0) {
+                            detail[detailFormElement.name] = detailFormElement.value;
+                        }
+                    });
+
+                    if (Object.keys(detail).length > 0) {
+                        details.push(detail);
+                    }
+                });
+
+                body["details"] = details;
+            }
+
+            return body;
+        }
+
+        /**
+         * 입력 폼 행의 요소 조회
+         */
+        function getFormElements(row) {
+            return row.querySelectorAll("input, select")
+        }
+
+        /**
+         * 편집 열기
+         */
+        function openEdit(element) {
+
+            const formType = "modal-form"
+
+            const data = element.parentElement.parentElement.children;
+
+            // 메인 입력 폼 값 세팅
+            const mainRow = getFormRows(formType, "main")[0];
+            const mainFormElements = getFormElements(mainRow);
+            for (let i = 0; i < mainFormElements.length; i++) {
+                mainFormElements[i].value = data[i].innerHTML
+            }
+
+            // 상세 입력 폼 값 세팅
+            if (hasDetails) {
+
+                // 아이디로 요청 URL 세팅
+                const id = mainFormElements[0].value;
+                const urlPath = getBaseUrlPath();
+                const url = "/admin/api" + `${urlPath}/${id}/details`;
+
+                // HTTP 통신
+                const xhr = httpRequest("GET", url, null, false)
+                xhr.onload = () => {
+
+                    // 레코드 파싱
+                    const response = JSON.parse(xhr.response);
+                    const records = response["records"];
+
+                    // 상세 입력 폼 행이 1개가 될 때까지 삭제
+                    let detailFormRows = getFormRows(formType, "detail");
+                    while (detailFormRows.length > 1) {
+                        detailFormRows[detailFormRows.length - 1].remove();
+                        detailFormRows = getFormRows(formType, "detail")
+                    }
+
+                    // 상세 입력 폼 행이 레코드 수와 같아질 때까지 추가
+                    while (detailFormRows.length < records.length) {
+                        const row = detailRows["modal-form-detail"].cloneNode(true);
+                        detailFormRows[detailFormRows.length - 1].insertAdjacentElement("afterend", row);
+                        detailFormRows = getFormRows(formType, "detail")
+                    }
+
+                    // 레코드 값을 각 상세 입력 폼 행에 세팅
+                    for (let i = 0; i < records.length; i++) {
+                        const detailFormElements = getFormElements(detailFormRows[i]);
+                        for (let j = 0; j < detailFormElements.length; j++) {
+                            detailFormElements[j].value = records[i][j];
+                        }
+                    }
+                }
+            }
+        }
+
+        /**
+         * 편집 완료
+         */
+        function completeEdit() {
+            const body = createRequestBody("modal-form");
+
+            const id = body["id"];
+            const urlPath = getBaseUrlPath();
+            const url = "/admin/api" + urlPath + `/${id}`;
+
+            httpRequest("PUT", url, body, true);
+        }
+
+        /**
+         * 데이터 삭제
+         */
+        function deleteRecord(element) {
+            var id = element.parentNode.parentNode.firstElementChild.innerHTML;
+            var confirmed = confirm("[" + id + "] 데이터를 삭제하시겠습니까?");
+
+            if (confirmed) {
+                var url = "/admin/api/projects/skills/" + id;
+                httpRequest("DELETE", url, null, true);
+            }
+        }
+    </script>
+
+</th:block>
+</html>

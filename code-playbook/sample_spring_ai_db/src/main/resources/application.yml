@@ -1,0 +1,39 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:ai_prompt_db;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  ai:
+    model:
+      chat: openai
+
+    openai:
+      api-key: dummy
+      base-url: http://127.0.0.1:1234
+      chat:
+        completions-path: /v1/chat/completions
+        options:
+          model: qwen/qwen3.5-9b
+          temperature: 0.7
+
+logging:
+  level:
+    org.hibernate.SQL: debug

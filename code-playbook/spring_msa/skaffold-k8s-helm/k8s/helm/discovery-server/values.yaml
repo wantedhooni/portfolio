@@ -1,0 +1,11 @@
+replicaCount: 1
+
+image:
+  name: discovery-server
+  repository: skaffold-k8s-helm/discovery-server
+  tag: latest
+
+service:
+  type: ClusterIP
+  port: 8761
+  containerPort: 8761

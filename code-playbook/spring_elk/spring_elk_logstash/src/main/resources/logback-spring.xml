@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <property name="LOG_PATH" value="./logs"/>
+
+
+    <!-- Appenders -->
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+        <encoder>
+            <pattern>[%d{yyyy-MM-dd HH:mm:ss.SSS}] [%-5level] [%thread] %logger %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="INFO_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+        <file>${LOG_PATH}/info.log</file>
+        <append>true</append>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/info_${type}.%d{yyyy-MM-dd}.gz</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>[%d{yyyy-MM-dd HH:mm:ss.SSS}] [%-5level] [%thread] %logger %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 1) Logstash Appender (실제 전송) -->
+    <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+        <!--        <destination>${LOGSTASH_HOST}:${LOGSTASH_PORT}</destination>-->
+        <destination>localhost:5000</destination>
+        <!-- 비동기 처리 옵션(내부 Disruptor 기반) -->
+        <reconnectionDelay>5000</reconnectionDelay>
+        <keepAliveDuration>120000</keepAliveDuration>
+        <writeTimeout>3000</writeTimeout>
+
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <!-- includeMdc 추가하면 MDC(traceId 등) 포함 -->
+            <includeMdc>true</includeMdc>
+        </encoder>
+    </appender>
+
+    <!-- 2) AsyncWrapper로 Logstash 감싸기 -->
+    <appender name="ASYNC_LOGSTASH" class="ch.qos.logback.classic.AsyncAppender">
+        <!-- Logstash Appender를 비동기 처리 -->
+        <appender-ref ref="LOGSTASH"/>
+        <!-- 큐 크기 -->
+        <queueSize>1024</queueSize>
+        <!-- neverBlock=true로 큐 가득 차도 블로킹 방지 -->
+        <neverBlock>true</neverBlock>
+
+        <!-- 큐 포화 시 낮은 레벨 로그 드롭 기준 -->
+        <discardingThreshold>0</discardingThreshold>
+
+        <!-- 호출 스택 정보 포함 여부 (비추: 성능 영향) -->
+        <includeCallerData>false</includeCallerData>
+    </appender>
+
+    <!-- TRACE > DEBUG > INFO > WARN > ERROR > OFF -->
+    <!-- Root Logger -->
+
+    <!--    <root level="INFO">-->
+    <!--        <appender-ref ref="console"/>-->
+    <!--        <appender-ref ref="INFO_LOG"/>-->
+    <!--    </root>-->
+
+    <!-- 프로파일 미지정/기타: 기본값 -->
+    <springProfile name="default">
+        <root level="DEBUG">
+            <appender-ref ref="console"/>
+            <appender-ref ref="ASYNC_LOGSTASH"/>
+        </root>
+    </springProfile>
+
+</configuration>

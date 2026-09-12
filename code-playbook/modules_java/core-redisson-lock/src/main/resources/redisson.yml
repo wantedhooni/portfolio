@@ -1,0 +1,7 @@
+redisson:
+  enabled: ${REDISSON_ENABLED:false}
+  host: ${REDISSON_HOST:127.0.0.1}
+  port: ${REDISSON_PORT:6379}
+  db: ${REDISSON_DB:0}
+  password: ${REDISSON_PASSWORD:redis1234}
+

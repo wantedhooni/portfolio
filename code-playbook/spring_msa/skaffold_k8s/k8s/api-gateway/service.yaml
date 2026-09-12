@@ -1,0 +1,14 @@
+#service api-gateway
+apiVersion: v1
+kind: Service
+metadata:
+  name: shared-server-api-gateway
+  labels:
+    app: shared-server-api-gateway
+spec:
+  ports:
+    - port: 8080
+      protocol: TCP
+  clusterIP: None
+  selector:
+    app: shared-server-api-gateway

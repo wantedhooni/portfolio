@@ -1,0 +1,78 @@
+
+jwt:
+  secret: "6082ff86d0ed168624d71b757031f7c49ab8929cdb5830dd59e6da887761005cdaabb13b3369751fa0dc194f6a6c49a5ea74d3332ef2f21fd806cf57426d9e51"
+  access-token-expiration: 1800_000
+  refresh-token-expiration: 1209600_000
+
+logging:
+  level:
+    com.revy.*: DEBUG
+
+spring:
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  datasource:
+    url: jdbc:h2:mem:testdb;NON_KEYWORDS=USER;MODE=MySQL;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: true
+    defer-datasource-initialization: true
+    open-in-view: false
+
+  sql:
+    init:
+      mode: always
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: "redis1234"
+      repositories:
+        enabled: false
+
+  ## dev-tools 설정
+  devtools:
+    restart:
+      enabled: false             # 자동 재시작 활성
+      trigger-file: .reloadtrigger  # 트리거 파일 기반 변경 감지
+      additional-paths:         # 추가 감지 경로
+        - src/main/java
+        - src/main/resources
+      exclude:                  # 재시작 제외
+        - static/**
+        - public/**
+    livereload:
+      enabled: true             # LiveReload 활성
+
+  thymeleaf:
+    cache: false                # 템플릿 캐시 비활성
+
+  freemarker:
+    cache: false
+
+springdoc:
+  use-fqn: true
+#  api-docs:
+#    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    display-request-duration: true
+    operationsSorter: method
+    tagsSorter: alpha
+    persistAuthorization: true
+
+
+

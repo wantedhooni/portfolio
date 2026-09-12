@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: querydsl-sql-demo
+  datasource:
+    url: jdbc:h2:mem:querydsl_demo;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  sql:
+    init:
+      mode: always
+      encoding: UTF-8
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+server:
+  port: 8080
+
+logging:
+  level:
+    com.querydsl.sql: DEBUG
+    org.springframework.jdbc.datasource.init: INFO

@@ -1,0 +1,27 @@
+server:
+  port: 9000
+
+spring:
+  application:
+    name: auth-service
+
+  datasource:
+    url: jdbc:mariadb://mariadb:3306/authdb
+#    url: jdbc:mariadb://localhost:43306/authdb
+    username: auth
+    password: authpass
+    driver-class-name: org.mariadb.jdbc.Driver
+    hikari:
+      maximum-pool-size: 10
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc.time_zone: UTC
+
+springdoc:
+  show-actuator: true

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>게시글 작성</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        label { display: block; margin-top: 16px; font-weight: bold; }
+        input, textarea { width: 100%; padding: 8px; margin-top: 8px; }
+        .actions { margin-top: 20px; display: flex; gap: 8px; }
+        .error { color: #d00; margin-top: 4px; }
+    </style>
+</head>
+<body>
+<h1 th:text="${postId == null} ? '게시글 작성' : '게시글 수정'"></h1>
+<form th:action="${postId == null} ? @{/posts} : @{/posts/{id}(id=${postId})}" th:object="${postForm}" method="post">
+    <label for="title">제목</label>
+    <input id="title" type="text" th:field="*{title}" placeholder="제목을 입력해 주세요"/>
+    <div class="error" th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></div>
+
+    <label for="content">내용</label>
+    <textarea id="content" rows="10" th:field="*{content}" placeholder="내용을 입력해 주세요"></textarea>
+    <div class="error" th:if="${#fields.hasErrors('content')}" th:errors="*{content}"></div>
+
+    <div class="actions">
+        <button type="submit">저장</button>
+        <a th:href="@{/posts}">목록으로</a>
+    </div>
+</form>
+</body>
+</html>
