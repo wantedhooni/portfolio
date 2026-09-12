@@ -1,0 +1,134 @@
+name: "[UAT](WEB-UI) Build & Push to ECR + Deploy to ECS (manual, CLI)"
+
+on:
+  workflow_dispatch: {}
+#on:
+#  push:
+#    branches: [ "uat" ]
+
+permissions:
+  contents: read
+
+env:
+  task-definition-path: ./taskdef.base.json
+
+jobs:
+  build-push-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+#        with:
+#          ref: deploy        # 여기서 강제 (브랜치명/태그/커밋 SHA 가능)
+#          fetch-depth: 0
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, tag, and push image
+        id: build_image
+        env:
+          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+          EXTRA_TAG: ${{ github.sha }}
+          BUILD_MODE: uat
+        run: |
+          cd web-ui
+          set -euo pipefail
+          
+
+          NAME=$(node -p "require('./package.json').name")
+          VERSION=$(node -p "require('./package.json').version")
+          SAFE_NAME=$(echo "$NAME" | tr '[:upper:]' '[:lower:]' | sed 's/@//g' | sed 's/\//-/g' | tr -d ' ')
+          SAFE_VERSION=$(echo "$VERSION" | tr -d ' ')
+
+          IMAGE_TAG="${SAFE_NAME}-${SAFE_VERSION}"
+          if [ -n "${EXTRA_TAG}" ]; then IMAGE_TAG="${IMAGE_TAG}-${EXTRA_TAG}"; fi
+          echo "Using image tag: $IMAGE_TAG"
+
+          IMAGE_URI="${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
+          echo "IMAGE_URI: $IMAGE_URI"
+          
+          docker build --build-arg BUILD_MODE=${BUILD_MODE} -t "$IMAGE_URI" .
+          docker push "$IMAGE_URI"
+
+          docker tag "$IMAGE_URI" "${ECR_REGISTRY}/${ECR_REPOSITORY}:latest"
+          docker push "${ECR_REGISTRY}/${ECR_REPOSITORY}:latest"
+          
+          echo "image=$IMAGE_URI" >> $GITHUB_OUTPUT
+
+      # 1) PRIMARY taskDefinition ARN 조회 (네 케이스: deployments[].taskDefinition)
+      - name: Get PRIMARY task definition ARN from service
+        id: get_td
+        env:
+          CLUSTER: ${{ secrets.ECS_CLUSTER_NAME }}
+          SERVICE: ${{ secrets.ECS_SERVICE_NAME }}
+        run: |
+          set -euo pipefail
+
+          TD_ARN=$(aws ecs describe-services \
+            --cluster "$CLUSTER" \
+            --services "$SERVICE" \
+            --query "services[0].deployments[?status=='PRIMARY'] | [0].taskDefinition" \
+            --output text)
+
+          if [ -z "$TD_ARN" ] || [ "$TD_ARN" = "None" ]; then
+            echo "ERROR: PRIMARY taskDefinition not found."
+            aws ecs describe-services --cluster "$CLUSTER" --services "$SERVICE" --query "{services:services,failures:failures}" --output json
+            exit 1
+          fi
+
+          echo "BASE_TASK_DEF_ARN=$TD_ARN" >> "$GITHUB_ENV"
+          echo "BASE_TASK_DEF_ARN=$TD_ARN"
+
+      # 2) 기존 task definition 내려받기 (taskDefinition만)
+      - name: Download base task definition JSON
+        run: |
+          set -euo pipefail
+          echo "[PWD]"
+          echo "env.task-definition-path: ${{ env.task-definition-path }}"
+          echo "BASE_TASK_DEF_ARN: $BASE_TASK_DEF_ARN"
+      
+          # 1. describe-task-definition
+          aws ecs describe-task-definition \
+          --task-definition "$BASE_TASK_DEF_ARN" \
+          --query "taskDefinition" \
+          --output json \
+          | jq '
+          del(
+            .taskDefinitionArn,
+            .revision,
+            .status,
+            .requiresAttributes,
+            .compatibilities,
+            .registeredAt,
+            .registeredBy,
+            .enableFaultInjection
+          )
+          ' > "${{ env.task-definition-path }}"
+          ls -al "${{ env.task-definition-path }}"
+
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@c804dfbdd57f713b6c079302a4c01db7017a36fc
+        with:
+          task-definition: ${{ env.task-definition-path }}
+          container-name: ${{ secrets.ECS_CONTAINER_NAME }}
+          image: ${{ steps.build_image.outputs.image }}
+
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@df9643053eda01f169e64a0e60233aacca83799a
+        with:
+          task-definition: ${{ env.task-definition-path }}
+          service: ${{ secrets.ECS_SERVICE_NAME  }}
+          cluster: ${{ secrets.ECS_CLUSTER_NAME }}
+          wait-for-service-stability: true
