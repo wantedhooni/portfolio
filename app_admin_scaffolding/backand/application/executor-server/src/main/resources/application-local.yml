@@ -1,0 +1,21 @@
+spring:
+  datasource:
+    url: jdbc:mariadb://localhost:23306/app
+    username: app
+    password: app
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+
+
+app:
+  env: local
+
+#ai:
+#  openai:
+#    api-key: ${OPENAI_API_KEY:OPENAI_API_KEY_MISSING}
+#    chat:
+#      options:
+#        model: ${OPENAI_MODEL:gpt-4.1-mini}
+#        temperature: 0.2

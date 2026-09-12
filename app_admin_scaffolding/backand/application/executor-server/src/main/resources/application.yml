@@ -1,0 +1,63 @@
+spring:
+  application:
+    name: executor-server
+  profiles:
+    default: local
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  devtools:
+    restart:
+      enabled: false
+    livereload:
+      enabled: true
+  data:
+    redis:
+      lettuce:
+        pool:
+          enabled: false
+  batch:
+    jdbc:
+      initialize-schema: always   # 운영은 never + 수동 DDL 권장
+    job:
+      enabled: false              # 앱 기동 시 자동 Job 실행 방지
+  quartz:
+    job-store-type: jdbc
+    jdbc:
+      initialize-schema: always   # 운영은 never + 수동 DDL 권장
+    properties:
+      org:
+        quartz:
+          scheduler:
+            instanceName: appScheduler
+            instanceId: AUTO
+          jobStore:
+#            class: org.quartz.impl.jdbcjobstore.JobStoreTX
+#            driverDelegateClass: org.quartz.impl.jdbcjobstore.StdJDBCDelegate
+            tablePrefix: QRTZ_
+            isClustered: true
+            clusterCheckinInterval: 20000
+          threadPool:
+            class: org.quartz.simpl.SimpleThreadPool
+            threadCount: 10
+            threadPriority: 5
+
+
+server:
+  port: 8090
+
+logging:
+  level:
+    root: INFO
+    com.revy.*: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+

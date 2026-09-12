@@ -1,0 +1,156 @@
+name: PR Summary
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  summarize:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Collect PR metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          BASE_REF="origin/${{ github.base_ref }}"
+          git fetch origin "${{ github.base_ref }}" --depth=1
+
+          git diff --name-only "${BASE_REF}...HEAD" > changed_files.txt
+          git diff --shortstat "${BASE_REF}...HEAD" > diffstat.txt || true
+          git log --format='- %s' "${BASE_REF}...HEAD" > commit_messages.txt
+
+          {
+            echo "## Auto Summary"
+            echo
+            echo "### Change Summary"
+            python3 -c 'from pathlib import Path; files=[line.strip() for line in Path("changed_files.txt").read_text().splitlines() if line.strip()]; groups=[]; groups.append("- `ui-web-service` 관련 변경 포함") if any(f.startswith("frontend/ui-web-service/") for f in files) else None; groups.append("- `ui-admin` 관련 변경 포함") if any(f.startswith("frontend/ui-admin/") for f in files) else None; groups.append("- 실행/테스트 스크립트 변경 포함") if any(f.startswith("script/") for f in files) else None; groups.append("- GitHub Actions 워크플로우 변경 포함") if any(f.startswith(".github/workflows/") for f in files) else None; print("\n".join(groups or ["- 변경 파일을 기준으로 수동 요약이 필요합니다."]))'
+            echo
+            echo "### Validation"
+            echo "- CI 결과를 확인해 필요한 항목을 보완해 주세요."
+            echo
+            echo "### Changed Files"
+            sed 's/^/- /' changed_files.txt
+            echo
+            echo "### Commit Summary"
+            if [[ -s commit_messages.txt ]]; then
+              cat commit_messages.txt
+            else
+              echo "- 커밋 메시지를 찾지 못했습니다."
+            fi
+            echo
+            echo "### Diff Stat"
+            if [[ -s diffstat.txt ]]; then
+              sed 's/^/- /' diffstat.txt
+            else
+              echo "- diff stat 없음"
+            fi
+          } > generated_pr_section.md
+
+      - name: Update PR body
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const fs = require("fs");
+            const markerStart = "<!-- auto-summary:start -->";
+            const markerEnd = "<!-- auto-summary:end -->";
+            const generated = fs.readFileSync("generated_pr_section.md", "utf8").trim();
+            const section = `${markerStart}\n${generated}\n${markerEnd}`;
+            const pr = context.payload.pull_request;
+            const currentBody = pr.body || "";
+
+            let nextBody;
+            const regex = new RegExp(`${markerStart}[\\s\\S]*?${markerEnd}`, "m");
+            if (regex.test(currentBody)) {
+              nextBody = currentBody.replace(regex, section);
+            } else {
+              nextBody = currentBody.trim()
+                ? `${currentBody.trim()}\n\n${section}`
+                : section;
+            }
+
+            await github.rest.pulls.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+              body: nextBody,
+            });
+
+      - name: Create review summary comment
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const fs = require("fs");
+            const changedFiles = fs.readFileSync("changed_files.txt", "utf8")
+              .split("\n")
+              .map((line) => line.trim())
+              .filter(Boolean);
+
+            const highlights = [];
+            if (changedFiles.some((file) => file.startsWith("frontend/ui-web-service/"))) {
+              highlights.push("- `ui-web-service` 변경이 포함되어 있어 고객용 화면/연동 흐름 확인이 필요합니다.");
+            }
+            if (changedFiles.some((file) => file.startsWith("frontend/ui-admin/"))) {
+              highlights.push("- `ui-admin` 변경이 포함되어 있어 기존 관리자 기능 회귀 확인이 필요합니다.");
+            }
+            if (changedFiles.some((file) => file.startsWith("script/"))) {
+              highlights.push("- `script/*` 변경이 포함되어 있어 로컬 실행/포트/테스트 동선 점검이 필요합니다.");
+            }
+            if (changedFiles.some((file) => file.startsWith(".github/workflows/"))) {
+              highlights.push("- GitHub Actions 변경이 포함되어 있어 권한, 트리거, 실패 시 동작을 확인해야 합니다.");
+            }
+
+            if (highlights.length === 0) {
+              highlights.push("- 변경 범위 기반 자동 리뷰 포인트를 특정하지 못했습니다. diff를 직접 확인해 주세요.");
+            }
+
+            const body = [
+              "## Auto Review Summary",
+              "",
+              ...highlights,
+              "",
+              "### Reviewer Checklist",
+              "- 변경 요약이 실제 사용자/운영 영향과 일치하는지 확인",
+              "- 테스트/빌드/린트 결과가 PR 설명과 맞는지 확인",
+              "- 포트, 환경변수, CI 설정 변경 시 문서/스크립트 반영 여부 확인",
+            ].join("\n");
+
+            const pr = context.payload.pull_request;
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              per_page: 100,
+            });
+
+            const existing = comments.data.find((comment) =>
+              comment.user?.type === "Bot" && comment.body?.startsWith("## Auto Review Summary"),
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                body,
+              });
+            }

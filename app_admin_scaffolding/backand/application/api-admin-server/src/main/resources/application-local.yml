@@ -1,0 +1,20 @@
+spring:
+  datasource:
+    url: jdbc:mariadb://localhost:23306/app
+    username: app
+    password: app
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:init.sql
+  jpa:
+    hibernate:
+      ddl-auto: update
+  data:
+    redis:
+      lettuce:
+        pool:
+          enabled: false
+app:
+  env: local
+

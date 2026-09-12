@@ -1,0 +1,41 @@
+spring:
+  application:
+    name: api-service-server
+  profiles:
+    default: local
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  devtools:
+    restart:
+      enabled: false
+    livereload:
+      enabled: true
+
+server:
+  port: 9090
+
+logging:
+  level:
+    root: INFO
+    com.revy.*: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+
+
+### JWT
+app:
+  security:
+    jwt:
+      secret: '3fb3e3ceb31033c122c1a4d6894a9e788bcbbb22793fb5efcdd9b3376f06de3994bdd892a76c1ccd938470390db9dff9184249bc46eb0448a7cc1b3c35c133e2'
+      issuer: 'api-service'
+      accessTokenExpirationMin: 120
+      refreshTokenExpirationMin: 480

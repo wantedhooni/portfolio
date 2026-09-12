@@ -1,0 +1,25 @@
+sequenceDiagram
+  autonumber
+  participant U as User (Browser)
+  participant N as Next.js UI (Refine)
+  participant DP as dataProvider
+  participant A as API Server
+  participant UC as UseCase
+  participant F as Facade (Reader/Processor)
+  participant R as Repository
+  participant D as DB
+
+  U->>N: 목록/상세/수정 클릭
+  N->>DP: getList/getOne/update
+  DP->>A: /api/{resource}/search | /{id} | /{id}/update
+  A->>UC: Controller -> UseCase
+  UC->>F: 비즈니스 조합 호출
+  F->>R: JPA Query/Save
+  R->>D: SQL
+  D-->>R: 결과
+  R-->>F: Entity
+  F-->>UC: DTO/결과
+  UC-->>A: Response payload
+  A-->>DP: ApiResponse
+  DP-->>N: data/total
+  N-->>U: 화면 렌더링

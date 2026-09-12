@@ -1,0 +1,67 @@
+{
+  "name": "ui-admin",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "sh -c 'PORT=${PORT:-3000} NEXT_PUBLIC_ENABLE_DEVTOOLS=${NEXT_PUBLIC_ENABLE_DEVTOOLS:-true} NODE_OPTIONS=--max_old_space_size=4096 exec refine dev'",
+    "dev:no-devtools": "sh -c 'PORT=${PORT:-3000} NEXT_PUBLIC_DISABLE_DEVTOOLS=true NEXT_PUBLIC_ENABLE_DEVTOOLS=false NODE_OPTIONS=--max_old_space_size=4096 exec refine dev --devtools=false'",
+    "build": "refine build",
+    "start": "refine start",
+    "lint": "eslint .",
+    "generate:grid-columns": "node scripts/generate-grid-columns.mjs",
+    "refine": "refine",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:ui": "playwright test --ui"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.8.1",
+    "@mantine/core": "^8.3.15",
+    "@mantine/form": "^8.3.15",
+    "@mantine/hooks": "^8.3.15",
+    "@mantine/notifications": "^8.3.15",
+    "@mui/icons-material": "^6.1.6",
+    "@mui/lab": "^6.0.0-beta.14",
+    "@mui/material": "^6.1.7",
+    "@mui/x-data-grid": "^7.22.2",
+    "@refinedev/appwrite": "^8.0.1",
+    "@refinedev/cli": "^2.16.48",
+    "@refinedev/core": "^5.0.8",
+    "@refinedev/devtools": "^2.0.1",
+    "@refinedev/kbar": "^2.0.0",
+    "@refinedev/mantine": "^3.0.2",
+    "@refinedev/medusa": "^4.0.1",
+    "@refinedev/mui": "^7.0.1",
+    "@refinedev/nestjsx-crud": "^6.0.1",
+    "@refinedev/nextjs-router": "^7.0.0",
+    "@refinedev/react-hook-form": "^5.0.0",
+    "@refinedev/react-table": "^6.0.1",
+    "@refinedev/simple-rest": "^6.0.0",
+    "@refinedev/strapi": "^5.0.1",
+    "@refinedev/strapi-v4": "^7.0.1",
+    "@tabler/icons-react": "^3.37.1",
+    "axios": "^1.13.5",
+    "js-cookie": "^3.0.5",
+    "next": "^15.2.4",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "@types/js-cookie": "^3.0.6",
+    "@types/node": "^20",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "cross-env": "^7.0.3",
+    "eslint": "^8",
+    "eslint-config-next": "^15.0.3",
+    "typescript": "^5.8.3"
+  },
+  "refine": {
+    "projectId": "lwPvIE-b5A9ar-fADVIS"
+  }
+}

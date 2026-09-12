@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    <include resource="org/springframework/boot/logging/logback/console-appender.xml" />
+    <property name="LOG_PATH" value="./logs"/>
+    <define name="hostname" class="ch.qos.logback.core.property.CanonicalHostNamePropertyDefiner"/>
+
+    <!-- 1) 플래그: 미정의면 false -->
+    <springProperty scope="context" name="APP_NAME" source="spring.application.name" defaultValue="application"/>
+    <springProperty scope="context" name="APP_ENV" source="app.env" defaultValue="name"/>
+    <springProperty scope="context" name="ELK_LOG_ENABLE" source="elk.log.enabled" defaultValue="false"/>
+    <springProperty scope="context" name="LOGSTASH_URL" source="elk.log.logstash.url" defaultValue="127.0.0.1:4560"/>
+
+    <!-- Appenders -->
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>DEBUG</level>
+        </filter>
+        <encoder>
+            <pattern>[%d{yyyy-MM-dd HH:mm:ss.SSS}] [%-5level] [%thread] [userId:%X{userId}] [%X{traceId}][%X{clientIp}][%X{requestUrl}] %logger %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="INFO_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>DEBUG</level>
+        </filter>
+        <file>${LOG_PATH}/application.log</file>
+        <append>true</append>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/info_${type}.%d{yyyy-MM-dd}.gz</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>[%d{yyyy-MM-dd HH:mm:ss.SSS}] [%-5level] [%thread] [userId:%X{userId}] [%X{traceId}][%X{clientIp}][%X{requestUrl}] %logger %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- LOGSTASH_HOST가 정의된 경우에만 LOGSTASH appender 생성/부착 -->
+    <if condition='property("ELK_LOG_ENABLE").equalsIgnoreCase("true")'>
+        <then>
+            <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+                <destination>${LOGSTASH_URL}</destination>
+
+                <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                    <!-- MDC 전부 포함은 기본 동작이지만, 명시 가능 -->
+                    <includeMdc>true</includeMdc>
+
+
+                    <!-- 예외 + 스택트레이스 -->
+                    <stackTrace>
+                        <!-- 원하면 단축/필터 가능 -->
+                        <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
+                            <maxDepthPerThrowable>200</maxDepthPerThrowable>
+                            <maxLength>20000</maxLength>
+                            <rootCauseFirst>true</rootCauseFirst>
+                        </throwableConverter>
+                    </stackTrace>
+
+                    <customFields>
+                        {"service":"${APP_NAME}","env":"${APP_ENV}", "host":{"hostname":"${hostname}"}}
+                    </customFields>
+                </encoder>
+
+                <ringBufferSize>8192</ringBufferSize>
+                <appendTimeout>0</appendTimeout>
+            </appender>
+        </then>
+    </if>
+
+    <!-- TRACE > DEBUG > INFO > WARN > ERROR > OFF -->
+    <!-- Root Logger -->
+    <if condition='property("ELK_LOG_ENABLE").equalsIgnoreCase("true")'>
+        <then>
+            <root level="INFO">
+                <appender-ref ref="console"/>
+                <appender-ref ref="LOGSTASH"/>
+            </root>
+        </then>
+        <else>
+            <root level="INFO">
+                <appender-ref ref="console"/>
+                <appender-ref ref="INFO_LOG"/>
+            </root>
+        </else>
+    </if>
+
+</configuration>

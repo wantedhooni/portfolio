@@ -1,0 +1,72 @@
+services:
+  prometheus:
+    image: prom/prometheus:v3.10.0
+    container_name: prometheus
+    restart: unless-stopped
+    ports:
+      - "19090:9090"
+    volumes:
+      - prometheus_data:/prometheus
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        cat >/etc/prometheus/prometheus.yml <<'EOF'
+        global:
+          scrape_interval: 15s
+          evaluation_interval: 15s
+
+        scrape_configs:
+          - job_name: prometheus
+            static_configs:
+              - targets:
+                  - localhost:9090
+        EOF
+        exec /bin/prometheus \
+          --config.file=/etc/prometheus/prometheus.yml \
+          --storage.tsdb.path=/prometheus \
+          --web.enable-lifecycle
+    networks:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:12.4
+    container_name: grafana
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+    ports:
+      - "13000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin1234
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        mkdir -p /etc/grafana/provisioning/datasources
+        cat >/etc/grafana/provisioning/datasources/prometheus.yml <<'EOF'
+        apiVersion: 1
+
+        datasources:
+          - name: Prometheus
+            type: prometheus
+            access: proxy
+            url: http://prometheus:9090
+            isDefault: true
+            editable: true
+        EOF
+        exec /run.sh
+    networks:
+      - monitoring
+
+volumes:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  monitoring:
+    driver: bridge

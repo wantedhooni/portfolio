@@ -1,0 +1,43 @@
+spring:
+  application:
+    name: api-admin-server
+  profiles:
+    default: local
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  devtools:
+    restart:
+      enabled: false
+    livereload:
+      enabled: true
+
+
+
+server:
+  port: 8080
+
+logging:
+  level:
+    root: INFO
+    com.revy.*: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+
+
+### JWT
+app:
+  security:
+    jwt:
+      secret: 'ccedc4dd12dac9ee8835f4a6aa2655959a38140fbb9f58a047f89a7916912b94e99af569eb31a11336d4168d6c61c6a50546e0f256b22c7f1d1d43420bd50a89'
+      issuer: 'api-admin'
+      accessTokenExpirationMin: 120
+      refreshTokenExpirationMin: 480

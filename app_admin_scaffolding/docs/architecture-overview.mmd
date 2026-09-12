@@ -1,0 +1,24 @@
+flowchart TB
+  subgraph FE["frontend/ui-admin (Next.js + Refine)"]
+    FE_APP["src/app\n- /domain/users, admins, roles, permissions\n- /categories, /blog-posts"]
+    FE_PROV["providers\n- auth-provider\n- data-provider\n- http-client"]
+    FE_COMP["components\n- header\n- domain-list-toolbar"]
+  end
+
+  subgraph BE["backand (Gradle Multi-Module)"]
+    BE_COMMON[":common"]
+    BE_DOMAIN_BASE[":domain:entity-base"]
+    BE_DOMAIN_ENTITY[":domain:entity"]
+    BE_JWT[":application:security:jwt"]
+    BE_API[":application:api-admin-server\n- api\n- usecase\n- facade(reader/processor)\n- infra(config/filter/advice)"]
+  end
+
+  DB[(MariaDB / infra/db)]
+
+  FE_APP --> FE_PROV
+  FE_PROV -->|REST /api/*| BE_API
+  BE_API --> BE_JWT
+  BE_API --> BE_DOMAIN_ENTITY
+  BE_DOMAIN_ENTITY --> BE_DOMAIN_BASE
+  BE_API --> BE_COMMON
+  BE_API --> DB

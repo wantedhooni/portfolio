@@ -1,0 +1,29 @@
+{
+  "name": "ui-web-service",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "sh -c 'next dev --port ${PORT:-3001}'",
+    "build": "next build",
+    "start": "sh -c 'next start --port ${PORT:-3001}'",
+    "lint": "eslint .",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "next": "^15.2.4",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "@types/node": "^20.17.30",
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "^15.2.4",
+    "typescript": "^5.8.3"
+  }
+}
