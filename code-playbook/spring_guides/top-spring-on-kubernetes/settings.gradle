@@ -1,3 +1,0 @@
-
-include("hello-caller")
-include("hello-spring-k8s")

@@ -1,3 +1,0 @@
-FROM grafana/otel-lgtm:0.28.0
-
-COPY ./infra/otelcol-config.yaml /otel-lgtm/otelcol-config.yaml

@@ -1,1 +1,0 @@
-const datatable = new DataTable('#dataTable');
