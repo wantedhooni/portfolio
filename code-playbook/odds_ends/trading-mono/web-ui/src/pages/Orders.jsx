@@ -1,0 +1,140 @@
+import React, { useEffect, useState } from 'react'
+import { cancelOrder, getOrders } from '../api/api'
+
+const CANCELABLE = new Set(['NEW', 'PARTIALLY_FILLED'])
+
+export default function Orders() {
+  const [page, setPage] = useState(0)
+  const [size, setSize] = useState(20)
+  const [data, setData] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+  const [actionMessage, setActionMessage] = useState(null)
+
+  const fetchOrders = async (nextPage = page) => {
+    setLoading(true)
+    setError(null)
+    setActionMessage(null)
+    try {
+      const res = await getOrders(nextPage, size)
+      setData(res)
+    } catch (e) {
+      setError(e.response?.data || e.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchOrders(page)
+  }, [page, size])
+
+  const handleCancel = async orderId => {
+    setActionMessage(null)
+    setError(null)
+    try {
+      await cancelOrder(orderId)
+      setActionMessage('주문이 취소되었습니다.')
+      await fetchOrders(page)
+    } catch (e) {
+      setError(e.response?.data || e.message)
+    }
+  }
+
+  const orders = data?.content || []
+  const totalPages = data?.totalPages ?? 0
+
+  return (
+    <div className="orders-page">
+      <section className="orders-header">
+        <div>
+          <h2>주문 조회</h2>
+          <p>계정의 주문 내역을 확인하고 취소할 수 있습니다.</p>
+        </div>
+        <div className="orders-actions">
+          <button className="ghost-button" onClick={() => fetchOrders(page)} disabled={loading}>
+            {loading ? '불러오는 중...' : '새로고침'}
+          </button>
+        </div>
+      </section>
+
+      {error && <div className="trade-alert is-error">{JSON.stringify(error)}</div>}
+      {actionMessage && <div className="trade-alert">{actionMessage}</div>}
+
+      <section className="orders-card">
+        {orders.length === 0 ? (
+          <div className="trade-empty">주문 내역이 없습니다.</div>
+        ) : (
+          <table className="orders-table">
+            <thead>
+              <tr>
+                <th>주문 ID</th>
+                <th>계좌</th>
+                <th>심볼</th>
+                <th>구분</th>
+                <th>유형</th>
+                <th>상태</th>
+                <th>수량</th>
+                <th>지정가</th>
+                <th>통화</th>
+                <th>액션</th>
+              </tr>
+            </thead>
+            <tbody>
+              {orders.map(order => (
+                <tr key={order.id}>
+                  <td>{order.id}</td>
+                  <td>{order.accountNo}</td>
+                  <td>{order.symbol}</td>
+                  <td>{order.side}</td>
+                  <td>{order.type}</td>
+                  <td>{order.status}</td>
+                  <td>{order.qty}</td>
+                  <td>{order.limitPriceAmount ?? '-'}</td>
+                  <td>{order.priceCurrency ?? '-'}</td>
+                  <td>
+                    {CANCELABLE.has(order.status) ? (
+                      <button className="ghost-button" onClick={() => handleCancel(order.id)}>
+                        취소
+                      </button>
+                    ) : (
+                      <span className="orders-muted">-</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </section>
+
+      <section className="orders-pagination">
+        <button
+          className="ghost-button"
+          onClick={() => setPage(p => Math.max(0, p - 1))}
+          disabled={page === 0 || loading}
+        >
+          이전
+        </button>
+        <span>
+          {page + 1} / {Math.max(1, totalPages)}
+        </span>
+        <button
+          className="ghost-button"
+          onClick={() => setPage(p => (totalPages ? Math.min(totalPages - 1, p + 1) : p + 1))}
+          disabled={totalPages ? page >= totalPages - 1 : loading}
+        >
+          다음
+        </button>
+        <div className="orders-size">
+          <label>페이지 크기</label>
+          <select value={size} onChange={e => setSize(Number(e.target.value))}>
+            {[10, 20, 30, 50].map(opt => (
+              <option key={opt} value={opt}>{opt}</option>
+            ))}
+          </select>
+        </div>
+      </section>
+    </div>
+  )
+}

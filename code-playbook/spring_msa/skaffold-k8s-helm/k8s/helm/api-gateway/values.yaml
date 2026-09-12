@@ -1,0 +1,11 @@
+replicaCount: 1
+
+image:
+  name: api-gateway
+  repository: skaffold-k8s-helm/api-gateway
+  tag: latest
+
+service:
+  type: ClusterIP
+  port: 8080
+  containerPort: 8080

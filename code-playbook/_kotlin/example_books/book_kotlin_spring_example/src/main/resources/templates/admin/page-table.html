@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{admin/layouts/layout-admin :: layout(~{::#content})}">
+
+    <div id="content">
+
+        <!-- Begin Page Content -->
+        <div class="container-fluid">
+
+            <!-- Page Heading -->
+            <h1 class="h3 mb-2 text-gray-800" th:text="${pageName}">Tables</h1>
+            <p class="mb-4"></p>
+
+            <!-- Form Card -->
+            <div th:replace="~{admin/fragments/fragment-form :: form(${formElements})}"></div>
+
+            <!-- DataTales Card -->
+            <div th:replace="~{admin/fragments/fragment-datatable :: datatable(${table})}"></div>
+            <th:block th:if="${hasDetails}">
+                <div th:replace="~{admin/fragments/fragment-datatable :: datatable(${detailTable})}"></div>
+            </th:block>
+
+            <div th:replace="~{admin/fragments/fragment-modal-form :: modalForm(${formElements})}"></div>
+
+        </div>
+        <!-- /.container-fluid -->
+
+    </div>
+
+</html>

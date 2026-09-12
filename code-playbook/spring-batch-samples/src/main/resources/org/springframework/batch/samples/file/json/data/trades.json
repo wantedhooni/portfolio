@@ -1,0 +1,5 @@
+[
+ {"customer":"foo","id":1,"isin":"123","price":10.5,"quantity":5,"version":0},
+ {"customer":"bar","id":2,"isin":"456","price":20.5,"quantity":10,"version":0},
+ {"customer":"baz","id":3,"isin":"789","price":30.5,"quantity":15,"version":0}
+]

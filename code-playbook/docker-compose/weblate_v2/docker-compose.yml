@@ -1,0 +1,47 @@
+services:
+  weblate:
+    image: weblate/weblate
+    ports:
+      - "8080:8080"
+    environment:
+      WEBLATE_DEBUG: 1
+      WEBLATE_LOGLEVEL: DEBUG
+      WEBLATE_SITE_TITLE: Weblate Local
+      WEBLATE_ADMIN_NAME: admin
+      WEBLATE_ADMIN_EMAIL: admin@example.com
+      WEBLATE_ADMIN_PASSWORD: Qwer1234!
+      WEBLATE_SERVER_EMAIL: weblate@example.com
+      WEBLATE_DEFAULT_FROM_EMAIL: weblate@example.com
+      WEBLATE_PROJECT_WEB_RESTRICT_HOST: 0
+      WEBLATE_PROJECT_WEB_RESTRICT_NUMERIC: 0
+      WEBLATE_PROJECT_WEB_RESTRICT_RESERVED: 0
+
+      WEBLATE_ALLOWED_HOSTS: "*"
+      POSTGRES_PASSWORD: weblate
+      POSTGRES_USER: weblate
+      POSTGRES_DATABASE: weblate
+      POSTGRES_HOST: database
+      POSTGRES_PORT: 5432
+      REDIS_HOST: cache
+      REDIS_PORT: 6379
+    depends_on:
+      - database
+      - cache
+    volumes:
+      - weblate-data:/app/data
+
+  database:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_PASSWORD: weblate
+      POSTGRES_USER: weblate
+      POSTGRES_DB: weblate
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  cache:
+    image: redis:7-alpine
+
+volumes:
+  weblate-data:
+  postgres-data:

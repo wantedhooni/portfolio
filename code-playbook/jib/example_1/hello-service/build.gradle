@@ -1,0 +1,26 @@
+plugins {
+  id 'java'
+  id 'org.springframework.boot'
+  id 'io.spring.dependency-management'
+  id 'com.google.cloud.tools.jib'
+}
+
+
+dependencies {
+  implementation 'org.springframework.boot:spring-boot-starter-web'
+  testImplementation 'org.springframework.boot:spring-boot-starter-test'
+  testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+  implementation project(':shared-library')
+}
+
+jib {
+  container {
+    // 노출할 포트 번호 지정
+    ports = ['8081']
+  }
+  to {
+
+  }
+}
+// IMPORTANT: Set the environment variable PROJECT_ID to your own Google Cloud Platform project.
+// jib.to.image = "gcr.io/${System.getenv('PROJECT_ID')}/${project.name}:${version}"

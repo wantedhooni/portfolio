@@ -1,0 +1,48 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://staging-db-host:5432/demo
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  kafka:
+    bootstrap-servers: staging-kafka-host:9092
+
+  boot:
+    admin:
+      client:
+        url: http://staging-admin-host:8080
+        instance:
+          name: ${spring.application.name}-staging
+          prefer-ip: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+  tracing:
+    sampling:
+      probability: 0.5
+  metrics:
+    export:
+      otlp:
+        enabled: true
+        url: http://otel-collector-host:4318/v1/metrics
+
+server:
+  port: 8080
+
+logging:
+  level:
+    root: INFO
+    com.revy: INFO

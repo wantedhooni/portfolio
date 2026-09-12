@@ -1,0 +1,69 @@
+services:
+  # https://github.com/grafana/docker-otel-lgtm/
+  # https://grafana.com/blog/an-opentelemetry-backend-in-a-docker-image-introducing-grafana-otel-lgtm/
+  otel-lgtm:
+    build:
+      context: .
+      dockerfile: Dockerfile.otel-lgtm
+    image: local/otel-lgtm
+    container_name: otel-lgtm
+    ports:
+      - "3000:3000"   # Grafana UI
+      - "4317:4317"   # OTLP gRPC receiver
+      - "4318:4318"   # OTLP HTTP receiver
+    # environment:
+      # ENABLE_LOGS_ALL: true
+    restart: unless-stopped
+
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.18.1
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+    ports:
+      - "9200:9200"   # Elasticsearch REST API / Kibana 연결
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
+    restart: unless-stopped
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.18.1
+    container_name: kibana
+    depends_on:
+      - elasticsearch
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+    ports:
+      - "5601:5601"   # Kibana UI
+    restart: unless-stopped
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.18.1
+    container_name: logstash
+    depends_on:
+      - elasticsearch
+    ports:
+      # - "8080:8080"   # Logstash HTTP input - otel-lgtm Collector가 로그 전송
+      - "9600:9600"   # Logstash Monitoring API
+    volumes:
+      - ./infra/logstash/pipeline:/usr/share/logstash/pipeline:ro
+    restart: unless-stopped
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.76.0
+    container_name: jaeger
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports:
+      - "16686:16686"     # Jaeger UI
+      - "14250:14250"     # Jaeger gRPC collector
+      - "14268:14268"     # Jaeger HTTP collector
+      - "6831:6831/udp"   # Jaeger agent compact thrift UDP
+      - "6832:6832/udp"   # Jaeger agent binary thrift UDP
+    restart: unless-stopped
+
+volumes:
+  es-data:

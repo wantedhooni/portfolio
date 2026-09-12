@@ -1,0 +1,11 @@
+replicaCount: 1
+
+image:
+  name: app-1
+  repository: skaffold-k8s-helm/app-1
+  tag: latest
+
+service:
+  type: ClusterIP
+  port: 10000
+  containerPort: 10000

@@ -1,0 +1,41 @@
+spring:
+  application:
+    name: fds-aml-service
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/fds_aml
+    username: ${DB_USER:fds}
+    password: ${DB_PASS:secret}
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+
+  jpa:
+    hibernate:
+      ddl-auto: validate           # 운영: validate, 개발: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        default_schema: fds
+    open-in-view: false            # OSIV 반드시 끄기
+
+  threads:
+    virtual:
+      enabled: true                # Java 21 Virtual Thread 활성화
+
+fds:
+  rules:
+    velocity:
+      max-count-per-hour: 10       # 1시간 내 최대 거래 수
+      max-amount-per-day: 5000000  # 일일 최대 거래 금액
+    geo:
+      suspicious-countries:
+        - "KP"                     # 북한
+        - "IR"                     # 이란
+
+aml:
+  ctr:
+    threshold: 10000000            # CTR 기준금액 (1천만원)
+  str:
+    review-period-days: 30         # STR 검토 기간

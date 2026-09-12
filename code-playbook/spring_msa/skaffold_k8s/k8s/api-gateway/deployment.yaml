@@ -1,0 +1,23 @@
+#Deployment api-gateway
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shared-server-api-gateway
+  labels:
+    app: shared-server-api-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shared-server-api-gateway
+  template:
+    metadata:
+      labels:
+        app: shared-server-api-gateway
+    spec:
+      containers:
+      - name: shared-server-api-gateway
+        image: shared-server-api-gateway
+        envFrom:
+          - configMapRef:
+              name: shared-server-api-gateway-config

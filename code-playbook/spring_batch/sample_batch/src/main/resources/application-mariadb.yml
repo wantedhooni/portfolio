@@ -1,0 +1,9 @@
+spring:
+  config:
+    activate:
+      on-profile: mariadb
+
+  datasource:
+    url: jdbc:mariadb://localhost:23306/app
+    username: appuser
+    password: appuser

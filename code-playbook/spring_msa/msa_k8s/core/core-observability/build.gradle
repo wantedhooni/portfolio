@@ -1,0 +1,18 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    implementation(project(":core:core-common"))
+    api 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-opentelemetry'
+// OpenTelemetry Logback Appender (from instrumentation project)
+    api("io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0:2.11.0-alpha")
+
+    implementation('jakarta.servlet:jakarta.servlet-api')
+    implementation('org.springframework:spring-context')
+    implementation('org.springframework:spring-webflux')
+    implementation('org.springframework:spring-web')
+
+
+}
