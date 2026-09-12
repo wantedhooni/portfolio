@@ -4,23 +4,10 @@ spring:
   profiles:
     active: ${APP_PROFILE:local}
     default: local
-  config:
-    import:
-      - "optional:classpath:/metrics.yml"
-      - "optional:classpath:/springdoc.yml"
-      - "optional:classpath:/scheduler-quartz.properties"
   datasource:
     url: ${ADMIN_DB_URL:jdbc:postgresql://localhost:5431/appdb}
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:postgres}
-  data:
-    redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
-      database: 0
-#      password: ${REDIS_PASSWORD:mypassword}
-      repositories:
-        enabled: false
   jpa:
     hibernate:
       ddl-auto: validate
@@ -30,9 +17,21 @@ spring:
         format_sql: true
         jdbc:
           time_zone: UTC
-
   flyway:
     enabled: true
+  config:
+    import:
+      - "optional:classpath:/metrics.yml"
+      - "optional:classpath:/springdoc.yml"
+      - "optional:classpath:/scheduler-quartz.properties"
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      database: 0
+#      password: ${REDIS_PASSWORD:mypassword}
+      repositories:
+        enabled: false
 
   quartz:
     # ───────────────────────────────────────────────────────────────────────

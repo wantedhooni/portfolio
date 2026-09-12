@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(gh pr *)",
-      "Bash(xargs -I{} sh -c 'echo \"=== {} ===\"; cat {}')",
-      "Bash(grep -E \"domain/[a-z]+$\")"
-    ]
-  }
-}
