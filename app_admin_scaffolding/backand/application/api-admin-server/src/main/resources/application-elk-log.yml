@@ -1,4 +1,0 @@
-elk:
-  log:
-    enabled: true
-    logstash.url: localhost:4560
