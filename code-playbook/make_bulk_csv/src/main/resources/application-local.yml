@@ -1,3 +1,0 @@
-bulk:
-  output:
-    local-path: "./exports"

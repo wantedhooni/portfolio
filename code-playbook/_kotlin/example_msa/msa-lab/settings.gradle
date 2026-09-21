@@ -1,5 +1,0 @@
-include ":api-gateway"
-include ":discovery-server"
-include ":order-service"
-include ":product-service"
-

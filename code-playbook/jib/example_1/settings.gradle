@@ -1,4 +1,0 @@
-include ":shared-library"
-
-include ":hello-service"
-include ":name-service"
