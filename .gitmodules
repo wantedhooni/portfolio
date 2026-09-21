@@ -2,3 +2,15 @@
 	path = code-playbook
 	url = https://github.com/wantedhooni/sample_code
 	branch = develop
+[submodule "kotlin-playbook"]
+	path = kotlin-playbook
+	url = https://github.com/wantedhooni/kotlin-cookbook.git
+	branch = develop
+[submodule "app_admin_scaffolding"]
+	path = app_admin_scaffolding
+	url = https://github.com/wantedhooni/app_scaffolding.git
+	branch = develop
+[submodule "java_bank_securities"]
+	path = java_bank_securities
+	url = https://github.com/wantedhooni/securities_monolithic.git
+	branch = develop
