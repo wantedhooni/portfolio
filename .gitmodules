@@ -1,6 +1,6 @@
 [submodule "code-playbook"]
 	path = code-playbook
-	url = https://github.com/wantedhooni/sample_code
+	url = https://github.com/wantedhooni/sample_code.git
 	branch = develop
 [submodule "kotlin-playbook"]
 	path = kotlin-playbook
